@@ -18,6 +18,7 @@ const HomeSnapshot _kMockHomeSnapshot = HomeSnapshot(
   matchCount: 3,
   matches: <NearbyMatch>[
     NearbyMatch(
+      offerId: 'offer-selin-kadikoy-levent',
       initials: 'SK',
       displayName: 'Selin K.',
       rating: 4.9,

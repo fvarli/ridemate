@@ -11,6 +11,7 @@ import 'package:ridemate/core/a11y/rm_a11y.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
+import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/gallery/presentation/gallery_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
@@ -102,7 +103,7 @@ void main() {
 
       await tester.tap(_navTab('Search'));
       await tester.pumpAndSettle();
-      expect(find.text('Phase 3 — Search routes'), findsOneWidget);
+      expect(find.byType(SearchScreen), findsOneWidget);
 
       await tester.tap(_navTab('Profile'));
       await tester.pumpAndSettle();
@@ -129,16 +130,19 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Home is a real screen now; the other three are still placeholders.
+      // Home and Search are real screens now; Messages and Profile are still
+      // placeholders.
       expect(
         find.byType(PlaceholderScreen, skipOffstage: false),
-        findsNWidgets(3),
+        findsNWidgets(2),
       );
-      expect(
-        find.byType(HomeScreen, skipOffstage: false),
-        findsOneWidget,
-        reason: 'branches stay mounted once visited',
-      );
+      for (final Type screen in <Type>[HomeScreen, SearchScreen]) {
+        expect(
+          find.byType(screen, skipOffstage: false),
+          findsOneWidget,
+          reason: '$screen stays mounted once visited',
+        );
+      }
     });
 
     testWidgets('the centre action pushes over the shell and pops back', (

@@ -39,6 +39,23 @@ abstract final class AppRoutes {
   static const String profile = 'profile';
   static const String profilePath = '/profile';
 
+  // ── Discovery, pushed over the shell ───────────────────────
+  // Neither screen has a tab bar in the design, so both render above the
+  // shell. Route details is keyed by id rather than nested under matches,
+  // because Home reaches the same screen.
+
+  static const String matches = 'matches';
+  static const String matchesPath = '/matches';
+
+  static const String routeDetails = 'routeDetails';
+  static const String routeDetailsPath = '/routes/:routeId';
+
+  /// Builds the concrete path for [routeId].
+  static String routeDetailsPathFor(String routeId) => '/routes/$routeId';
+
+  /// The path parameter carrying the offer id.
+  static const String routeIdParam = 'routeId';
+
   // ── Pushed over the shell ──────────────────────────────────
 
   /// The centre action of the navigation bar: publish a route as a driver.

@@ -29,6 +29,22 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
 
+    return PopScope(
+      // System back on a secondary tab should return to Home, not leave the
+      // app. Without this every tab exits on the first back press.
+      canPop: navigationShell.currentIndex == _homeBranchIndex,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) return;
+        navigationShell.goBranch(_homeBranchIndex);
+      },
+      child: _buildScaffold(context, l10n),
+    );
+  }
+
+  /// The Home branch, which system back falls through to.
+  static const int _homeBranchIndex = 0;
+
+  Widget _buildScaffold(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: RmNavBar(

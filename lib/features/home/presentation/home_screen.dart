@@ -73,7 +73,8 @@ class HomeScreen extends ConsumerWidget {
             child: NearbyMatchSheet(
               snapshot: snapshot,
               onSeeAllMatches: () => _openSearch(context),
-              onMatchSelected: (NearbyMatch _) => _openSearch(context),
+              onMatchSelected: (NearbyMatch match) =>
+                  _openRouteDetails(context, match),
             ),
           ),
         ),
@@ -81,12 +82,19 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  /// Opens the search branch.
-  ///
-  /// Search itself arrives in Phase 3; until then this is an honest dead end
-  /// rather than a fabricated results screen.
+  /// Switches to the search tab.
   static void _openSearch(BuildContext context) =>
       context.goNamed(AppRoutes.search);
+
+  /// Opens the full offer behind a nearby match.
+  ///
+  /// The Home fixture references the same offer id the discovery fixture
+  /// defines, so both entry points reach one screen.
+  static void _openRouteDetails(BuildContext context, NearbyMatch match) =>
+      context.pushNamed(
+        AppRoutes.routeDetails,
+        pathParameters: <String, String>{AppRoutes.routeIdParam: match.offerId},
+      );
 }
 
 /// The scrim bar over the map: greeting, search field and shortcuts.

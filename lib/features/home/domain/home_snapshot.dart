@@ -25,6 +25,7 @@ import '../../../core/widgets/rm_avatar.dart';
 @immutable
 final class NearbyMatch {
   const NearbyMatch({
+    required this.offerId,
     required this.initials,
     required this.displayName,
     required this.rating,
@@ -35,6 +36,10 @@ final class NearbyMatch {
     required this.identity,
     required this.isVerified,
   });
+
+  /// The route offer this match refers to, so tapping it opens the same
+  /// screen the discovery flow reaches.
+  final String offerId;
 
   /// Avatar initials. Built with `RmTextConventions.initials`.
   final String initials;

@@ -17,6 +17,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/discovery/presentation/match_results_screen.dart';
+import '../../features/discovery/presentation/route_details_screen.dart';
+import '../../features/discovery/presentation/search_screen.dart';
 import '../../features/gallery/presentation/gallery_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
@@ -106,11 +109,15 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
               ),
             ],
           ),
-          _placeholderBranch(
-            path: AppRoutes.searchPath,
-            name: AppRoutes.search,
-            title: 'Search',
-            phase: 'Phase 3 — Search routes',
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.searchPath,
+                name: AppRoutes.search,
+                builder: (BuildContext context, GoRouterState state) =>
+                    const SearchScreen(),
+              ),
+            ],
           ),
           _placeholderBranch(
             path: AppRoutes.messagesPath,
@@ -125,6 +132,20 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
             phase: 'Phase 6 — Profile / Trust',
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.matchesPath,
+        name: AppRoutes.matches,
+        builder: (BuildContext context, GoRouterState state) =>
+            const MatchResultsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.routeDetailsPath,
+        name: AppRoutes.routeDetails,
+        builder: (BuildContext context, GoRouterState state) =>
+            RouteDetailsScreen(
+              routeId: state.pathParameters[AppRoutes.routeIdParam] ?? '',
+            ),
       ),
       GoRoute(
         path: AppRoutes.createRoutePath,

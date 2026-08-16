@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/gallery/presentation/gallery_screen.dart';
+import '../../features/home/presentation/home_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
@@ -95,11 +96,15 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
               StatefulNavigationShell shell,
             ) => AppShell(navigationShell: shell),
         branches: <StatefulShellBranch>[
-          _placeholderBranch(
-            path: AppRoutes.homePath,
-            name: AppRoutes.home,
-            title: 'Home',
-            phase: 'Phase 2 — Home / Map',
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.homePath,
+                name: AppRoutes.home,
+                builder: (BuildContext context, GoRouterState state) =>
+                    const HomeScreen(),
+              ),
+            ],
           ),
           _placeholderBranch(
             path: AppRoutes.searchPath,

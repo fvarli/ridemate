@@ -196,10 +196,18 @@ class RmBadge extends StatelessWidget {
             RmIcon(icon!, size: RmIconSize.sm, color: foreground),
             const SizedBox(width: RmSpacing.xs),
           ],
-          Text(
-            label,
-            style: (numeric ? RmTypography.numericMicro : RmTypography.micro)
-                .copyWith(color: foreground),
+          // Flexible so a badge ellipsizes instead of overflowing when its
+          // row is tight. Localized labels vary in length, and the scaled
+          // component set is wider than the artboard it was measured from.
+          Flexible(
+            child: Text(
+              label,
+              style: (numeric ? RmTypography.numericMicro : RmTypography.micro)
+                  .copyWith(color: foreground),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+            ),
           ),
         ],
       ),

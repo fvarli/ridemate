@@ -46,6 +46,18 @@
   "verificationStatusOptional": "Optional",
   "verificationUpload": "Upload",
 
+  "homeGreeting": "Good morning,",
+  "homeSearchPlaceholder": "Where are you going?",
+  "homeSearchAction": "Search",
+  "homeSearchSemanticLabel": "Where are you going? Search routes.",
+  "homeShortcutHome": "Home",
+  "homeShortcutWork": "Work · Levent",
+  "homeShortcutUniversity": "University",
+  "homeNearbyRoutesTitle": "Routes near you",
+  "homeMatchCount": "{count} matches →",
+  "homeMatchSemanticLabel": "{name}, rated {rating}. {route}. {fare} per person. {compatibility} route match.",
+  "homeCompatibility": "{value} match",
+
   "dateToday": "Today",
   "dateYesterday": "Yesterday",
   "dateTomorrow": "Tomorrow",

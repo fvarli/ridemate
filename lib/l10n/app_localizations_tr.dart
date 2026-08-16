@@ -141,6 +141,51 @@ class AppLocalizationsTr extends AppLocalizations {
   String get verificationUpload => 'Yükle';
 
   @override
+  String get homeGreeting => 'Günaydın,';
+
+  @override
+  String get homeSearchPlaceholder => 'Nereye gidiyorsun?';
+
+  @override
+  String get homeSearchAction => 'Ara';
+
+  @override
+  String get homeSearchSemanticLabel => 'Nereye gidiyorsun? Rota ara.';
+
+  @override
+  String get homeShortcutHome => 'Ev';
+
+  @override
+  String get homeShortcutWork => 'İş · Levent';
+
+  @override
+  String get homeShortcutUniversity => 'Üniversite';
+
+  @override
+  String get homeNearbyRoutesTitle => 'Yakınındaki rotalar';
+
+  @override
+  String homeMatchCount(String count) {
+    return '$count eşleşme →';
+  }
+
+  @override
+  String homeMatchSemanticLabel(
+    String name,
+    String rating,
+    String route,
+    String fare,
+    String compatibility,
+  ) {
+    return '$name, $rating puan. $route. Kişi başı $fare. $compatibility rota uyumu.';
+  }
+
+  @override
+  String homeCompatibility(String value) {
+    return '$value uyum';
+  }
+
+  @override
   String get dateToday => 'Bugün';
 
   @override

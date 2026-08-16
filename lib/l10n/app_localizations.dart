@@ -332,6 +332,78 @@ abstract class AppLocalizations {
   /// **'Yükle'**
   String get verificationUpload;
 
+  /// Ana ekrandaki karşılama. Tasarımda yalnızca sabah karşılaması onaylanmıştır; günün saatine göre değişen varyantlar için ayrıca onaylı metin gerekir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günaydın,'**
+  String get homeGreeting;
+
+  /// Arama alanının metni. Bu alan gerçek bir metin girişi değildir; dokunulduğunda arama ekranını açar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nereye gidiyorsun?'**
+  String get homeSearchPlaceholder;
+
+  /// Arama alanının sonundaki eylem etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ara'**
+  String get homeSearchAction;
+
+  /// Arama alanı için ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nereye gidiyorsun? Rota ara.'**
+  String get homeSearchSemanticLabel;
+
+  /// Kayıtlı adres kısayolu: ev.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ev'**
+  String get homeShortcutHome;
+
+  /// Kayıtlı adres kısayolu: iş. Konum adı mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'İş · Levent'**
+  String get homeShortcutWork;
+
+  /// Kayıtlı adres kısayolu: üniversite.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üniversite'**
+  String get homeShortcutUniversity;
+
+  /// Yakındaki eşleşmeler kartının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yakınındaki rotalar'**
+  String get homeNearbyRoutesTitle;
+
+  /// Tüm eşleşmeleri açan bağlantı. Sayı mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} eşleşme →'**
+  String homeMatchCount(String count);
+
+  /// Eşleşme kartı için ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name}, {rating} puan. {route}. Kişi başı {fare}. {compatibility} rota uyumu.'**
+  String homeMatchSemanticLabel(
+    String name,
+    String rating,
+    String route,
+    String fare,
+    String compatibility,
+  );
+
+  /// Rota uyumu rozeti. Değer mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{value} uyum'**
+  String homeCompatibility(String value);
+
   /// Göreli tarih: bugün.
   ///
   /// In tr, this message translates to:

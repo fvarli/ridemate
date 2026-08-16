@@ -141,6 +141,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verificationUpload => 'Upload';
 
   @override
+  String get homeGreeting => 'Good morning,';
+
+  @override
+  String get homeSearchPlaceholder => 'Where are you going?';
+
+  @override
+  String get homeSearchAction => 'Search';
+
+  @override
+  String get homeSearchSemanticLabel => 'Where are you going? Search routes.';
+
+  @override
+  String get homeShortcutHome => 'Home';
+
+  @override
+  String get homeShortcutWork => 'Work · Levent';
+
+  @override
+  String get homeShortcutUniversity => 'University';
+
+  @override
+  String get homeNearbyRoutesTitle => 'Routes near you';
+
+  @override
+  String homeMatchCount(String count) {
+    return '$count matches →';
+  }
+
+  @override
+  String homeMatchSemanticLabel(
+    String name,
+    String rating,
+    String route,
+    String fare,
+    String compatibility,
+  ) {
+    return '$name, rated $rating. $route. $fare per person. $compatibility route match.';
+  }
+
+  @override
+  String homeCompatibility(String value) {
+    return '$value match';
+  }
+
+  @override
   String get dateToday => 'Today';
 
   @override

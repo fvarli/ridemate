@@ -12,6 +12,7 @@ import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/gallery/presentation/gallery_screen.dart';
+import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
@@ -39,6 +40,22 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
   return ProviderScope.containerOf(tester.element(find.byType(RideMateApp)));
 }
 
+/// Finds a destination inside the navigation bar.
+///
+/// Scoped because Home renders its own "Ara" action, which would otherwise
+/// make a bare text finder ambiguous.
+/// The gallery's own scroll view.
+///
+/// Scoped because Home's shortcut row is also a ListView and stays mounted in
+/// the shell's IndexedStack, which would make a bare ListView finder
+/// ambiguous.
+Finder get _galleryList => find
+    .descendant(of: find.byType(GalleryScreen), matching: find.byType(ListView))
+    .first;
+
+Finder _navTab(String label) =>
+    find.descendant(of: find.byType(RmNavBar), matching: find.text(label));
+
 void main() {
   group('Application shell', () {
     testWidgets('opens on the home branch with the navigation bar', (
@@ -48,8 +65,7 @@ void main() {
 
       expect(find.byType(AppShell), findsOneWidget);
       expect(find.byType(RmNavBar), findsOneWidget);
-      expect(find.byType(PlaceholderScreen), findsOneWidget);
-      expect(find.text('Phase 2 — Home / Map'), findsOneWidget);
+      expect(find.byType(HomeScreen), findsOneWidget);
     });
 
     testWidgets('shows the four design destinations and the centre action', (
@@ -59,14 +75,22 @@ void main() {
       container.read(localeProvider.notifier).set(const Locale('tr'));
       await tester.pumpAndSettle();
 
-      // Verbatim from the design's tab bar.
+      // Verbatim from the design's tab bar. Scoped to the bar because Home
+      // also renders an "Ara" action inside its search field.
       for (final String label in <String>[
         'Anasayfa',
         'Ara',
         'Mesajlar',
         'Profil',
       ]) {
-        expect(find.text(label), findsOneWidget, reason: label);
+        expect(
+          find.descendant(
+            of: find.byType(RmNavBar),
+            matching: find.text(label),
+          ),
+          findsOneWidget,
+          reason: label,
+        );
       }
       expect(find.byType(RmFab), findsOneWidget);
     });
@@ -76,11 +100,11 @@ void main() {
       container.read(localeProvider.notifier).set(const Locale('en'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Search'));
+      await tester.tap(_navTab('Search'));
       await tester.pumpAndSettle();
       expect(find.text('Phase 3 — Search routes'), findsOneWidget);
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(_navTab('Profile'));
       await tester.pumpAndSettle();
       expect(find.text('Phase 6 — Profile / Trust'), findsOneWidget);
     });
@@ -101,16 +125,20 @@ void main() {
         'Profile',
         'Home',
       ]) {
-        await tester.tap(find.text(label));
+        await tester.tap(_navTab(label));
         await tester.pumpAndSettle();
       }
 
+      // Home is a real screen now; the other three are still placeholders.
       expect(
         find.byType(PlaceholderScreen, skipOffstage: false),
-        findsNWidgets(4),
+        findsNWidgets(3),
       );
-      // Back on Home, and the earlier branches were never torn down.
-      expect(find.text('Phase 2 — Home / Map'), findsOneWidget);
+      expect(
+        find.byType(HomeScreen, skipOffstage: false),
+        findsOneWidget,
+        reason: 'branches stay mounted once visited',
+      );
     });
 
     testWidgets('the centre action pushes over the shell and pops back', (
@@ -211,7 +239,7 @@ void main() {
 
         // Scroll the whole catalogue so every specimen actually builds.
         for (int i = 0; i < 6; i++) {
-          await tester.drag(find.byType(ListView), const Offset(0, -1200));
+          await tester.drag(_galleryList, const Offset(0, -1200));
           await tester.pump(const Duration(milliseconds: 100));
         }
         expect(tester.takeException(), isNull, reason: '\$mode after scroll');
@@ -242,7 +270,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       for (int i = 0; i < 6; i++) {
-        await tester.drag(find.byType(ListView), const Offset(0, -1200));
+        await tester.drag(_galleryList, const Offset(0, -1200));
         await tester.pump(const Duration(milliseconds: 100));
       }
       expect(tester.takeException(), isNull, reason: 'RTL after scroll');

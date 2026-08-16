@@ -189,6 +189,62 @@
     "description": "İşlemdeki adımın eylemi. Phase 2'de gerçek belge yükleme yoktur; yalnızca demo durumunu ilerletir."
   },
 
+  "homeGreeting": "Günaydın,",
+  "@homeGreeting": {
+    "description": "Ana ekrandaki karşılama. Tasarımda yalnızca sabah karşılaması onaylanmıştır; günün saatine göre değişen varyantlar için ayrıca onaylı metin gerekir."
+  },
+  "homeSearchPlaceholder": "Nereye gidiyorsun?",
+  "@homeSearchPlaceholder": {
+    "description": "Arama alanının metni. Bu alan gerçek bir metin girişi değildir; dokunulduğunda arama ekranını açar."
+  },
+  "homeSearchAction": "Ara",
+  "@homeSearchAction": {
+    "description": "Arama alanının sonundaki eylem etiketi."
+  },
+  "homeSearchSemanticLabel": "Nereye gidiyorsun? Rota ara.",
+  "@homeSearchSemanticLabel": {
+    "description": "Arama alanı için ekran okuyucu etiketi."
+  },
+  "homeShortcutHome": "Ev",
+  "@homeShortcutHome": {"description": "Kayıtlı adres kısayolu: ev."},
+  "homeShortcutWork": "İş · Levent",
+  "@homeShortcutWork": {"description": "Kayıtlı adres kısayolu: iş. Konum adı mock sunum verisidir."},
+  "homeShortcutUniversity": "Üniversite",
+  "@homeShortcutUniversity": {"description": "Kayıtlı adres kısayolu: üniversite."},
+  "homeNearbyRoutesTitle": "Yakınındaki rotalar",
+  "@homeNearbyRoutesTitle": {"description": "Yakındaki eşleşmeler kartının başlığı."},
+  "homeMatchCount": "{count} eşleşme →",
+  "@homeMatchCount": {
+    "description": "Tüm eşleşmeleri açan bağlantı. Sayı mock sunum verisidir.",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "example": "3"
+      }
+    }
+  },
+  "homeMatchSemanticLabel": "{name}, {rating} puan. {route}. Kişi başı {fare}. {compatibility} rota uyumu.",
+  "@homeMatchSemanticLabel": {
+    "description": "Eşleşme kartı için ekran okuyucu etiketi.",
+    "placeholders": {
+      "name": {"type": "String"},
+      "rating": {"type": "String"},
+      "route": {"type": "String"},
+      "fare": {"type": "String"},
+      "compatibility": {"type": "String"}
+    }
+  },
+  "homeCompatibility": "{value} uyum",
+  "@homeCompatibility": {
+    "description": "Rota uyumu rozeti. Değer mock sunum verisidir.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "%94"
+      }
+    }
+  },
+
   "dateToday": "Bugün",
   "@dateToday": {
     "description": "Göreli tarih: bugün."

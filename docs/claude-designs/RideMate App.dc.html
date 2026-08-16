@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  @keyframes rm-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.82); } }
+  @keyframes rm-ring { 0% { box-shadow: 0 0 0 0 rgba(229,72,77,.45); } 100% { box-shadow: 0 0 0 14px rgba(229,72,77,0); } }
+</style>
+</helmet>
+
+<div style="width:max-content;min-width:100%;min-height:100vh;box-sizing:border-box;padding:54px 56px 80px;background:radial-gradient(1200px 600px at 20% -5%, #141a26 0%, #0a0d14 55%, #07090f 100%);font-family:Manrope,system-ui,sans-serif;">
+
+  <!-- ===== HEADER ===== -->
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:40px;max-width:1280px;margin-bottom:8px;">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#3B6BFF,#1E3FBF);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(46,91,255,.45);">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 15.5 L10 6 L14 13 L19 8.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="2.3" fill="#fff"/><circle cx="19" cy="8.5" r="2.3" fill="#9DB8FF"/></svg>
+        </div>
+        <div style="display:flex;flex-direction:column;">
+          <span style="font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px;">RideMate</span>
+          <span style="font-size:12.5px;font-weight:500;color:#8C97AD;letter-spacing:.2px;">Güvenilir şehir içi yolculuk paylaşımı</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;color:#0F8A43;background:rgba(24,169,87,.12);border:1px solid rgba(24,169,87,.3);padding:4px 10px;border-radius:99px;">İSTANBUL · PİLOT</span>
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;color:#9DB8FF;background:rgba(59,107,255,.1);border:1px solid rgba(59,107,255,.28);padding:4px 10px;border-radius:99px;">TR · ₺ TRY</span>
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;color:#9AA4B8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:4px 10px;border-radius:99px;">i18n READY · TR/EN/DE/ES/FR/AR</span>
+        <span style="font:500 12px Manrope;color:#5E6982;">v0.1 · Mobil ekran kütüphanesi</span>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div style="display:flex;gap:30px;padding:18px 24px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:18px;backdrop-filter:blur(8px);">
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <span style="font:600 10px 'IBM Plex Mono',monospace;color:#6B768D;letter-spacing:1px;">PALET</span>
+        <div style="display:flex;gap:14px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="width:24px;height:24px;border-radius:8px;background:#2E5BFF;box-shadow:0 4px 10px rgba(46,91,255,.4);"></span><span style="font:500 9.5px Manrope;color:#7A8499;">Primary</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="width:24px;height:24px;border-radius:8px;background:#18A957;"></span><span style="font:500 9.5px Manrope;color:#7A8499;">Verified</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="width:24px;height:24px;border-radius:8px;background:#E5484D;"></span><span style="font:500 9.5px Manrope;color:#7A8499;">Safety</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="width:24px;height:24px;border-radius:8px;background:#F5A524;"></span><span style="font:500 9.5px Manrope;color:#7A8499;">Rating</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;border-left:1px solid rgba(255,255,255,.08);padding-left:30px;">
+        <span style="font:600 10px 'IBM Plex Mono',monospace;color:#6B768D;letter-spacing:1px;">TİPOGRAFİ</span>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <span style="font:800 16px Manrope;color:#fff;">Manrope <span style="font-weight:500;color:#7A8499;font-size:12px;">— arayüz</span></span>
+          <span style="font:500 13px 'IBM Plex Mono',monospace;color:#9DB8FF;">IBM Plex Mono <span style="color:#7A8499;font-size:11px;">— veri</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:1px;background:linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,0));max-width:1280px;margin:26px 0 40px;"></div>
+
+  <!-- ============ ROW 1: GİRİŞ & GÜVEN ============ -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <span style="font:800 15px Manrope;color:#fff;letter-spacing:.3px;">01 · Giriş & Güven Temeli</span>
+    <span style="font:500 13px Manrope;color:#5E6982;">Onboarding · Kimlik doğrulama — güven gününden başlar</span>
+  </div>
+
+  <div style="display:flex;gap:44px;align-items:flex-start;margin-bottom:64px;">
+
+    <!-- ===== ONBOARDING ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">ONBOARDING</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Değer önerisi + topluluk kanıtı</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:linear-gradient(170deg,#16357A 0%,#2E5BFF 46%,#1E3FBF 100%);border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <!-- status -->
+          <div style="position:relative;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;">
+            <span style="font:700 13px Manrope;color:#fff;">9:41</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#fff"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#fff"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#fff"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#fff" opacity=".4"/></svg>
+              <svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#fff" stroke-opacity=".5" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#fff"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#fff"/></svg>
+            </div>
+          </div>
+
+          <!-- floating trust avatars -->
+          <div style="position:relative;z-index:10;height:228px;display:flex;align-items:center;justify-content:center;">
+            <div style="position:absolute;width:150px;height:150px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.22);"></div>
+            <div style="position:absolute;width:210px;height:210px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.12);"></div>
+            <div style="width:84px;height:84px;border-radius:26px;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.25);">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M5 16 L10 6 L14 13 L19 8" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="16" r="2.4" fill="#fff"/><circle cx="19" cy="8" r="2.4" fill="#fff"/></svg>
+            </div>
+            <div style="position:absolute;top:30px;left:34px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;border:2.5px solid #2E5BFF;box-shadow:0 6px 14px rgba(0,0,0,.25);">SK</div>
+            <div style="position:absolute;bottom:34px;right:30px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#18A957,#0F8A43);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;border:2.5px solid #2E5BFF;box-shadow:0 6px 14px rgba(0,0,0,.25);">MA</div>
+            <div style="position:absolute;top:52px;right:40px;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#9D6BFF,#6E3FE8);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:#fff;border:2.5px solid #2E5BFF;">EY</div>
+          </div>
+
+          <!-- sheet -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:30px 30px 36px 36px;padding:28px 24px 26px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <h1 style="margin:0;font:800 25px Manrope;color:#0F1729;line-height:1.12;letter-spacing:-0.6px;text-wrap:balance;">Aynı yöne gidenlerle <span style="color:#2E5BFF;">güvenle</span> yola çık</h1>
+              <p style="margin:0;font:500 13.5px Manrope;color:#5B6478;line-height:1.45;">Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#F0F6FF;border:1px solid #DCE9FF;border-radius:14px;padding:11px 13px;">
+              <div style="display:flex;">
+                <span style="width:24px;height:24px;border-radius:50%;background:#F5A524;border:2px solid #fff;"></span>
+                <span style="width:24px;height:24px;border-radius:50%;background:#18A957;border:2px solid #fff;margin-left:-9px;"></span>
+                <span style="width:24px;height:24px;border-radius:50%;background:#9D6BFF;border:2px solid #fff;margin-left:-9px;"></span>
+              </div>
+              <span style="font:600 12px Manrope;color:#0F1729;"><span style="color:#2E5BFF;font-weight:800;font-family:'IBM Plex Mono';">12.480</span> doğrulanmış üye İstanbul'da</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <button style="height:52px;border:none;border-radius:15px;background:#2E5BFF;color:#fff;font:700 15.5px Manrope;cursor:pointer;box-shadow:0 10px 22px rgba(46,91,255,.32);" style-hover="background:#1E3FBF;transform:translateY(-1px);">Hesap oluştur</button>
+              <button style="height:46px;border:none;border-radius:15px;background:transparent;color:#2E5BFF;font:700 14px Manrope;cursor:pointer;">Zaten üyeyim</button>
+            </div>
+            <div style="display:flex;gap:6px;justify-content:center;">
+              <span style="width:22px;height:5px;border-radius:9px;background:#2E5BFF;"></span>
+              <span style="width:5px;height:5px;border-radius:9px;background:#D2D8E4;"></span>
+              <span style="width:5px;height:5px;border-radius:9px;background:#D2D8E4;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VERIFICATION ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">VERIFICATION</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Katmanlı kimlik doğrulama → Güven Puanı</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;">
+            <span style="font:700 13px Manrope;color:#0F1729;">9:41</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg>
+              <svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg>
+            </div>
+          </div>
+          <!-- header -->
+          <div style="padding:14px 22px 0;display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:11px;background:#fff;border:1px solid #E7E9EF;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 6 L9 12 L15 18" stroke="#0F1729" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font:800 17px Manrope;color:#0F1729;">Kimlik doğrulama</span>
+          </div>
+
+          <!-- trust ring -->
+          <div style="margin:16px 18px 0;background:linear-gradient(150deg,#1E3FBF,#2E5BFF);border-radius:22px;padding:18px;display:flex;align-items:center;gap:16px;box-shadow:0 12px 26px rgba(46,91,255,.3);">
+            <div style="position:relative;width:74px;height:74px;flex:none;">
+              <svg width="74" height="74" viewBox="0 0 74 74"><circle cx="37" cy="37" r="32" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="7"/><circle cx="37" cy="37" r="32" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="80" transform="rotate(-90 37 37)"/></svg>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font:800 20px 'IBM Plex Mono';color:#fff;line-height:1;">60</span><span style="font:600 8px Manrope;color:rgba(255,255,255,.75);letter-spacing:.5px;">PUAN</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <span style="font:700 14.5px Manrope;color:#fff;">Güven Puanın oluşuyor</span>
+              <span style="font:500 11.5px Manrope;color:rgba(255,255,255,.78);line-height:1.35;">2 adım daha tamamla, <span style="font-weight:700;color:#fff;">Doğrulanmış</span> rozetini kazan.</span>
+            </div>
+          </div>
+
+          <!-- steps -->
+          <div style="padding:16px 18px 0;display:flex;flex-direction:column;gap:9px;">
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px 13px;">
+              <span style="width:26px;height:26px;border-radius:50%;background:#18A957;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Telefon numarası</span><span style="font:500 11px Manrope;color:#18A957;">Doğrulandı · +90 5•• ••• 42</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px 13px;">
+              <span style="width:26px;height:26px;border-radius:50%;background:#18A957;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">E-posta adresi</span><span style="font:500 11px Manrope;color:#18A957;">Doğrulandı</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1.5px solid #2E5BFF;border-radius:14px;padding:12px 13px;box-shadow:0 6px 16px rgba(46,91,255,.12);">
+              <span style="width:26px;height:26px;border-radius:50%;border:2.5px solid #2E5BFF;border-right-color:#DCE9FF;flex:none;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Kimlik (T.C. / Pasaport)</span><span style="font:500 11px Manrope;color:#5B6478;">İşleniyor · ~2 dk</span></div>
+              <button style="border:none;background:#2E5BFF;color:#fff;font:700 11.5px Manrope;padding:7px 13px;border-radius:9px;cursor:pointer;">Yükle</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px 13px;opacity:.62;">
+              <span style="width:26px;height:26px;border-radius:50%;border:2px solid #C7CDDA;flex:none;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Selfie eşleştirme</span><span style="font:500 11px Manrope;color:#9AA1B0;">Bekliyor</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px 13px;opacity:.62;">
+              <span style="width:26px;height:26px;border-radius:50%;border:2px solid #C7CDDA;flex:none;"></span>
+              <div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Ehliyet <span style="font-weight:500;color:#9AA1B0;">· sürücüysen</span></span><span style="font:500 11px Manrope;color:#9AA1B0;">Opsiyonel</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HOME / MAP ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">HOME · MAP</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Nereye? + yakındaki rota eşleşmeleri</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#fff;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+
+          <!-- MAP -->
+          <div style="position:absolute;inset:0;background:#E3E9F0;">
+            <svg width="276" height="598" viewBox="0 0 276 598" style="position:absolute;inset:0;">
+              <rect width="276" height="598" fill="#E3E9F0"/>
+              <path d="M-10 120 H286 M-10 300 H286 M-10 470 H286" stroke="#D2DAE4" stroke-width="10"/>
+              <path d="M60 -10 V608 M160 -10 V608 M230 -10 V608" stroke="#D2DAE4" stroke-width="10"/>
+              <path d="M-10 210 L286 380" stroke="#CFD8E3" stroke-width="14"/>
+              <rect x="80" y="135" width="60" height="50" rx="4" fill="#DCE3EC"/>
+              <rect x="175" y="320" width="44" height="40" rx="4" fill="#DCE3EC"/>
+              <rect x="30" y="330" width="50" height="46" rx="4" fill="#DCE3EC"/>
+              <path d="M70 470 Q120 380 138 320 T210 150" fill="none" stroke="#2E5BFF" stroke-width="6" stroke-linecap="round"/>
+              <path d="M70 470 Q120 380 138 320 T210 150" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="2 8" stroke-linecap="round"/>
+            </svg>
+            <!-- origin -->
+            <div style="position:absolute;top:455px;left:56px;width:20px;height:20px;border-radius:50%;background:#fff;border:5px solid #2E5BFF;box-shadow:0 3px 8px rgba(0,0,0,.25);"></div>
+            <!-- dest pin -->
+            <div style="position:absolute;top:128px;left:196px;display:flex;flex-direction:column;align-items:center;">
+              <div style="background:#0F1729;color:#fff;font:700 10px Manrope;padding:4px 8px;border-radius:7px;white-space:nowrap;">Levent</div>
+              <div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:#0F1729;transform:rotate(45deg);margin-top:-2px;"></div>
+            </div>
+            <!-- nearby driver -->
+            <div style="position:absolute;top:300px;left:120px;width:34px;height:34px;border-radius:50%;background:#F5A524;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font:700 12px Manrope;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,.2);">SK</div>
+            <div style="position:absolute;top:380px;left:200px;width:30px;height:30px;border-radius:50%;background:#18A957;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font:700 11px Manrope;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,.2);">MA</div>
+          </div>
+
+          <!-- top bar -->
+          <div style="position:absolute;top:0;left:0;right:0;z-index:20;background:linear-gradient(180deg,#fff 55%,rgba(255,255,255,0));padding:0 0 22px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;">
+              <span style="font:700 13px Manrope;color:#0F1729;">9:41</span>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg>
+                <svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px 0;">
+              <div style="display:flex;flex-direction:column;"><span style="font:500 12px Manrope;color:#8A93A6;">Günaydın,</span><span style="font:800 19px Manrope;color:#0F1729;letter-spacing:-.3px;">Elif</span></div>
+              <div style="display:flex;align-items:center;gap:5px;background:#F0F6FF;border:1px solid #DCE9FF;border-radius:99px;padding:6px 11px;"><span style="width:8px;height:8px;border-radius:50%;background:#18A957;"></span><span style="font:700 12px Manrope;color:#2E5BFF;">Kadıköy</span></div>
+            </div>
+            <!-- search -->
+            <div style="margin:14px 18px 0;background:#fff;border:1px solid #E7E9EF;border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:11px;box-shadow:0 10px 24px rgba(15,23,41,.1);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#2E5BFF" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#2E5BFF" stroke-width="2" stroke-linecap="round"/></svg>
+              <span style="font:600 14.5px Manrope;color:#0F1729;flex:1;">Nereye gidiyorsun?</span>
+              <span style="font:700 11px Manrope;color:#fff;background:#2E5BFF;padding:5px 10px;border-radius:8px;">Ara</span>
+            </div>
+            <!-- chips -->
+            <div style="display:flex;gap:8px;padding:12px 18px 0;">
+              <span style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:7px 12px;font:700 12px Manrope;color:#0F1729;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-4v-6h-8v6H4a1 1 0 01-1-1z" stroke="#2E5BFF" stroke-width="2" stroke-linejoin="round"/></svg>Ev</span>
+              <span style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:7px 12px;font:700 12px Manrope;color:#0F1729;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="13" rx="2" stroke="#2E5BFF" stroke-width="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke="#2E5BFF" stroke-width="2"/></svg>İş · Levent</span>
+              <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:7px 12px;font:700 12px Manrope;color:#0F1729;">Üniversite</span>
+            </div>
+          </div>
+
+          <!-- bottom match sheet -->
+          <div style="position:absolute;bottom:76px;left:0;right:0;z-index:20;padding:0 14px;">
+            <div style="background:#fff;border-radius:20px;padding:14px;box-shadow:0 16px 40px rgba(15,23,41,.22);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
+                <span style="font:800 13.5px Manrope;color:#0F1729;">Yakınındaki rotalar</span>
+                <span style="font:700 11.5px Manrope;color:#2E5BFF;">3 eşleşme →</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;">
+                <div style="position:relative;flex:none;"><div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;">SK</div><span style="position:absolute;-bottom:4px;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#18A957;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+                  <div style="display:flex;align-items:center;gap:6px;"><span style="font:700 14px Manrope;color:#0F1729;">Selin K.</span><span style="font:600 9.5px 'IBM Plex Mono';color:#0F8A43;background:#E7F7EE;padding:1px 6px;border-radius:5px;">★ 4.9</span></div>
+                  <div style="display:flex;align-items:center;gap:5px;"><span style="font:600 11px Manrope;color:#5B6478;">Kadıköy → Levent</span></div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+                  <span style="font:800 16px 'IBM Plex Mono';color:#0F1729;">₺18</span>
+                  <span style="font:600 10px Manrope;color:#18A957;background:#E7F7EE;padding:2px 7px;border-radius:6px;">%94 uyum</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- tab bar -->
+          <div style="position:absolute;bottom:0;left:0;right:0;z-index:30;height:72px;background:#fff;border-top:1px solid #EEF0F4;display:flex;align-items:center;justify-content:space-around;padding:0 8px 14px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z" stroke="#2E5BFF" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:700 9.5px Manrope;color:#2E5BFF;">Anasayfa</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9AA1B0" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#9AA1B0" stroke-width="2" stroke-linecap="round"/></svg><span style="font:600 9.5px Manrope;color:#9AA1B0;">Ara</span></div>
+            <div style="width:50px;height:50px;border-radius:17px;background:#2E5BFF;display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 10px 20px rgba(46,91,255,.4);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.8A8 8 0 1121 12z" stroke="#9AA1B0" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:600 9.5px Manrope;color:#9AA1B0;">Mesajlar</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#9AA1B0" stroke-width="2"/><path d="M4 20c0-3.5 3.6-6 8-6s8 2.5 8 6" stroke="#9AA1B0" stroke-width="2" stroke-linecap="round"/></svg><span style="font:600 9.5px Manrope;color:#9AA1B0;">Profil</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ ROW 2: ARAMA & EŞLEŞME ============ -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <span style="font:800 15px Manrope;color:#fff;letter-spacing:.3px;">02 · Arama & Akıllı Eşleşme</span>
+    <span style="font:500 13px Manrope;color:#5E6982;">Rota ara · Uyum skoruna göre sıralanan eşleşmeler · Detay</span>
+  </div>
+
+  <div style="display:flex;gap:44px;align-items:flex-start;margin-bottom:64px;">
+
+    <!-- ===== SEARCH ROUTES ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">SEARCH ROUTES</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Nereden / nereye + güven filtreleri</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;">
+            <span style="font:700 13px Manrope;color:#0F1729;">9:41</span>
+            <div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg></div>
+          </div>
+          <div style="padding:14px 22px 0;"><span style="font:800 22px Manrope;color:#0F1729;letter-spacing:-.4px;">Rota ara</span></div>
+
+          <!-- from/to card -->
+          <div style="margin:16px 18px 0;background:#fff;border:1px solid #E7E9EF;border-radius:18px;padding:6px 16px;position:relative;box-shadow:0 8px 22px rgba(15,23,41,.06);">
+            <div style="display:flex;align-items:center;gap:13px;padding:14px 0;border-bottom:1px solid #F0F2F6;">
+              <span style="width:11px;height:11px;border-radius:50%;border:3px solid #2E5BFF;flex:none;"></span>
+              <div style="display:flex;flex-direction:column;"><span style="font:500 10px Manrope;color:#9AA1B0;">NEREDEN</span><span style="font:700 14.5px Manrope;color:#0F1729;">Kadıköy, İskele Meydanı</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:13px;padding:14px 0;">
+              <span style="width:11px;height:11px;border-radius:50% 50% 50% 0;background:#0F1729;transform:rotate(45deg);flex:none;"></span>
+              <div style="display:flex;flex-direction:column;"><span style="font:500 10px Manrope;color:#9AA1B0;">NEREYE</span><span style="font:700 14.5px Manrope;color:#0F1729;">Levent, Metro İstasyonu</span></div>
+            </div>
+            <div style="position:absolute;right:16px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:11px;background:#F0F6FF;border:1px solid #DCE9FF;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M7 4v13m0 0l-3-3m3 3l3-3M17 20V7m0 0l-3 3m3-3l3 3" stroke="#2E5BFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+
+          <!-- when / seats -->
+          <div style="display:flex;gap:10px;margin:12px 18px 0;">
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:11px 13px;display:flex;flex-direction:column;gap:2px;"><span style="font:500 10px Manrope;color:#9AA1B0;">NE ZAMAN</span><span style="font:700 13px Manrope;color:#0F1729;">Yarın · 08:30</span></div>
+            <div style="flex:none;width:84px;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:11px 13px;display:flex;flex-direction:column;gap:2px;"><span style="font:500 10px Manrope;color:#9AA1B0;">KOLTUK</span><span style="font:700 13px Manrope;color:#0F1729;">1 kişi</span></div>
+          </div>
+
+          <!-- trust filters -->
+          <div style="margin:18px 18px 0;"><span style="font:700 11px Manrope;color:#5B6478;letter-spacing:.3px;">GÜVEN FİLTRELERİ</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin:11px 18px 0;">
+            <span style="display:flex;align-items:center;gap:6px;background:#2E5BFF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#fff;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Sadece doğrulanmış</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#0F1729;">4.5+ puan</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#0F1729;">Kadın sürücü</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#0F1729;">Sigara yok</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#0F1729;">Ortak bağlantı</span>
+          </div>
+
+          <!-- recent -->
+          <div style="margin:20px 18px 0;display:flex;align-items:center;justify-content:space-between;"><span style="font:700 11px Manrope;color:#5B6478;letter-spacing:.3px;">SON ARAMALAR</span></div>
+          <div style="margin:10px 18px 0;display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:13px;padding:11px 13px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#9AA1B0" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#9AA1B0" stroke-width="2" stroke-linecap="round"/></svg><span style="font:600 13px Manrope;color:#0F1729;flex:1;">Kadıköy → Maslak</span><span style="font:600 11px Manrope;color:#9AA1B0;">Dün</span></div>
+
+          <!-- CTA -->
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(246,248,251,0),#F6F8FB 38%);">
+            <button style="width:100%;height:52px;border:none;border-radius:15px;background:#2E5BFF;color:#fff;font:700 15px Manrope;cursor:pointer;box-shadow:0 12px 24px rgba(46,91,255,.32);">Eşleşmeleri gör · 3 sonuç</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MATCH RESULTS ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">MATCH RESULTS</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Rota uyumu + güven skoruna göre sıralı</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;">
+            <span style="font:700 13px Manrope;color:#0F1729;">9:41</span>
+            <div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg></div>
+          </div>
+          <!-- header -->
+          <div style="padding:12px 18px 0;display:flex;align-items:center;gap:11px;">
+            <div style="width:34px;height:34px;border-radius:11px;background:#fff;border:1px solid #E7E9EF;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 6 L9 12 L15 18" stroke="#0F1729" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div style="display:flex;flex-direction:column;"><span style="font:800 17px Manrope;color:#0F1729;">3 eşleşme</span><span style="font:500 11px Manrope;color:#8A93A6;">Kadıköy → Levent · Yarın 08:30</span></div>
+          </div>
+          <!-- sort -->
+          <div style="display:flex;gap:8px;padding:12px 18px 0;">
+            <span style="display:flex;align-items:center;gap:5px;background:#0F1729;border-radius:99px;padding:7px 12px;font:700 11.5px Manrope;color:#fff;">En uyumlu</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:7px 12px;font:700 11.5px Manrope;color:#5B6478;">En yakın</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:7px 12px;font:700 11.5px Manrope;color:#5B6478;">En ucuz</span>
+          </div>
+
+          <!-- cards -->
+          <div style="padding:14px 14px 14px;display:flex;flex-direction:column;gap:11px;">
+            <!-- card 1 (best) -->
+            <div style="background:#fff;border:1.5px solid #2E5BFF;border-radius:18px;padding:14px;box-shadow:0 12px 28px rgba(46,91,255,.14);">
+              <div style="display:flex;align-items:flex-start;gap:11px;">
+                <div style="position:relative;flex:none;"><div style="width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 17px Manrope;color:#fff;">SK</div><span style="position:absolute;bottom:-4px;right:-4px;width:19px;height:19px;border-radius:50%;background:#18A957;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                  <div style="display:flex;align-items:center;gap:6px;"><span style="font:700 15px Manrope;color:#0F1729;">Selin K.</span><span style="font:600 9.5px 'IBM Plex Mono';color:#0F8A43;background:#E7F7EE;padding:1px 6px;border-radius:5px;">★ 4.9</span></div>
+                  <span style="font:500 11.5px Manrope;color:#8A93A6;">Doğrulanmış · 128 yolculuk · 2 ortak rota</span>
+                </div>
+                <span style="font:800 17px 'IBM Plex Mono';color:#0F1729;">₺18</span>
+              </div>
+              <!-- compat bar -->
+              <div style="margin-top:12px;background:#F0F6FF;border-radius:11px;padding:10px 12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;"><span style="font:700 11px Manrope;color:#2E5BFF;">Rota uyumu</span><span style="font:800 13px 'IBM Plex Mono';color:#2E5BFF;">%94</span></div>
+                <div style="height:6px;border-radius:6px;background:#DCE9FF;overflow:hidden;"><div style="width:94%;height:100%;border-radius:6px;background:linear-gradient(90deg,#2E5BFF,#5B82FF);"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:11px;">
+                <span style="font:600 11.5px Manrope;color:#5B6478;">Kalkış 08:25 · 1 koltuk · ~5 dk yürüme</span>
+                <button style="border:none;background:#2E5BFF;color:#fff;font:700 12px Manrope;padding:8px 14px;border-radius:10px;cursor:pointer;">İncele</button>
+              </div>
+            </div>
+            <!-- card 2 -->
+            <div style="background:#fff;border:1px solid #E7E9EF;border-radius:18px;padding:14px;">
+              <div style="display:flex;align-items:flex-start;gap:11px;">
+                <div style="position:relative;flex:none;"><div style="width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#18A957,#0F8A43);display:flex;align-items:center;justify-content:center;font:700 17px Manrope;color:#fff;">MA</div><span style="position:absolute;bottom:-4px;right:-4px;width:19px;height:19px;border-radius:50%;background:#18A957;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                  <div style="display:flex;align-items:center;gap:6px;"><span style="font:700 15px Manrope;color:#0F1729;">Mert A.</span><span style="font:600 9.5px 'IBM Plex Mono';color:#0F8A43;background:#E7F7EE;padding:1px 6px;border-radius:5px;">★ 4.8</span></div>
+                  <span style="font:500 11.5px Manrope;color:#8A93A6;">Doğrulanmış · 64 yolculuk</span>
+                </div>
+                <span style="font:800 17px 'IBM Plex Mono';color:#0F1729;">₺16</span>
+              </div>
+              <div style="margin-top:12px;background:#F4F6F9;border-radius:11px;padding:10px 12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;"><span style="font:700 11px Manrope;color:#5B6478;">Rota uyumu</span><span style="font:800 13px 'IBM Plex Mono';color:#0F1729;">%88</span></div>
+                <div style="height:6px;border-radius:6px;background:#E4E8EE;overflow:hidden;"><div style="width:88%;height:100%;border-radius:6px;background:#8A93A6;"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:11px;">
+                <span style="font:600 11.5px Manrope;color:#5B6478;">Kalkış 08:40 · 2 koltuk · ~9 dk</span>
+                <button style="border:1px solid #E7E9EF;background:#fff;color:#2E5BFF;font:700 12px Manrope;padding:8px 14px;border-radius:10px;cursor:pointer;">İncele</button>
+              </div>
+            </div>
+            <!-- card 3 condensed -->
+            <div style="background:#fff;border:1px solid #E7E9EF;border-radius:18px;padding:14px;display:flex;align-items:center;gap:11px;">
+              <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#9D6BFF,#6E3FE8);display:flex;align-items:center;justify-content:center;font:700 15px Manrope;color:#fff;flex:none;">EY</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><div style="display:flex;align-items:center;gap:6px;"><span style="font:700 14px Manrope;color:#0F1729;">Emre Y.</span><span style="font:600 9px 'IBM Plex Mono';color:#0F8A43;background:#E7F7EE;padding:1px 5px;border-radius:5px;">★ 4.7</span></div><span style="font:500 11px Manrope;color:#8A93A6;">%81 uyum · 09:00 · 3 koltuk</span></div>
+              <span style="font:800 15px 'IBM Plex Mono';color:#0F1729;">₺14</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ROUTE DETAILS ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">ROUTE DETAILS</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Sürücü güven kartı + rota + araç + istek</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <!-- driver header (blue) -->
+          <div style="background:linear-gradient(160deg,#2E5BFF,#1E3FBF);padding:14px 18px 22px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;">
+              <span style="font:700 13px Manrope;color:#fff;">9:41</span>
+              <div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#fff"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#fff"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#fff"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#fff" opacity=".4"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#fff" stroke-opacity=".5" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#fff"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#fff"/></svg></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:13px;margin-top:8px;">
+              <div style="position:relative;flex:none;"><div style="width:60px;height:60px;border-radius:19px;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 22px Manrope;color:#fff;border:2.5px solid rgba(255,255,255,.35);">SK</div><span style="position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:#18A957;border:2.5px solid #1E3FBF;display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span style="font:800 20px Manrope;color:#fff;">Selin K.</span>
+                <div style="display:flex;align-items:center;gap:6px;"><span style="font:600 10px Manrope;color:#fff;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:6px;">★ 4.9 · 128 yolculuk</span></div>
+                <span style="font:500 11px Manrope;color:rgba(255,255,255,.8);">2023'ten beri üye · Kadıköy</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- trust signals row -->
+          <div style="display:flex;gap:8px;margin:-12px 14px 0;position:relative;z-index:5;">
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:0 8px 18px rgba(15,23,41,.08);"><span style="font:800 17px 'IBM Plex Mono';color:#2E5BFF;">92</span><span style="font:600 9.5px Manrope;color:#8A93A6;">Güven Puanı</span></div>
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:0 8px 18px rgba(15,23,41,.08);"><span style="font:800 17px 'IBM Plex Mono';color:#18A957;">%98</span><span style="font:600 9.5px Manrope;color:#8A93A6;">Onay oranı</span></div>
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:0 8px 18px rgba(15,23,41,.08);"><span style="font:800 17px 'IBM Plex Mono';color:#0F1729;">3.4k</span><span style="font:600 9.5px Manrope;color:#8A93A6;">km paylaşıldı</span></div>
+          </div>
+
+          <!-- route timeline -->
+          <div style="margin:16px 18px 0;background:#fff;border:1px solid #E7E9EF;border-radius:16px;padding:15px;">
+            <div style="display:flex;gap:12px;">
+              <div style="display:flex;flex-direction:column;align-items:center;padding-top:4px;"><span style="width:10px;height:10px;border-radius:50%;border:3px solid #2E5BFF;"></span><span style="width:2px;flex:1;background:#DCE0E8;margin:3px 0;"></span><span style="width:10px;height:10px;border-radius:50% 50% 50% 0;background:#0F1729;transform:rotate(45deg);"></span></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:18px;">
+                <div style="display:flex;justify-content:space-between;"><div style="display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Kadıköy İskele</span><span style="font:500 11px Manrope;color:#8A93A6;">Alış noktası</span></div><span style="font:700 12px 'IBM Plex Mono';color:#0F1729;">08:25</span></div>
+                <div style="display:flex;justify-content:space-between;"><div style="display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Levent Metro</span><span style="font:500 11px Manrope;color:#8A93A6;">Varış · 32 dk</span></div><span style="font:700 12px 'IBM Plex Mono';color:#0F1729;">08:57</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- car + mutual -->
+          <div style="display:flex;gap:10px;margin:12px 18px 0;">
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:5px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 16v2a1 1 0 001 1h1a1 1 0 001-1v-1h8v1a1 1 0 001 1h1a1 1 0 001-1v-2m-15 0l1.5-5A2 2 0 017.4 9.6h9.2a2 2 0 011.9 1.4L20 16m-15 0h15" stroke="#5B6478" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:700 12.5px Manrope;color:#0F1729;">VW Passat · Gri</span><span style="font:600 10px 'IBM Plex Mono';color:#8A93A6;">34 ABC 128</span></div>
+            <div style="flex:1;background:#F0F6FF;border:1px solid #DCE9FF;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:5px;"><span style="font:700 11px Manrope;color:#2E5BFF;">Ortak bağlantı</span><span style="font:700 12.5px Manrope;color:#0F1729;">2 ortak rota</span><span style="font:600 10px Manrope;color:#5B6478;">Müzik · Sessiz yolculuk</span></div>
+          </div>
+
+          <!-- CTA -->
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:13px 18px 24px;background:linear-gradient(180deg,rgba(246,248,251,0),#F6F8FB 35%);display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;flex-direction:column;"><span style="font:500 10px Manrope;color:#8A93A6;">Senin payın</span><span style="font:800 20px 'IBM Plex Mono';color:#0F1729;">₺18</span></div>
+            <button style="flex:none;width:48px;height:50px;border:1px solid #E7E9EF;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.8A8 8 0 1121 12z" stroke="#2E5BFF" stroke-width="2" stroke-linejoin="round"/></svg></button>
+            <button style="flex:1;height:50px;border:none;border-radius:14px;background:#2E5BFF;color:#fff;font:700 14.5px Manrope;cursor:pointer;box-shadow:0 10px 22px rgba(46,91,255,.32);">İstek gönder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ ROW 3: SÜRÜŞ & İLETİŞİM ============ -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <span style="font:800 15px Manrope;color:#fff;letter-spacing:.3px;">03 · Sürüş & İletişim</span>
+    <span style="font:500 13px Manrope;color:#5E6982;">Rota oluştur (sürücü) · Canlı yolculuk · Sohbet</span>
+  </div>
+
+  <div style="display:flex;gap:44px;align-items:flex-start;margin-bottom:64px;">
+
+    <!-- ===== CREATE ROUTE ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">CREATE ROUTE</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Sürücü rotası · tekrar · koltuk · maliyet</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;">
+            <span style="font:700 13px Manrope;color:#0F1729;">9:41</span>
+            <div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg></div>
+          </div>
+          <div style="padding:14px 18px 0;display:flex;flex-direction:column;gap:2px;"><span style="font:800 22px Manrope;color:#0F1729;letter-spacing:-.4px;">Rota oluştur</span><span style="font:500 12px Manrope;color:#8A93A6;">Sürücü olarak koltuk paylaş</span></div>
+
+          <!-- from/to compact -->
+          <div style="margin:14px 18px 0;background:#fff;border:1px solid #E7E9EF;border-radius:16px;padding:6px 16px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F0F2F6;"><span style="width:10px;height:10px;border-radius:50%;border:3px solid #2E5BFF;flex:none;"></span><span style="font:700 13.5px Manrope;color:#0F1729;">Ataşehir, Palladium</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;"><span style="width:10px;height:10px;border-radius:50% 50% 50% 0;background:#0F1729;transform:rotate(45deg);flex:none;"></span><span style="font:700 13.5px Manrope;color:#0F1729;">Maslak, 42 Maslak</span></div>
+          </div>
+
+          <!-- recurring -->
+          <div style="margin:12px 18px 0;background:#fff;border:1px solid #E7E9EF;border-radius:16px;padding:14px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;flex-direction:column;gap:2px;"><span style="font:700 13px Manrope;color:#0F1729;">Her hafta içi tekrarla</span><span style="font:500 11px Manrope;color:#8A93A6;">Pzt–Cum · 08:00 kalkış</span></div>
+            <span style="width:46px;height:27px;border-radius:99px;background:#2E5BFF;position:relative;flex:none;"><span style="position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);"></span></span>
+          </div>
+
+          <!-- seats + price -->
+          <div style="display:flex;gap:10px;margin:12px 18px 0;">
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+              <span style="font:600 10px Manrope;color:#9AA1B0;">BOŞ KOLTUK</span>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><span style="width:28px;height:28px;border-radius:9px;border:1px solid #E7E9EF;display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#5B6478;">−</span><span style="font:800 18px 'IBM Plex Mono';color:#0F1729;">3</span><span style="width:28px;height:28px;border-radius:9px;background:#2E5BFF;display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;">+</span></div>
+            </div>
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+              <span style="font:600 10px Manrope;color:#9AA1B0;">KİŞİ BAŞI</span>
+              <div style="display:flex;align-items:baseline;gap:4px;"><span style="font:800 22px 'IBM Plex Mono';color:#0F1729;">₺18</span></div>
+              <span style="font:600 9.5px Manrope;color:#18A957;">Önerilen · maliyet paylaşımı</span>
+            </div>
+          </div>
+
+          <!-- prefs -->
+          <div style="margin:16px 18px 0;"><span style="font:700 11px Manrope;color:#5B6478;letter-spacing:.3px;">YOLCULUK KURALLARI</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin:11px 18px 0;">
+            <span style="background:#2E5BFF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#fff;">Sigara yok</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#0F1729;">Müzik OK</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#0F1729;">Evcil hayvan yok</span>
+            <span style="background:#fff;border:1px solid #E7E9EF;border-radius:99px;padding:8px 13px;font:700 12px Manrope;color:#0F1729;">Sessiz</span>
+          </div>
+
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(246,248,251,0),#F6F8FB 38%);">
+            <button style="width:100%;height:52px;border:none;border-radius:15px;background:#2E5BFF;color:#fff;font:700 15px Manrope;cursor:pointer;box-shadow:0 12px 24px rgba(46,91,255,.32);">Rotayı yayınla</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ACTIVE TRIP ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">ACTIVE TRIP</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Canlı konum · ETA · paylaş · SOS</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#E3E9F0;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <!-- map -->
+          <svg width="276" height="598" viewBox="0 0 276 598" style="position:absolute;inset:0;">
+            <rect width="276" height="598" fill="#E3E9F0"/>
+            <path d="M-10 160 H286 M-10 360 H286" stroke="#D2DAE4" stroke-width="11"/>
+            <path d="M90 -10 V608 M200 -10 V608" stroke="#D2DAE4" stroke-width="11"/>
+            <rect x="110" y="180" width="70" height="60" rx="5" fill="#DCE3EC"/>
+            <rect x="40" y="380" width="55" height="50" rx="5" fill="#DCE3EC"/>
+            <path d="M60 500 Q110 420 150 360 T230 120" fill="none" stroke="#2E5BFF" stroke-width="7" stroke-linecap="round"/>
+            <path d="M60 500 Q110 420 150 360" fill="none" stroke="#9DB8FF" stroke-width="7" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;top:354px;left:142px;width:38px;height:38px;border-radius:13px;background:#2E5BFF;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(46,91,255,.5);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 16l1.5-5A2 2 0 018.4 9.6h7.2a2 2 0 011.9 1.4L19 16m-14 0v2h2v-2m10 0v2h2v-2m-14 0h14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div style="position:absolute;top:108px;left:218px;width:14px;height:14px;border-radius:50% 50% 50% 0;background:#0F1729;transform:rotate(45deg);"></div>
+
+          <!-- top status + live -->
+          <div style="position:absolute;top:0;left:0;right:0;padding:16px 18px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="display:flex;align-items:center;gap:6px;background:#0F1729;border-radius:99px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#18A957;animation:rm-pulse 1.4s infinite;"></span><span style="font:700 11px Manrope;color:#fff;">CANLI YOLCULUK</span></span>
+            <span style="width:34px;height:34px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.12);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#0F1729" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#0F1729" stroke-width="2" stroke-linecap="round"/></svg></span>
+          </div>
+
+          <!-- bottom sheet -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:26px 26px 36px 36px;padding:18px 18px 24px;box-shadow:0 -10px 30px rgba(15,23,41,.12);">
+            <!-- ETA -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <div style="display:flex;flex-direction:column;"><span style="font:500 11px Manrope;color:#8A93A6;">Levent'e varış</span><span style="font:800 22px Manrope;color:#0F1729;letter-spacing:-.4px;">18 dk <span style="font:600 13px 'IBM Plex Mono';color:#8A93A6;">· 6.2 km</span></span></div>
+              <span style="font:700 12px Manrope;color:#18A957;background:#E7F7EE;padding:6px 11px;border-radius:9px;">Zamanında</span>
+            </div>
+            <!-- driver bar -->
+            <div style="display:flex;align-items:center;gap:11px;padding:12px;background:#F6F8FB;border-radius:15px;margin-bottom:12px;">
+              <div style="position:relative;flex:none;"><div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;">SK</div><span style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:#18A957;border:2.5px solid #F6F8FB;"></span></div>
+              <div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 14px Manrope;color:#0F1729;">Selin K. · ★ 4.9</span><span style="font:500 11px Manrope;color:#8A93A6;">VW Passat · 34 ABC 128</span></div>
+              <span style="width:40px;height:40px;border-radius:13px;background:#18A957;display:flex;align-items:center;justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a12 12 0 006 6l1.5-2 5 1.5v3a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+              <span style="width:40px;height:40px;border-radius:13px;background:#2E5BFF;display:flex;align-items:center;justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.8A8 8 0 1121 12z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></span>
+            </div>
+            <!-- actions -->
+            <div style="display:flex;gap:10px;">
+              <button style="flex:1;height:48px;border:1px solid #E7E9EF;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:7px;font:700 13px Manrope;color:#0F1729;cursor:pointer;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke="#2E5BFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Yolculuğu paylaş</button>
+              <button style="flex:none;width:104px;height:48px;border:none;background:#E5484D;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:6px;font:800 14px Manrope;color:#fff;cursor:pointer;animation:rm-ring 1.8s infinite;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 3v.5M10.3 3.9 2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>SOS</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;justify-content:center;margin-top:12px;"><span style="width:7px;height:7px;border-radius:50%;background:#2E5BFF;animation:rm-pulse 1.4s infinite;"></span><span style="font:600 11px Manrope;color:#5B6478;">Canlı konumun 2 acil kişiyle paylaşılıyor</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CHAT ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">CHAT</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Güvenli mesajlaşma · konum paylaşımı</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <!-- header -->
+          <div style="background:#fff;border-bottom:1px solid #EEF0F4;padding:16px 18px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;"><span style="font:700 13px Manrope;color:#0F1729;">9:41</span><div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg></div></div>
+            <div style="display:flex;align-items:center;gap:11px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 6 L9 12 L15 18" stroke="#0F1729" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div style="position:relative;flex:none;"><div style="width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 15px Manrope;color:#fff;">SK</div><span style="position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#18A957;border:2.5px solid #fff;"></span></div>
+              <div style="flex:1;display:flex;flex-direction:column;"><div style="display:flex;align-items:center;gap:5px;"><span style="font:700 14.5px Manrope;color:#0F1729;">Selin K.</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#18A957"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span style="font:500 11px Manrope;color:#18A957;">Çevrimiçi</span></div>
+            </div>
+          </div>
+          <!-- safety banner -->
+          <div style="margin:12px 16px 0;background:#FFF6E9;border:1px solid #F6E2B8;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:9px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" stroke="#C98A1B" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9v3.5" stroke="#C98A1B" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1" fill="#C98A1B"/></svg><span style="font:600 10.5px Manrope;color:#9A6B12;line-height:1.3;">Ödemeyi yalnızca uygulama içinden yapın. Kişisel bilgi paylaşmayın.</span></div>
+
+          <!-- messages -->
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+            <span style="align-self:center;font:600 10px Manrope;color:#9AA1B0;background:#EDEFF3;padding:3px 10px;border-radius:8px;">Bugün</span>
+            <div style="align-self:flex-start;max-width:78%;background:#fff;border:1px solid #EEF0F4;border-radius:4px 16px 16px 16px;padding:10px 13px;"><span style="font:500 13px Manrope;color:#0F1729;">Merhaba Elif! Yarın 08:25'te Kadıköy İskele'de olurum 👍</span></div>
+            <div style="align-self:flex-end;max-width:78%;background:#2E5BFF;border-radius:16px 4px 16px 16px;padding:10px 13px;"><span style="font:500 13px Manrope;color:#fff;">Harika, teşekkürler! Ben de orada olacağım.</span></div>
+            <!-- location share -->
+            <div style="align-self:flex-start;max-width:80%;background:#fff;border:1px solid #EEF0F4;border-radius:14px;overflow:hidden;">
+              <svg width="220" height="84" viewBox="0 0 220 84"><rect width="220" height="84" fill="#E3E9F0"/><path d="M0 30 H220 M0 58 H220 M70 0 V84 M150 0 V84" stroke="#D2DAE4" stroke-width="6"/><circle cx="110" cy="44" r="8" fill="#2E5BFF" stroke="#fff" stroke-width="3"/></svg>
+              <div style="padding:8px 11px;"><span style="font:700 11.5px Manrope;color:#0F1729;">📍 Buluşma noktası</span></div>
+            </div>
+            <div style="align-self:flex-end;max-width:78%;background:#2E5BFF;border-radius:16px 4px 16px 16px;padding:10px 13px;"><span style="font:500 13px Manrope;color:#fff;">Görüşürüz 🙌</span></div>
+          </div>
+
+          <!-- quick replies + input -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #EEF0F4;padding:10px 14px 22px;">
+            <div style="display:flex;gap:7px;margin-bottom:10px;"><span style="background:#F0F6FF;border:1px solid #DCE9FF;border-radius:99px;padding:6px 12px;font:600 11.5px Manrope;color:#2E5BFF;">Yoldayım</span><span style="background:#F0F6FF;border:1px solid #DCE9FF;border-radius:99px;padding:6px 12px;font:600 11.5px Manrope;color:#2E5BFF;">5 dk geç</span></div>
+            <div style="display:flex;align-items:center;gap:9px;background:#F4F6F9;border-radius:14px;padding:10px 14px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 8v8M8 12h8" stroke="#9AA1B0" stroke-width="2" stroke-linecap="round"/></svg><span style="flex:1;font:500 13px Manrope;color:#9AA1B0;">Mesaj yaz…</span><span style="width:34px;height:34px;border-radius:11px;background:#2E5BFF;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 12l16-7-7 16-2-7-7-2z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ ROW 4: KİMLİK & GÜVENLİK ============ -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <span style="font:800 15px Manrope;color:#fff;letter-spacing:.3px;">04 · Kimlik, İtibar & Güvenlik</span>
+    <span style="font:500 13px Manrope;color:#5E6982;">Profil + Güven Puanı · Topluluk değerlendirmeleri · Güvenlik merkezi & SOS</span>
+  </div>
+
+  <div style="display:flex;gap:44px;align-items:flex-start;margin-bottom:64px;">
+
+    <!-- ===== PROFILE / TRUST ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">PROFILE · TRUST</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Güven Puanı dökümü + rozetler</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <!-- header -->
+          <div style="background:linear-gradient(160deg,#1E3FBF,#2E5BFF);padding:14px 18px 50px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;"><span style="font:700 13px Manrope;color:#fff;">9:41</span><div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#fff"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#fff"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#fff"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#fff" opacity=".4"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#fff" stroke-opacity=".5" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#fff"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#fff"/></svg></div></div>
+            <div style="display:flex;align-items:center;gap:13px;">
+              <div style="position:relative;flex:none;"><div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#9D6BFF,#6E3FE8);display:flex;align-items:center;justify-content:center;font:700 22px Manrope;color:#fff;border:2.5px solid rgba(255,255,255,.35);">EÇ</div><span style="position:absolute;bottom:-4px;right:-4px;width:21px;height:21px;border-radius:50%;background:#18A957;border:2.5px solid #2E5BFF;display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+              <div style="display:flex;flex-direction:column;gap:3px;"><span style="font:800 19px Manrope;color:#fff;">Elif Çelik</span><span style="font:600 10px Manrope;color:#fff;background:rgba(255,255,255,.2);padding:2px 9px;border-radius:6px;width:max-content;">Doğrulanmış üye · 2024'ten beri</span></div>
+            </div>
+          </div>
+          <!-- trust score card -->
+          <div style="margin:-36px 16px 0;background:#fff;border:1px solid #E7E9EF;border-radius:20px;padding:16px;box-shadow:0 14px 30px rgba(15,23,41,.1);">
+            <div style="display:flex;align-items:center;gap:15px;">
+              <div style="position:relative;width:72px;height:72px;flex:none;"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="31" fill="none" stroke="#EEF0F4" stroke-width="7"/><circle cx="36" cy="36" r="31" fill="none" stroke="#18A957" stroke-width="7" stroke-linecap="round" stroke-dasharray="195" stroke-dashoffset="16" transform="rotate(-90 36 36)"/></svg><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font:800 22px 'IBM Plex Mono';color:#0F1729;line-height:1;">92</span><span style="font:600 8px Manrope;color:#8A93A6;">/ 100</span></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px;"><span style="font:700 14px Manrope;color:#0F1729;">Güven Puanı</span><span style="font:600 11px Manrope;color:#18A957;background:#E7F7EE;padding:3px 9px;border-radius:7px;width:max-content;">★ Üst %8 · Güvenilir</span><span style="font:500 10.5px Manrope;color:#8A93A6;">100'e ulaşmak için 1 yolculuk daha</span></div>
+            </div>
+            <!-- breakdown -->
+            <div style="margin-top:15px;display:flex;flex-direction:column;gap:9px;">
+              <div style="display:flex;align-items:center;gap:9px;"><span style="font:600 10.5px Manrope;color:#5B6478;width:74px;">Kimlik</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"><span style="display:block;width:100%;height:100%;background:#18A957;border-radius:5px;"></span></span><span style="font:700 9.5px 'IBM Plex Mono';color:#0F1729;width:30px;text-align:right;">100</span></div>
+              <div style="display:flex;align-items:center;gap:9px;"><span style="font:600 10.5px Manrope;color:#5B6478;width:74px;">Topluluk</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"><span style="display:block;width:90%;height:100%;background:#2E5BFF;border-radius:5px;"></span></span><span style="font:700 9.5px 'IBM Plex Mono';color:#0F1729;width:30px;text-align:right;">90</span></div>
+              <div style="display:flex;align-items:center;gap:9px;"><span style="font:600 10.5px Manrope;color:#5B6478;width:74px;">Güvenilirlik</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"><span style="display:block;width:94%;height:100%;background:#2E5BFF;border-radius:5px;"></span></span><span style="font:700 9.5px 'IBM Plex Mono';color:#0F1729;width:30px;text-align:right;">94</span></div>
+              <div style="display:flex;align-items:center;gap:9px;"><span style="font:600 10.5px Manrope;color:#5B6478;width:74px;">Aktiflik</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"><span style="display:block;width:82%;height:100%;background:#F5A524;border-radius:5px;"></span></span><span style="font:700 9.5px 'IBM Plex Mono';color:#0F1729;width:30px;text-align:right;">82</span></div>
+            </div>
+          </div>
+          <!-- stats -->
+          <div style="display:flex;gap:10px;margin:12px 16px 0;">
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="font:800 17px 'IBM Plex Mono';color:#0F1729;">73</span><span style="font:600 9.5px Manrope;color:#8A93A6;">Yolculuk</span></div>
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="font:800 17px 'IBM Plex Mono';color:#F5A524;">4.9</span><span style="font:600 9.5px Manrope;color:#8A93A6;">Puan</span></div>
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="font:800 17px 'IBM Plex Mono';color:#18A957;">₺2.1k</span><span style="font:600 9.5px Manrope;color:#8A93A6;">Tasarruf</span></div>
+          </div>
+          <!-- list -->
+          <div style="margin:12px 16px 0;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:13px;padding:12px 13px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" stroke="#18A957" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="#18A957" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="flex:1;font:700 13px Manrope;color:#0F1729;">Doğrulama rozetleri</span><span style="font:600 10px Manrope;color:#18A957;background:#E7F7EE;padding:2px 8px;border-radius:6px;">4 / 5</span></div>
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:13px;padding:12px 13px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.6l3 6.3 7 1-5 4.8 1.2 6.9z" stroke="#F5A524" stroke-width="1.8" stroke-linejoin="round"/></svg><span style="flex:1;font:700 13px Manrope;color:#0F1729;">Değerlendirmelerim</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C7CDDA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REVIEWS ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">REVIEWS · İTİBAR</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Topluluk değerlendirmeleri + etiketler</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;"><span style="font:700 13px Manrope;color:#0F1729;">9:41</span><div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg></div></div>
+          <div style="padding:12px 18px 0;display:flex;align-items:center;gap:11px;"><div style="width:34px;height:34px;border-radius:11px;background:#fff;border:1px solid #E7E9EF;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 6 L9 12 L15 18" stroke="#0F1729" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span style="font:800 17px Manrope;color:#0F1729;">Değerlendirmeler</span></div>
+
+          <!-- summary -->
+          <div style="margin:14px 16px 0;background:#fff;border:1px solid #E7E9EF;border-radius:18px;padding:16px;display:flex;gap:16px;align-items:center;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:none;"><span style="font:800 34px 'IBM Plex Mono';color:#0F1729;line-height:1;">4.9</span><div style="display:flex;gap:1px;">★★★★★</div><span style="font:600 10px Manrope;color:#8A93A6;">73 değerlendirme</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font:600 9px 'IBM Plex Mono';color:#8A93A6;width:8px;">5</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"><span style="display:block;width:92%;height:100%;background:#F5A524;border-radius:5px;"></span></span></div>
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font:600 9px 'IBM Plex Mono';color:#8A93A6;width:8px;">4</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"><span style="display:block;width:6%;height:100%;background:#F5A524;border-radius:5px;"></span></span></div>
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font:600 9px 'IBM Plex Mono';color:#8A93A6;width:8px;">3</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"><span style="display:block;width:2%;height:100%;background:#F5A524;border-radius:5px;"></span></span></div>
+              <div style="display:flex;align-items:center;gap:7px;"><span style="font:600 9px 'IBM Plex Mono';color:#8A93A6;width:8px;">2</span><span style="flex:1;height:5px;border-radius:5px;background:#EEF0F4;overflow:hidden;"></span></div>
+            </div>
+          </div>
+
+          <!-- tags -->
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin:14px 16px 0;">
+            <span style="background:#F0F6FF;border:1px solid #DCE9FF;border-radius:99px;padding:6px 12px;font:700 11px Manrope;color:#2E5BFF;">Dakik · 41</span>
+            <span style="background:#F0F6FF;border:1px solid #DCE9FF;border-radius:99px;padding:6px 12px;font:700 11px Manrope;color:#2E5BFF;">Güvenli sürüş · 38</span>
+            <span style="background:#F0F6FF;border:1px solid #DCE9FF;border-radius:99px;padding:6px 12px;font:700 11px Manrope;color:#2E5BFF;">Güler yüzlü · 33</span>
+            <span style="background:#F0F6FF;border:1px solid #DCE9FF;border-radius:99px;padding:6px 12px;font:700 11px Manrope;color:#2E5BFF;">Temiz araç · 24</span>
+          </div>
+
+          <!-- review cards -->
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:11px;">
+            <div style="background:#fff;border:1px solid #E7E9EF;border-radius:16px;padding:14px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#18A957,#0F8A43);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:#fff;">MA</div><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Mert A.</span><span style="font:500 10px Manrope;color:#8A93A6;">2 gün önce · Kadıköy→Levent</span></div><span style="font:700 11px 'IBM Plex Mono';color:#F5A524;">★ 5.0</span></div>
+              <p style="margin:0;font:500 12.5px Manrope;color:#3F4757;line-height:1.45;">Çok güvenli ve dakik bir yolculuktu. Selin gerçekten güler yüzlü, kesinlikle tekrar tercih ederim.</p>
+            </div>
+            <div style="background:#fff;border:1px solid #E7E9EF;border-radius:16px;padding:14px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#9D6BFF,#6E3FE8);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:#fff;">EY</div><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Emre Y.</span><span style="font:500 10px Manrope;color:#8A93A6;">1 hafta önce · Düzenli rota</span></div><span style="font:700 11px 'IBM Plex Mono';color:#F5A524;">★ 4.8</span></div>
+              <p style="margin:0;font:500 12.5px Manrope;color:#3F4757;line-height:1.45;">Her sabah aynı saatte, tertemiz araç. Trafikte sohbet etmek güzel.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SAFETY CENTER / SOS ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">SAFETY · SOS</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Acil yardım · güvenilir kişiler · araçlar</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#F6F8FB;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#05070C;border-radius:16px;z-index:40;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;"><span style="font:700 13px Manrope;color:#0F1729;">9:41</span><div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#0F1729"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#0F1729"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#0F1729"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0F1729" opacity=".3"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#0F1729" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#0F1729"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#0F1729"/></svg></div></div>
+          <div style="padding:12px 18px 0;display:flex;flex-direction:column;gap:2px;"><span style="font:800 21px Manrope;color:#0F1729;letter-spacing:-.3px;">Güvenlik Merkezi</span><span style="font:500 11.5px Manrope;color:#8A93A6;">Her yolculukta yanındayız</span></div>
+
+          <!-- SOS -->
+          <div style="margin:16px 16px 0;background:linear-gradient(160deg,#E5484D,#C2363B);border-radius:20px;padding:18px;display:flex;align-items:center;gap:15px;box-shadow:0 14px 30px rgba(229,72,77,.3);">
+            <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:none;animation:rm-ring 1.8s infinite;"><div style="width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font:800 14px Manrope;color:#E5484D;">SOS</div></div>
+            <div style="display:flex;flex-direction:column;gap:3px;"><span style="font:800 17px Manrope;color:#fff;">Acil yardım</span><span style="font:500 11.5px Manrope;color:rgba(255,255,255,.85);line-height:1.35;">Bas, konumun ve yolculuk bilgin acil kişilere + ekibimize gider.</span></div>
+          </div>
+
+          <!-- quick actions -->
+          <div style="display:flex;gap:10px;margin:12px 16px 0;">
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:15px;padding:13px;display:flex;flex-direction:column;gap:8px;"><span style="width:34px;height:34px;border-radius:11px;background:#FDEAEA;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a12 12 0 006 6l1.5-2 5 1.5v3a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z" stroke="#E5484D" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span style="font:700 12px Manrope;color:#0F1729;">112'yi ara</span><span style="font:500 10px Manrope;color:#8A93A6;">Acil servis</span></div>
+            <div style="flex:1;background:#fff;border:1px solid #E7E9EF;border-radius:15px;padding:13px;display:flex;flex-direction:column;gap:8px;"><span style="width:34px;height:34px;border-radius:11px;background:#E9F0FF;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke="#2E5BFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span style="font:700 12px Manrope;color:#0F1729;">Yolculuğu paylaş</span><span style="font:500 10px Manrope;color:#8A93A6;">Canlı konum</span></div>
+          </div>
+
+          <!-- list -->
+          <div style="margin:14px 16px 0;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:13px;padding:12px 13px;"><span style="width:32px;height:32px;border-radius:10px;background:#E7F7EE;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#18A957" stroke-width="2"/><path d="M4 20c0-3.5 3.6-6 8-6s8 2.5 8 6" stroke="#18A957" stroke-width="2" stroke-linecap="round"/></svg></span><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Güvenilir kişiler</span><span style="font:500 10.5px Manrope;color:#8A93A6;">2 kişi eklendi</span></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C7CDDA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:13px;padding:12px 13px;"><span style="width:32px;height:32px;border-radius:10px;background:#F0F6FF;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" stroke="#2E5BFF" stroke-width="1.8" stroke-linejoin="round"/></svg></span><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Yol arkadaşını doğrula</span><span style="font:500 10.5px Manrope;color:#8A93A6;">QR ile kimlik eşleştir</span></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C7CDDA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E7E9EF;border-radius:13px;padding:12px 13px;"><span style="width:32px;height:32px;border-radius:10px;background:#FDEAEA;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#E5484D" stroke-width="2" stroke-linecap="round"/></svg></span><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#0F1729;">Kullanıcı engelle / bildir</span><span style="font:500 10.5px Manrope;color:#8A93A6;">Gizli inceleme</span></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#C7CDDA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ ROW 5: KARANLIK MOD ============ -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <span style="font:800 15px Manrope;color:#fff;letter-spacing:.3px;">05 · Karanlık Mod</span>
+    <span style="font:500 13px Manrope;color:#5E6982;">Aynı sistem · gece sürüşleri ve düşük ışık için · AA kontrast</span>
+    <span style="font:600 11px 'IBM Plex Mono';color:#9DB8FF;background:rgba(59,107,255,.12);border:1px solid rgba(59,107,255,.3);padding:4px 10px;border-radius:99px;">DARK</span>
+  </div>
+
+  <div style="display:flex;gap:44px;align-items:flex-start;margin-bottom:24px;">
+
+    <!-- ===== DARK HOME ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">HOME · DARK</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Gece haritası + eşleşme</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#0B0E14;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#000;border-radius:16px;z-index:40;"></div>
+          <!-- dark map -->
+          <svg width="276" height="598" viewBox="0 0 276 598" style="position:absolute;inset:0;">
+            <rect width="276" height="598" fill="#0E131C"/>
+            <path d="M-10 120 H286 M-10 300 H286 M-10 470 H286" stroke="#1A2130" stroke-width="10"/>
+            <path d="M60 -10 V608 M160 -10 V608 M230 -10 V608" stroke="#1A2130" stroke-width="10"/>
+            <rect x="80" y="135" width="60" height="50" rx="4" fill="#151B27"/>
+            <rect x="175" y="320" width="44" height="40" rx="4" fill="#151B27"/>
+            <path d="M70 470 Q120 380 138 320 T210 150" fill="none" stroke="#4D74FF" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;top:455px;left:56px;width:20px;height:20px;border-radius:50%;background:#0B0E14;border:5px solid #4D74FF;"></div>
+          <div style="position:absolute;top:300px;left:120px;width:34px;height:34px;border-radius:50%;background:#F5A524;border:3px solid #0B0E14;display:flex;align-items:center;justify-content:center;font:700 12px Manrope;color:#fff;">SK</div>
+
+          <!-- top -->
+          <div style="position:absolute;top:0;left:0;right:0;z-index:20;background:linear-gradient(180deg,#0B0E14 55%,rgba(11,14,20,0));padding:0 0 22px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;"><span style="font:700 13px Manrope;color:#F2F4F8;">9:41</span><div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#F2F4F8"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#F2F4F8"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#F2F4F8"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#F2F4F8" opacity=".35"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#F2F4F8" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#F2F4F8"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#F2F4F8"/></svg></div></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px 0;"><div style="display:flex;flex-direction:column;"><span style="font:500 12px Manrope;color:#9BA3B4;">Günaydın,</span><span style="font:800 19px Manrope;color:#F2F4F8;letter-spacing:-.3px;">Elif</span></div><div style="display:flex;align-items:center;gap:5px;background:#16203A;border:1px solid #24365E;border-radius:99px;padding:6px 11px;"><span style="width:8px;height:8px;border-radius:50%;background:#18A957;"></span><span style="font:700 12px Manrope;color:#7FA0FF;">Kadıköy</span></div></div>
+            <div style="margin:14px 18px 0;background:#151A23;border:1px solid #232A38;border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:11px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#4D74FF" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#4D74FF" stroke-width="2" stroke-linecap="round"/></svg><span style="font:600 14.5px Manrope;color:#F2F4F8;flex:1;">Nereye gidiyorsun?</span><span style="font:700 11px Manrope;color:#fff;background:#4D74FF;padding:5px 10px;border-radius:8px;">Ara</span></div>
+            <div style="display:flex;gap:8px;padding:12px 18px 0;"><span style="background:#151A23;border:1px solid #232A38;border-radius:99px;padding:7px 12px;font:700 12px Manrope;color:#E6E9F0;">Ev</span><span style="background:#151A23;border:1px solid #232A38;border-radius:99px;padding:7px 12px;font:700 12px Manrope;color:#E6E9F0;">İş · Levent</span><span style="background:#151A23;border:1px solid #232A38;border-radius:99px;padding:7px 12px;font:700 12px Manrope;color:#E6E9F0;">Üniversite</span></div>
+          </div>
+
+          <!-- match sheet -->
+          <div style="position:absolute;bottom:76px;left:0;right:0;z-index:20;padding:0 14px;">
+            <div style="background:#151A23;border:1px solid #232A38;border-radius:20px;padding:14px;box-shadow:0 16px 40px rgba(0,0,0,.5);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;"><span style="font:800 13.5px Manrope;color:#F2F4F8;">Yakınındaki rotalar</span><span style="font:700 11.5px Manrope;color:#7FA0FF;">3 eşleşme →</span></div>
+              <div style="display:flex;align-items:center;gap:11px;">
+                <div style="position:relative;flex:none;"><div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;">SK</div><span style="position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#18A957;border:2.5px solid #151A23;display:flex;align-items:center;justify-content:center;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><div style="display:flex;align-items:center;gap:6px;"><span style="font:700 14px Manrope;color:#F2F4F8;">Selin K.</span><span style="font:600 9.5px 'IBM Plex Mono';color:#3FD07E;background:#10301F;padding:1px 6px;border-radius:5px;">★ 4.9</span></div><span style="font:600 11px Manrope;color:#9BA3B4;">Kadıköy → Levent</span></div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;"><span style="font:800 16px 'IBM Plex Mono';color:#F2F4F8;">₺18</span><span style="font:600 10px Manrope;color:#3FD07E;background:#10301F;padding:2px 7px;border-radius:6px;">%94 uyum</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- tab bar dark -->
+          <div style="position:absolute;bottom:0;left:0;right:0;z-index:30;height:72px;background:#0E1219;border-top:1px solid #1C2230;display:flex;align-items:center;justify-content:space-around;padding:0 8px 14px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z" stroke="#4D74FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:700 9.5px Manrope;color:#7FA0FF;">Anasayfa</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#5B6478" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#5B6478" stroke-width="2" stroke-linecap="round"/></svg><span style="font:600 9.5px Manrope;color:#5B6478;">Ara</span></div>
+            <div style="width:50px;height:50px;border-radius:17px;background:#4D74FF;display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 10px 20px rgba(77,116,255,.45);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.8A8 8 0 1121 12z" stroke="#5B6478" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:600 9.5px Manrope;color:#5B6478;">Mesajlar</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#5B6478" stroke-width="2"/><path d="M4 20c0-3.5 3.6-6 8-6s8 2.5 8 6" stroke="#5B6478" stroke-width="2" stroke-linecap="round"/></svg><span style="font:600 9.5px Manrope;color:#5B6478;">Profil</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DARK ACTIVE TRIP ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">ACTIVE TRIP · DARK</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Gece canlı yolculuk + SOS</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#0B0E14;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#000;border-radius:16px;z-index:40;"></div>
+          <svg width="276" height="598" viewBox="0 0 276 598" style="position:absolute;inset:0;"><rect width="276" height="598" fill="#0E131C"/><path d="M-10 160 H286 M-10 360 H286" stroke="#1A2130" stroke-width="11"/><path d="M90 -10 V608 M200 -10 V608" stroke="#1A2130" stroke-width="11"/><path d="M60 500 Q110 420 150 360 T230 120" fill="none" stroke="#4D74FF" stroke-width="7" stroke-linecap="round"/><path d="M60 500 Q110 420 150 360" fill="none" stroke="#2B3B66" stroke-width="7" stroke-linecap="round"/></svg>
+          <div style="position:absolute;top:354px;left:142px;width:38px;height:38px;border-radius:13px;background:#4D74FF;border:3px solid #0B0E14;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(77,116,255,.6);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 16l1.5-5A2 2 0 018.4 9.6h7.2a2 2 0 011.9 1.4L19 16m-14 0v2h2v-2m10 0v2h2v-2m-14 0h14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+          <div style="position:absolute;top:0;left:0;right:0;padding:16px 18px 0;display:flex;justify-content:space-between;align-items:center;"><span style="display:flex;align-items:center;gap:6px;background:#151A23;border:1px solid #232A38;border-radius:99px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#18A957;animation:rm-pulse 1.4s infinite;"></span><span style="font:700 11px Manrope;color:#F2F4F8;">CANLI YOLCULUK</span></span><span style="width:34px;height:34px;border-radius:11px;background:#151A23;border:1px solid #232A38;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#F2F4F8" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#F2F4F8" stroke-width="2" stroke-linecap="round"/></svg></span></div>
+
+          <div style="position:absolute;bottom:0;left:0;right:0;background:#11151D;border-radius:26px 26px 36px 36px;padding:18px 18px 24px;border-top:1px solid #1C2230;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="display:flex;flex-direction:column;"><span style="font:500 11px Manrope;color:#9BA3B4;">Levent'e varış</span><span style="font:800 22px Manrope;color:#F2F4F8;letter-spacing:-.4px;">18 dk <span style="font:600 13px 'IBM Plex Mono';color:#9BA3B4;">· 6.2 km</span></span></div><span style="font:700 12px Manrope;color:#3FD07E;background:#10301F;padding:6px 11px;border-radius:9px;">Zamanında</span></div>
+            <div style="display:flex;align-items:center;gap:11px;padding:12px;background:#181E29;border-radius:15px;margin-bottom:12px;"><div style="position:relative;flex:none;"><div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#F5A524,#E8841A);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;">SK</div><span style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:#18A957;border:2.5px solid #181E29;"></span></div><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 14px Manrope;color:#F2F4F8;">Selin K. · ★ 4.9</span><span style="font:500 11px Manrope;color:#9BA3B4;">VW Passat · 34 ABC 128</span></div><span style="width:40px;height:40px;border-radius:13px;background:#18A957;display:flex;align-items:center;justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a12 12 0 006 6l1.5-2 5 1.5v3a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></span></div>
+            <div style="display:flex;gap:10px;"><button style="flex:1;height:48px;border:1px solid #232A38;background:#181E29;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:7px;font:700 13px Manrope;color:#F2F4F8;cursor:pointer;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke="#4D74FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Yolculuğu paylaş</button><button style="flex:none;width:104px;height:48px;border:none;background:#E5484D;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:6px;font:800 14px Manrope;color:#fff;cursor:pointer;animation:rm-ring 1.8s infinite;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 3v.5M10.3 3.9 2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>SOS</button></div>
+            <div style="display:flex;align-items:center;gap:7px;justify-content:center;margin-top:12px;"><span style="width:7px;height:7px;border-radius:50%;background:#4D74FF;animation:rm-pulse 1.4s infinite;"></span><span style="font:600 11px Manrope;color:#9BA3B4;">Canlı konumun 2 acil kişiyle paylaşılıyor</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DARK SAFETY ===== -->
+    <div style="flex:none;display:flex;flex-direction:column;gap:14px;width:298px;">
+      <div style="display:flex;flex-direction:column;gap:2px;padding-left:4px;">
+        <span style="font:600 11.5px 'IBM Plex Mono',monospace;letter-spacing:1px;color:#8C97AD;">SAFETY · DARK</span>
+        <span style="font:500 12.5px Manrope;color:#5E6982;">Gece güvenlik merkezi</span>
+      </div>
+      <div style="width:298px;padding:11px;background:linear-gradient(150deg,#222838,#0d1017);border-radius:46px;box-shadow:0 28px 55px rgba(0,0,0,.5),inset 0 0 0 1.5px #323a4d;">
+        <div style="position:relative;width:276px;height:598px;background:#0B0E14;border-radius:36px;overflow:hidden;">
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#000;border-radius:16px;z-index:40;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px 0;"><span style="font:700 13px Manrope;color:#F2F4F8;">9:41</span><div style="display:flex;gap:6px;align-items:center;"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="6" width="3" height="5" rx="1" fill="#F2F4F8"/><rect x="4.5" y="3.5" width="3" height="7.5" rx="1" fill="#F2F4F8"/><rect x="9" y="1.5" width="3" height="9.5" rx="1" fill="#F2F4F8"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#F2F4F8" opacity=".35"/></svg><svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="#F2F4F8" stroke-opacity=".4" stroke-width="1"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="#F2F4F8"/><rect x="21" y="4" width="2" height="4" rx="1" fill="#F2F4F8"/></svg></div></div>
+          <div style="padding:12px 18px 0;display:flex;flex-direction:column;gap:2px;"><span style="font:800 21px Manrope;color:#F2F4F8;letter-spacing:-.3px;">Güvenlik Merkezi</span><span style="font:500 11.5px Manrope;color:#9BA3B4;">Her yolculukta yanındayız</span></div>
+          <div style="margin:16px 16px 0;background:linear-gradient(160deg,#E5484D,#B22F34);border-radius:20px;padding:18px;display:flex;align-items:center;gap:15px;box-shadow:0 14px 30px rgba(229,72,77,.35);"><div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:none;animation:rm-ring 1.8s infinite;"><div style="width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font:800 14px Manrope;color:#E5484D;">SOS</div></div><div style="display:flex;flex-direction:column;gap:3px;"><span style="font:800 17px Manrope;color:#fff;">Acil yardım</span><span style="font:500 11.5px Manrope;color:rgba(255,255,255,.85);line-height:1.35;">Bas, konumun acil kişilere + ekibimize gider.</span></div></div>
+          <div style="display:flex;gap:10px;margin:12px 16px 0;"><div style="flex:1;background:#151A23;border:1px solid #232A38;border-radius:15px;padding:13px;display:flex;flex-direction:column;gap:8px;"><span style="width:34px;height:34px;border-radius:11px;background:#2A1518;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a12 12 0 006 6l1.5-2 5 1.5v3a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z" stroke="#FF6B70" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span style="font:700 12px Manrope;color:#F2F4F8;">112'yi ara</span><span style="font:500 10px Manrope;color:#9BA3B4;">Acil servis</span></div><div style="flex:1;background:#151A23;border:1px solid #232A38;border-radius:15px;padding:13px;display:flex;flex-direction:column;gap:8px;"><span style="width:34px;height:34px;border-radius:11px;background:#16203A;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke="#4D74FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span style="font:700 12px Manrope;color:#F2F4F8;">Yolculuğu paylaş</span><span style="font:500 10px Manrope;color:#9BA3B4;">Canlı konum</span></div></div>
+          <div style="margin:14px 16px 0;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:11px;background:#151A23;border:1px solid #232A38;border-radius:13px;padding:12px 13px;"><span style="width:32px;height:32px;border-radius:10px;background:#10301F;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#3FD07E" stroke-width="2"/><path d="M4 20c0-3.5 3.6-6 8-6s8 2.5 8 6" stroke="#3FD07E" stroke-width="2" stroke-linecap="round"/></svg></span><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#F2F4F8;">Güvenilir kişiler</span><span style="font:500 10.5px Manrope;color:#9BA3B4;">2 kişi eklendi</span></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#3A4252" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div style="display:flex;align-items:center;gap:11px;background:#151A23;border:1px solid #232A38;border-radius:13px;padding:12px 13px;"><span style="width:32px;height:32px;border-radius:10px;background:#16203A;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" stroke="#4D74FF" stroke-width="1.8" stroke-linejoin="round"/></svg></span><div style="flex:1;display:flex;flex-direction:column;"><span style="font:700 13px Manrope;color:#F2F4F8;">Yol arkadaşını doğrula</span><span style="font:500 10.5px Manrope;color:#9BA3B4;">QR ile kimlik eşleştir</span></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#3A4252" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

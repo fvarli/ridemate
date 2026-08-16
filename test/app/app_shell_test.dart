@@ -1,0 +1,236 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:ridemate/app/app_shell.dart';
+import 'package:ridemate/app/providers/app_preferences_provider.dart';
+import 'package:ridemate/app/ride_mate_app.dart';
+import 'package:ridemate/app/router/app_router.dart';
+import 'package:ridemate/app/router/app_routes.dart';
+import 'package:ridemate/core/a11y/rm_a11y.dart';
+import 'package:ridemate/core/theme/rm_theme.dart';
+import 'package:ridemate/core/widgets/rm_icon_button.dart';
+import 'package:ridemate/core/widgets/rm_nav_bar.dart';
+import 'package:ridemate/features/gallery/presentation/gallery_screen.dart';
+import 'package:ridemate/l10n/app_localizations.dart';
+
+Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(1080, 2400);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(const ProviderScope(child: RideMateApp()));
+  await tester.pumpAndSettle();
+  return ProviderScope.containerOf(tester.element(find.byType(RideMateApp)));
+}
+
+void main() {
+  group('Application shell', () {
+    testWidgets('opens on the home branch with the navigation bar', (
+      WidgetTester tester,
+    ) async {
+      await _pumpApp(tester);
+
+      expect(find.byType(AppShell), findsOneWidget);
+      expect(find.byType(RmNavBar), findsOneWidget);
+      expect(find.byType(PlaceholderScreen), findsOneWidget);
+      expect(find.text('Phase 3 — Home / Map'), findsOneWidget);
+    });
+
+    testWidgets('shows the four design destinations and the centre action', (
+      WidgetTester tester,
+    ) async {
+      final ProviderContainer container = await _pumpApp(tester);
+      container.read(localeProvider.notifier).set(const Locale('tr'));
+      await tester.pumpAndSettle();
+
+      // Verbatim from the design's tab bar.
+      for (final String label in <String>[
+        'Anasayfa',
+        'Ara',
+        'Mesajlar',
+        'Profil',
+      ]) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      expect(find.byType(RmFab), findsOneWidget);
+    });
+
+    testWidgets('switches branches on tap', (WidgetTester tester) async {
+      final ProviderContainer container = await _pumpApp(tester);
+      container.read(localeProvider.notifier).set(const Locale('en'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Search'));
+      await tester.pumpAndSettle();
+      expect(find.text('Phase 3 — Search routes'), findsOneWidget);
+
+      await tester.tap(find.text('Profile'));
+      await tester.pumpAndSettle();
+      expect(find.text('Phase 6 — Profile / Trust'), findsOneWidget);
+    });
+
+    testWidgets('branch state is preserved across tab switches', (
+      WidgetTester tester,
+    ) async {
+      final ProviderContainer container = await _pumpApp(tester);
+      container.read(localeProvider.notifier).set(const Locale('en'));
+      await tester.pumpAndSettle();
+
+      // Branches build lazily, then stay mounted. After visiting all four,
+      // every one remains in the tree — that is what preserves scroll
+      // position and in-progress input once the screens are real.
+      for (final String label in <String>[
+        'Search',
+        'Messages',
+        'Profile',
+        'Home',
+      ]) {
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+      }
+
+      expect(
+        find.byType(PlaceholderScreen, skipOffstage: false),
+        findsNWidgets(4),
+      );
+      // Back on Home, and the earlier branches were never torn down.
+      expect(find.text('Phase 3 — Home / Map'), findsOneWidget);
+    });
+
+    testWidgets('the centre action pushes over the shell and pops back', (
+      WidgetTester tester,
+    ) async {
+      final ProviderContainer container = await _pumpApp(tester);
+      container.read(localeProvider.notifier).set(const Locale('en'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(RmFab));
+      await tester.pumpAndSettle();
+      expect(find.text('Phase 4 — Create route'), findsOneWidget);
+      // Pushed over the shell, so the navigation bar is gone.
+      expect(find.byType(RmNavBar), findsNothing);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(RmNavBar), findsOneWidget);
+    });
+
+    testWidgets('navigation items meet the touch floor', (
+      WidgetTester tester,
+    ) async {
+      await _pumpApp(tester);
+
+      final Iterable<Element> items = find
+          .descendant(
+            of: find.byType(RmNavBar),
+            matching: find.byType(InkResponse),
+          )
+          .evaluate();
+      expect(items, isNotEmpty);
+      for (final Element e in items) {
+        expect(
+          e.size!.height,
+          greaterThanOrEqualTo(RmA11y.minTouchTarget),
+          reason: 'a navigation destination is too small to tap',
+        );
+      }
+    });
+  });
+
+  group('Router', () {
+    testWidgets('is provided through Riverpod, not a global', (
+      WidgetTester tester,
+    ) async {
+      final ProviderContainer container = await _pumpApp(tester);
+      expect(container.read(routerProvider), isNotNull);
+      // Reading twice returns the same instance rather than rebuilding.
+      expect(
+        container.read(routerProvider),
+        same(container.read(routerProvider)),
+      );
+    });
+
+    testWidgets('routes by name, and the gallery is reachable in debug', (
+      WidgetTester tester,
+    ) async {
+      final ProviderContainer container = await _pumpApp(tester);
+
+      container.read(routerProvider).goNamed(AppRoutes.gallery);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(GalleryScreen), findsOneWidget);
+    });
+
+    testWidgets('deep links resolve to the right branch', (
+      WidgetTester tester,
+    ) async {
+      final ProviderContainer container = await _pumpApp(tester);
+      container.read(localeProvider.notifier).set(const Locale('en'));
+      await tester.pumpAndSettle();
+
+      container.read(routerProvider).go(AppRoutes.messagesPath);
+      await tester.pumpAndSettle();
+      expect(find.text('Phase 5 — Chat'), findsOneWidget);
+    });
+  });
+
+  group('Gallery (debug-only developer tooling)', () {
+    testWidgets('renders every section without exceptions in both themes', (
+      WidgetTester tester,
+    ) async {
+      for (final ThemeMode mode in <ThemeMode>[
+        ThemeMode.light,
+        ThemeMode.dark,
+      ]) {
+        final ProviderContainer container = await _pumpApp(tester);
+        container.read(themeModeProvider.notifier).set(mode);
+        container.read(routerProvider).goNamed(AppRoutes.gallery);
+        // RmSkeleton animates indefinitely, so pumpAndSettle would time out
+        // on this screen. Pump a fixed number of frames instead.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(tester.takeException(), isNull, reason: '\$mode');
+        expect(find.byType(GalleryScreen), findsOneWidget);
+
+        // Scroll the whole catalogue so every specimen actually builds.
+        for (int i = 0; i < 6; i++) {
+          await tester.drag(find.byType(ListView), const Offset(0, -1200));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        expect(tester.takeException(), isNull, reason: '\$mode after scroll');
+      }
+    });
+
+    testWidgets('renders under RTL without overflow', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: RmTheme.light,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('tr'),
+            home: const GalleryScreen(forceTextDirection: TextDirection.rtl),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(tester.takeException(), isNull);
+      for (int i = 0; i < 6; i++) {
+        await tester.drag(find.byType(ListView), const Offset(0, -1200));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(tester.takeException(), isNull, reason: 'RTL after scroll');
+    });
+  });
+}

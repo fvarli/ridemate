@@ -5,6 +5,7 @@ import '../core/a11y/rm_a11y.dart';
 import '../core/theme/rm_theme.dart';
 import '../l10n/app_localizations.dart';
 import 'providers/app_preferences_provider.dart';
+import 'router/app_router.dart';
 
 /// Root widget of the RideMate application.
 ///
@@ -26,7 +27,7 @@ class RideMateApp extends ConsumerWidget {
     final ThemeMode themeMode = ref.watch(themeModeProvider);
     final Locale? locale = ref.watch(localeProvider);
 
-    return MaterialApp(
+    return MaterialApp.router(
       title: appTitle,
       debugShowCheckedModeBanner: false,
       theme: RmTheme.light,
@@ -37,7 +38,7 @@ class RideMateApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localeResolutionCallback: resolveLocale,
       builder: _applyTextScaleCeiling,
-      home: const _BootstrapPlaceholder(),
+      routerConfig: ref.watch(routerProvider),
     );
   }
 
@@ -67,27 +68,6 @@ class RideMateApp extends ConsumerWidget {
         textScaler: mq.textScaler.clamp(maxScaleFactor: RmA11y.maxTextScale),
       ),
       child: child ?? const SizedBox.shrink(),
-    );
-  }
-}
-
-/// Temporary placeholder proving the app boots, the theme resolves and
-/// localization is wired.
-///
-/// Replaced by the application shell later in Phase 1.
-class _BootstrapPlaceholder extends StatelessWidget {
-  const _BootstrapPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Scaffold(
-      body: Center(
-        child: Text(
-          AppLocalizations.of(context).appTitle,
-          style: theme.textTheme.displaySmall,
-        ),
-      ),
     );
   }
 }

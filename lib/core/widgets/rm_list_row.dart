@@ -207,6 +207,9 @@ class RmInlineMessage extends StatelessWidget {
 ///
 /// INVENTED: the source contains no loading state. Built purely from the
 /// surfaceMuted token so it inherits both themes for free.
+///
+/// NOTE FOR TESTS: this animates indefinitely, so `pumpAndSettle` will time
+/// out on any screen showing one. Use `pump(Duration)` instead.
 class RmSkeleton extends StatefulWidget {
   const RmSkeleton({
     super.key,

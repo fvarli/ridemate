@@ -87,13 +87,17 @@ class RmChip extends StatelessWidget {
           RmIcon(icon!, size: RmIconSize.sm, color: foreground),
           const SizedBox(width: RmSpacing.sm),
         ],
-        Text(
-          label,
-          style: (compact ? RmTypography.labelSm : RmTypography.label).copyWith(
-            color: foreground,
+        // Flexible, not bare Text: Turkish filter labels such as
+        // "Sadece doğrulanmış" are long, and without this the chip overflows
+        // its row instead of ellipsizing.
+        Flexible(
+          child: Text(
+            label,
+            style: (compact ? RmTypography.labelSm : RmTypography.label)
+                .copyWith(color: foreground),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

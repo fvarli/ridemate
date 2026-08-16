@@ -20,7 +20,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.byType(MaterialApp), findsOneWidget);
-      expect(find.text(RideMateApp.appTitle), findsOneWidget);
+      expect(find.byType(MaterialApp), findsOneWidget);
     });
 
     testWidgets('supplies both themes and follows the system by default', (
@@ -46,14 +46,14 @@ void main() {
       container.read(themeModeProvider.notifier).set(ThemeMode.dark);
       await tester.pumpAndSettle();
 
-      final BuildContext ctx = tester.element(find.byType(Scaffold));
+      final BuildContext ctx = tester.element(find.byType(Scaffold).first);
       expect(Theme.of(ctx).brightness, Brightness.dark);
       expect(ctx.rmColors, RmColors.dark);
 
       container.read(themeModeProvider.notifier).set(ThemeMode.light);
       await tester.pumpAndSettle();
       expect(
-        Theme.of(tester.element(find.byType(Scaffold))).brightness,
+        Theme.of(tester.element(find.byType(Scaffold).first)).brightness,
         Brightness.light,
       );
     });
@@ -100,7 +100,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final AppLocalizations l10n = AppLocalizations.of(
-        tester.element(find.byType(Scaffold)),
+        tester.element(find.byType(Scaffold).first),
       );
 
       // Verbatim from the design source's bottom navigation bar.
@@ -135,14 +135,18 @@ void main() {
       container.read(localeProvider.notifier).set(const Locale('en'));
       await tester.pumpAndSettle();
       expect(
-        AppLocalizations.of(tester.element(find.byType(Scaffold))).navHome,
+        AppLocalizations.of(
+          tester.element(find.byType(Scaffold).first),
+        ).navHome,
         'Home',
       );
 
       container.read(localeProvider.notifier).set(const Locale('tr'));
       await tester.pumpAndSettle();
       expect(
-        AppLocalizations.of(tester.element(find.byType(Scaffold))).navHome,
+        AppLocalizations.of(
+          tester.element(find.byType(Scaffold).first),
+        ).navHome,
         'Anasayfa',
       );
     });

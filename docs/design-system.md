@@ -1,7 +1,8 @@
 # RideMate — Design System
 
-> **Status:** Phase 0 — derived inventory and decisions. **Not yet implemented.**
-> Token code lands in Phase 1 under `lib/core/theme/tokens/`.
+> **Status:** Phase 1 — implemented. Token code lives in
+> `lib/core/theme/tokens/`, primitives in `lib/core/widgets/`.
+> Every value below is pinned by `test/core/theme/tokens_test.dart`.
 >
 > **Source of truth:** `docs/claude-designs/RideMate App.dc.html` — immutable.
 > Never reformat, rewrite, or "clean up" that file. `support.js` is generated
@@ -51,6 +52,19 @@ Scale governs *proportion*, not interactive ergonomics. These deviations are int
 Any further deviation discovered during implementation is added to this table with its
 reason. The table is the contract; silent drift is not allowed.
 
+### 2.2 Deviations recorded during implementation
+
+| # | Deviation | Reason |
+|---|---|---|
+| **D-icon-1** | `home-chip` dropped; one `home` icon serves both uses | The source draws the tab icon and the "Ev" chip with different door apertures (`h-5v-6h-6v6` vs `h-4v-6h-8v6`) — an off-centre door that reads as a slip, not intent. |
+| **D-icon-2** | `badge-verified` is composed in Dart, not shipped as an asset | It is two-tone in the source, so a single `currentColor` swap would render a solid blob. |
+| **D-icon-3** | `check` ships in two optical weights | The source thickens the stroke as the glyph shrinks (2.6 at 14px, 3.4 at 9px). Scaling the thin one down makes it vanish in a small badge. |
+| **D-icon-4** | `star-filled` is derived, not extracted | The design renders filled stars as **U+2605, which is absent from both bundled font families**. It would fall back to a platform font or tofu. The approved `star` geometry is reused as a fill. **Never render a star as text.** |
+| **D-chip-1** (R4) | Selected chips keep a 1px border | In the source a selected chip drops its border, so toggling changes its size. |
+| **D-chip-2** | `RmChip` labels are `Flexible` | Found via the RTL/overflow test: the bare `Text` overflowed on long Turkish labels such as `Sadece doğrulanmış`. This was a real defect, not a gallery artifact. |
+| **D-color-1** | `onInk` inverts with the theme (white in light, `#0B0E14` in dark) | Found via the dark golden: `ink` is near-white in dark, so a fixed white foreground rendered white-on-white on the selected sort chip. The source has no dark sort chip, so this had no reference. |
+| **D-chrome-1** | No `RmPhoneFrame` or `RmStatusBar` | The bezel and mock status bar are design-board device chrome. A real app uses `SystemUiOverlayStyle` + `SafeArea`. |
+
 ## 3. Color tokens
 
 Colors do **not** scale. Values are taken verbatim.
@@ -94,6 +108,16 @@ purple `#9D6BFF→#6E3FE8`.
 **Shadow rule:** neutral shadows use `rgba(15,23,41,α)` in light and `rgba(0,0,0,.5)`
 in dark; colored shadows use the fill's own hue at α `.12–.5`.
 
+### 3.x Implementation note
+
+`RmColors` and `RmShadows` are `ThemeExtension`s because they vary by brightness; every
+other token group is a compile-time constant. See `docs/architecture.md`.
+
+Dark values with **no reference in the source** (the design only provides dark variants
+for Home, Active Trip and Safety) are derived from its own light→dark surface mapping and
+flagged in `rm_colors.dart`. The warning/amber family has no dark pair at all and is
+fully extrapolated — it is the first thing to review with design.
+
 ## 4. Typography
 
 Two families, with an **enforceable split** the design applies without exception:
@@ -102,15 +126,18 @@ Two families, with an **enforceable split** the design applies without exception
 - **IBM Plex Mono** (400/500/600) — **all data**: prices, scores, percentages, times,
   plate numbers, counts, distances
 
-Encoded in Phase 1 as a distinct `RmNumeric` style set so the split cannot drift.
+Encoded as the `numeric*` roles in `RmTypography` so the split cannot drift; a test
+asserts every `numeric*` role is mono and every other role is Manrope.
 
 Fonts are **vendored** into `assets/fonts/` with their OFL licenses — not `google_fonts`,
 which fetches at runtime (offline failure, privacy leak, first-paint jank). Wrong for a
 trust-first product.
 
 The source uses **63 distinct size+weight pairs** with heavy half-pixel usage
-(9.5/10.5/11.5/12.5/13.5/14.5/15.5). Phase 1 consolidates these to ~12–14 named roles.
-Only 5 elements declare `line-height`; the rest must be defined deliberately.
+(9.5/10.5/11.5/12.5/13.5/14.5/15.5), consolidated into **20 named roles**. Only 5
+elements in the source declare `line-height`; the rest were defined deliberately.
+
+Roles are **colourless** — colour comes from `RmColors` at the call site.
 
 Letter-spacing: `+1` on mono uppercase labels, `+0.3` on uppercase section labels,
 tightening to `-0.3…-0.6` as size grows.

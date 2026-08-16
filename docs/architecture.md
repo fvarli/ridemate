@@ -1,7 +1,7 @@
 # RideMate — Architecture
 
-> **Status:** Phase 0 (bootstrap). Everything below the "Phase 0 state" section
-> is a decided plan, not yet implemented.
+> **Status:** Phase 1 complete — design system and application foundation.
+> No product screens are implemented.
 
 ## Product framing
 
@@ -14,70 +14,110 @@ blocking, trip sharing, and SOS.
 All values visible in the design reference (amounts, Trust Scores, names, routes) are
 **mock data**. No backend or business rule is inferred from them.
 
-## Phase 0 state (current)
+## Current structure
 
 ```
 lib/
-├── main.dart                  # runApp(RideMateApp())
-└── app/ride_mate_app.dart     # minimal MaterialApp + placeholder
-test/
-└── app/ride_mate_app_test.dart
-tool/check.sh                  # format + analyze + test
+├── main.dart                       # ProviderScope + RideMateApp; synchronous
+├── app/
+│   ├── ride_mate_app.dart          # MaterialApp.router, themes, l10n, text-scale cap
+│   ├── app_shell.dart              # StatefulShellRoute scaffold + placeholders
+│   ├── providers/                  # theme mode, locale  (the entire Phase 1 state)
+│   └── router/                     # app_router.dart (Provider<GoRouter>), app_routes.dart
+├── core/
+│   ├── a11y/                       # RmA11y constants, RmTapTarget
+│   ├── format/                     # RmFormatters, RmTextConventions
+│   ├── icons/rm_icons.dart         # 25-icon registry
+│   ├── theme/
+│   │   ├── rm_theme.dart           # light + dark ThemeData
+│   │   └── tokens/                 # colors, shadows, typography, spacing, radius,
+│   │                               # sizing, motion
+│   └── widgets/                    # the Rm* library
+├── features/gallery/               # debug-only design-system catalogue
+└── l10n/                           # ARBs + committed generated localizations
 ```
 
-No third-party dependencies. No theming, routing, localization, state management,
-services or product screens — all Phase 1+.
-
-## Target structure
-
-```
-lib/
-├── main.dart
-├── app/            # root widget, bootstrap guard, router
-├── core/           # a11y, format, icons, theme/tokens, widgets (rm_*)
-├── features/       # onboarding, verification, home, search, matches,
-│                   # route_create, route_details, trip, chat,
-│                   # profile, reviews, safety
-├── services/       # cross-feature: session, routes, matching, trust,
-│                   # chat, safety, location, map
-├── state/models/
-└── l10n/           # app_tr.arb (template), app_en.arb
-```
-
-Feature-first with a small shared core, matching the structure proven in
-`quietly_media_saver`. Each feature gets only the layers it earns
-(`presentation` / `domain` / `data`) — empty ceremonial folders are not created.
-
-Design-system primitives use the **`Rm`** prefix (`RmButton`, `rm_button.dart`),
-mirroring the `q_*` convention in Quietly. The design source itself already uses this
-prefix in its `rm-pulse` / `rm-ring` keyframes.
+`features/` contains only the gallery. Product features create their own directories in
+the phase that builds them; no empty folders are scaffolded ahead of need.
 
 ## Decisions
 
 | Concern | Decision | Rationale |
 |---|---|---|
-| Navigation | `go_router` | Declarative, deep-linkable; the onboarding → verification → home redirect guard is exactly its strength. |
-| State + DI | `flutter_riverpod`, **no codegen** | Provider overrides are the test seam for mock repositories. A second DI container (`get_it`) would be pure ceremony. Quietly deliberately dropped the codegen that RPS Duel used — follow the newer decision. |
-| Immutable models | Hand-written `@immutable final class` + `copyWith` | Dart 3.11 sealed classes and pattern matching cover the domain shapes. `freezed`/`json_serializable` are deferred until a real JSON contract exists. |
-| Localization | `flutter_localizations` + `intl` + `gen-l10n` | In-SDK. TR default, EN second, **all layouts RTL-safe** so DE/ES/FR/AR are translation-only work later. |
-| Theming | `ThemeData` + `ThemeExtension` | See deviation below. |
-| Icons | Vendored SVGs + `flutter_svg`, behind `RmIcon` | The design's 98 inline SVGs are the approved artwork; an off-the-shelf icon set would be close but not exact. |
-| Networking | **None yet** — abstract repositories + in-memory implementations | No backend exists. Adding an HTTP client now would be architecture theatre. The Riverpod provider is the swap point. |
-| Map | `MapRenderer` interface + vector renderer | The design's maps are hand-drawn SVG, fully reproducible in Flutter, so the maps-vendor decision defers at zero visual cost. |
+| Navigation | `go_router` 17, `StatefulShellRoute.indexedStack` | Exactly the bottom-nav-with-preserved-branch-state pattern the design needs. |
+| State + DI | `flutter_riverpod` 3, **no codegen** | Provider overrides are the test seam. A second DI container would be ceremony. `rps_duel` carries codegen deps with zero usage — not repeated here. |
+| Immutable models | Hand-written `@immutable final class` | Dart 3.11 covers the shapes. `freezed` waits for a real JSON contract. |
+| Localization | `flutter_localizations` + `intl` + `gen-l10n` | In-SDK. Turkish is the template locale; see below. |
+| Theming | `ThemeData` + two `ThemeExtension`s | See below. |
+| Icons | Vendored SVG + `flutter_svg`, behind `RmIcon` | 1:1 with the approved artwork. |
+| Networking / persistence | **None** | No backend exists. Nothing is built to look complete. |
 
-### Deliberate deviation: theming via `ThemeExtension`
+### Only two ThemeExtensions
 
-Quietly uses `AppColors.activate(brightness)` — a global mutable static palette swapped
-once per build. RideMate does **not** copy this.
+`RmColors` and `RmShadows` vary by brightness, so they are `ThemeExtension`s read via
+`context.rmColors` / `context.rmShadows`.
 
-Reason: it is global state. It breaks when two brightnesses render in one frame — which
-RideMate's Home screen literally does (a light sheet floating over a map) — and it makes
-widget tests order-dependent.
+`RmTypography`, `RmSpacing`, `RmRadius`, `RmSizing` and `RmMotion` do **not** vary by
+brightness, so they are `abstract final class` constants: `const`-constructible, usable
+without a `BuildContext`, and testable without a `WidgetTester`.
 
-RideMate instead reads tokens from `Theme.of(context).extension<RmColors>()!`. Same
-discipline (**tokens are never hard-coded as hex in widgets**), but context-scoped,
-`lerp`-able across theme transitions, and safe for golden tests that render light and
-dark side by side.
+`RmTypography` is deliberately **colourless** — colour comes from `RmColors` at the call
+site. This removes the class of bugs where a text style carries the wrong brightness's
+colour.
+
+**Deliberate deviation from the sibling Quietly project**, which uses a global mutable
+palette (`AppColors.activate(brightness)`). That breaks when two brightnesses render in
+one frame — which RideMate's Home screen does, floating a light sheet over a dark map —
+and makes widget tests order-dependent. A regression test covers exactly that scenario.
+
+Both extensions interpolate every field, so RideMate surfaces stay in step with
+Material's own animated `ColorScheme` during a theme change.
+
+### Riverpod boundary
+
+`ProviderScope` is the outermost widget; `main()` is synchronous, so nothing blocks the
+first frame.
+
+Phase 1 declares **three** providers: `themeModeProvider`, `localeProvider`,
+`routerProvider`. All app-level UI state. There are no repositories, services, mock data
+or persistence. Theme and locale are in-memory; persisting them needs
+`shared_preferences`, which arrives in Phase 2 alongside the onboarding flag it also
+serves.
+
+### Router
+
+`app_routes.dart` pairs a name and a path per route; navigation always goes by name. The
+router is a provider rather than a global so it can read state, be overridden in tests,
+and gain the Phase 2 verification guard without restructuring. **No redirect guards
+exist yet** — a placeholder one would be architecture theatre.
+
+The shell hosts the four destinations from the design's tab bar plus a centre action that
+pushes above the shell. Branches build lazily and then stay mounted, which preserves
+scroll position and in-progress input once the real screens land.
+
+## Localization and RTL
+
+Turkish is the **source** product language: the approved design is written in Turkish and
+İstanbul is the pilot market, so `app_tr.arb` is the gen-l10n template and descriptions
+are authored against the Turkish original. English ships alongside it. Generated
+`AppLocalizations` files are committed so a fresh clone analyzes without running codegen.
+
+Locale resolution prefers an exact language match, defaults to Turkish when the device
+reports nothing, and otherwise falls back to English rather than a half-translated
+Turkish UI.
+
+**Layouts are RTL-safe from the first widget** — `EdgeInsetsDirectional`,
+`AlignmentDirectional`, `start`/`end`, never `left`/`right`. `RmIcon` mirrors only
+genuinely directional glyphs. Arabic is a declared future locale, and retrofitting RTL
+across 15 screens is one of the most expensive Flutter refactors; a golden baseline and
+widget tests cover RTL today, before any Arabic strings exist.
+
+### Formatting
+
+`RmFormatters` takes an **explicit** locale and never reads `Intl.defaultLocale`.
+RideMate has an in-app language override, and ambient locale state would silently desync
+from it. A formatter constructed without localizations throws rather than quietly
+emitting wrong units.
 
 ## Backend boundary
 
@@ -85,16 +125,15 @@ A real backend, database, auth, realtime, maps infrastructure, notifications, tr
 engine, matching engine and safety infrastructure will come later and may live in a
 separate repository.
 
-The client's job today is to make that integration clean, not to simulate it. Concretely:
-UI reads from repository interfaces in `lib/services/*`; Phase 1–7 bind those to
-in-memory mock implementations; the backend phase swaps the binding in one place.
-
-**No fake enterprise architecture is built inside Flutter.**
+The client's job today is to make that integration clean, not to simulate it. UI will
+read from repository interfaces under `lib/services/`, bound to in-memory
+implementations, with the backend phase swapping the binding in one place. **No fake
+enterprise architecture is built inside Flutter.**
 
 ## Safety-critical constraint
 
 The design contains no armed / countdown / triggered / cancelled SOS states. SOS
-behavior is **not** invented ad hoc. Before any implementation, Phase 6 delivers a
+behaviour is **not** invented ad hoc. Before any implementation, Phase 6 delivers a
 written SOS state-machine specification covering at minimum:
 
 ```
@@ -104,8 +143,25 @@ idle → confirmation/armed → countdown → triggered → acknowledged/escalat
 
 for review and approval.
 
+`RmPulseRing`-style animation tokens exist in `RmMotion` as generic visual primitives
+with no SOS semantics attached.
+
 ## Cost-sharing constraint
 
-Monetary copy in the design (`maliyet paylaşımı`, `Senin payın`, `KİŞİ BAŞI`, `₺18`) is
-**display-only presentation data**. No payment infrastructure, payment buttons, wallet
-behavior, transaction state or fake payment services are implemented.
+Monetary copy (`maliyet paylaşımı`, `Senin payın`, `KİŞİ BAŞI`, `₺18`) is **display-only
+presentation data**. No payment infrastructure, payment buttons, wallet behaviour,
+transaction state or fake payment services are implemented. `RmFormatters.money` formats
+a number; nothing charges anyone.
+
+## Testing
+
+- `tool/check.sh` — format, `analyze --fatal-infos --fatal-warnings`, and the
+  host-independent test suite. This is the gate.
+- `tool/goldens.sh` — the tagged golden suite, kept separate because golden images depend
+  on font rasterization and the baselines are Linux-generated.
+- `test/support/pump.dart` pumps through the **real** `ThemeData`, so the theme layer is
+  genuinely exercised rather than bypassed.
+- Token tests pin every value to the design source, so drift cannot pass silently.
+
+`RmSkeleton` animates indefinitely; `pumpAndSettle` will time out on any screen showing
+one. Use `pump(Duration)` there.

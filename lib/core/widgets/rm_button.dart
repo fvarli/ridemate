@@ -39,7 +39,9 @@ import 'rm_icon.dart';
 
 /// Visual weight of a [RmButton].
 enum RmButtonVariant {
-  /// Solid brand fill with a coloured glow. The screen's single main action.
+  /// Solid brand fill. The screen's single main action.
+  ///
+  /// Carries the brand glow only at the docked steps — see [_glows].
   primary,
 
   /// White surface with a hairline border and brand label. Used for the
@@ -130,6 +132,18 @@ class RmButton extends StatelessWidget {
     RmButtonSize.md => RmTypography.label,
     RmButtonSize.lg || RmButtonSize.xl => RmTypography.bodyLg,
   };
+
+  /// Whether this step carries the brand glow.
+  ///
+  /// In the source, every filled primary at 50-52px high declares
+  /// `box-shadow:0 10-12px 22-24px rgba(46,91,255,.32)`, and every filled
+  /// primary at inline size (`padding:7x13`, `8x14`) declares none. The glow
+  /// belongs to the screen's docked action, not to an in-card one — without
+  /// this, an "İncele" button spills its glow over the card that contains it.
+  ///
+  /// [RmButtonSize.md] has no filled primary anywhere in the source, so it
+  /// takes the quieter of the two treatments.
+  bool get _glows => size == RmButtonSize.lg || size == RmButtonSize.xl;
 
   double get _horizontalPadding => switch (size) {
     RmButtonSize.xs => RmSpacing.lg,
@@ -235,7 +249,7 @@ class RmButton extends StatelessWidget {
         background: c.primary,
         foreground: c.onPrimary,
         border: null,
-        shadow: s.primary,
+        shadow: _glows ? s.primary : RmShadows.none,
         splash: c.primaryPressed,
       ),
       RmButtonVariant.outline => _ButtonStyle(
@@ -256,7 +270,7 @@ class RmButton extends StatelessWidget {
         background: c.danger,
         foreground: c.onPrimary,
         border: null,
-        shadow: s.danger,
+        shadow: _glows ? s.danger : RmShadows.none,
         splash: c.dangerGradientEnd,
       ),
     };

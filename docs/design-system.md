@@ -1,7 +1,8 @@
 # RideMate — Design System
 
-> **Status:** Phase 1 — implemented. Token code lives in
-> `lib/core/theme/tokens/`, primitives in `lib/core/widgets/`.
+> **Status:** Phase 2 — the token layer and primitives are in production use by
+> Onboarding, Verification and Home. Token code lives in `lib/core/theme/tokens/`,
+> primitives in `lib/core/widgets/`.
 > Every value below is pinned by `test/core/theme/tokens_test.dart`.
 >
 > **Source of truth:** `docs/claude-designs/RideMate App.dc.html` — immutable.
@@ -64,6 +65,11 @@ reason. The table is the contract; silent drift is not allowed.
 | **D-chip-2** | `RmChip` labels are `Flexible` | Found via the RTL/overflow test: the bare `Text` overflowed on long Turkish labels such as `Sadece doğrulanmış`. This was a real defect, not a gallery artifact. |
 | **D-color-1** | `onInk` inverts with the theme (white in light, `#0B0E14` in dark) | Found via the dark golden: `ink` is near-white in dark, so a fixed white foreground rendered white-on-white on the selected sort chip. The source has no dark sort chip, so this had no reference. |
 | **D-chrome-1** | No `RmPhoneFrame` or `RmStatusBar` | The bezel and mock status bar are design-board device chrome. A real app uses `SystemUiOverlayStyle` + `SafeArea`. |
+| **D-home-1** | **Dark Home keeps every element light has** — arterial road, third building, destination pin, second driver pin and the shortcut-chip icons, all of which the dark comp omits | Dropping a marker would mean the same screen shows the user **less information at night**. Those omissions are read as comp simplification, not product behaviour. Dark re-palettes the scene; it never reduces it. Tests assert parity. |
+| **D-home-2** | The dashed route overlay stays **light-only** | Unlike the items above this is texture, not information: a white dash over a near-black map reads as noise, and the source's choice is clearly deliberate. |
+| **D-onboarding-1** | One onboarding page, with the designed 3-dot indicator showing dot 1 active | Only one page was designed. Two more would need approved copy, which is not invented. |
+| **D-verify-1** | Advancement is a **scripted scenario list**, not a computation | See the Trust Score section of `architecture.md`. No weights, no `calculateTrustScore()`. |
+| **D-widths-1** | Several rows constrain a trailing column or use `Expanded` for the shrinking element | The scaled component set is wider than the 276px artboard it was measured from, so rows that fit the comp can overflow at real device widths. Found via goldens and RTL tests. |
 
 ## 3. Color tokens
 
@@ -197,6 +203,17 @@ turns **amber**).
 2 stops are demonstrated, but the connector stretches, so intermediate stops are
 structurally anticipated. The ring/teardrop pair is reused across the from/to input, the
 timeline, and the map pins — one consistent origin/destination vocabulary.
+
+### 2.3 Component robustness learned in Phase 2
+
+The scale factor means a row that fits the artboard can overflow a real phone. Three
+components were hardened after tests caught genuine overflows:
+
+* `RmChip` — the label is `Flexible`; long Turkish labels such as `Sadece doğrulanmış`
+  used to overflow.
+* `RmBadge` — same treatment, so a localized label ellipsizes rather than pushing.
+* `RmButton`, `RmIconButton`, `RmFab` and the verification rows now declare a semantics
+  **container**; without it adjacent controls merged into a single announcement.
 
 ## 8. Missing states — must be designed as we build
 

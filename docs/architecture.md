@@ -1,7 +1,7 @@
 # RideMate — Architecture
 
-> **Status:** Phase 1 complete — design system and application foundation.
-> No product screens are implemented.
+> **Status:** Phase 2 complete — Onboarding, Verification and Home.
+> Search, Messages, Profile and Create route remain placeholders.
 
 ## Product framing
 
@@ -22,7 +22,8 @@ lib/
 ├── app/
 │   ├── ride_mate_app.dart          # MaterialApp.router, themes, l10n, text-scale cap
 │   ├── app_shell.dart              # StatefulShellRoute scaffold + placeholders
-│   ├── providers/                  # theme mode, locale  (the entire Phase 1 state)
+│   ├── startup_screen.dart         # neutral launch surface while state resolves
+│   ├── providers/                  # theme mode, locale
 │   └── router/                     # app_router.dart (Provider<GoRouter>), app_routes.dart
 ├── core/
 │   ├── a11y/                       # RmA11y constants, RmTapTarget
@@ -33,12 +34,17 @@ lib/
 │   │   └── tokens/                 # colors, shadows, typography, spacing, radius,
 │   │                               # sizing, motion
 │   └── widgets/                    # the Rm* library
-├── features/gallery/               # debug-only design-system catalogue
+├── features/
+│   ├── gallery/                    # debug-only design-system catalogue
+│   ├── onboarding/                 # data + application + presentation
+│   ├── verification/               # domain + application + presentation
+│   └── home/                       # domain + application + presentation
 └── l10n/                           # ARBs + committed generated localizations
 ```
 
-`features/` contains only the gallery. Product features create their own directories in
-the phase that builds them; no empty folders are scaffolded ahead of need.
+Each feature has **only the layers it earns**: onboarding needs persistence so it has
+`data/`; verification and home carry domain models; none has a layer it does not use.
+No empty folders are scaffolded ahead of need.
 
 ## Decisions
 
@@ -50,7 +56,8 @@ the phase that builds them; no empty folders are scaffolded ahead of need.
 | Localization | `flutter_localizations` + `intl` + `gen-l10n` | In-SDK. Turkish is the template locale; see below. |
 | Theming | `ThemeData` + two `ThemeExtension`s | See below. |
 | Icons | Vendored SVG + `flutter_svg`, behind `RmIcon` | 1:1 with the approved artwork. |
-| Networking / persistence | **None** | No backend exists. Nothing is built to look complete. |
+| Persistence | `shared_preferences`, behind a feature-owned repository | Only the onboarding flag. Device-local UI state, not a backend service. |
+| Networking | **None** | No backend exists. Nothing is built to look complete. |
 
 ### Only two ThemeExtensions
 
@@ -76,20 +83,67 @@ Material's own animated `ColorScheme` during a theme change.
 ### Riverpod boundary
 
 `ProviderScope` is the outermost widget; `main()` is synchronous, so nothing blocks the
-first frame.
+first frame. A neutral launch surface (`StartupScreen`) covers the moment the stored
+onboarding flag is read, so neither the intro nor Home can flash before it resolves.
 
-Phase 1 declares **three** providers: `themeModeProvider`, `localeProvider`,
-`routerProvider`. All app-level UI state. There are no repositories, services, mock data
-or persistence. Theme and locale are in-memory; persisting them needs
-`shared_preferences`, which arrives in Phase 2 alongside the onboarding flag it also
-serves.
+Providers: `themeModeProvider`, `localeProvider`, `routerProvider`,
+`onboardingRepositoryProvider`, `onboardingControllerProvider`,
+`verificationControllerProvider`, `homeSnapshotProvider`.
+
+The only persisted state is the onboarding flag. Theme and locale remain in-memory.
+Verification state is in-memory and **never** persisted — showing a fake verification
+level that survived a restart would be misleading in a trust product.
+
+### Three concepts that must never be coupled
+
+```
+OnboardingState   → hasSeenOnboarding   persisted; means the intro was completed
+AuthState         → DOES NOT EXIST      no accounts, no sessions, no sign-in
+VerificationState → in-memory mock      identity checks, unrelated to the above
+```
+
+The stored key is namespaced and narrowly named (`ridemate.onboarding.hasSeenOnboarding`)
+and a test asserts it never reads as an account, session or identity claim, so a future
+auth integration cannot inherit the wrong assumption.
+
+`Hesap oluştur` continues the new-user flow. It is **not** account creation and **not**
+authentication. `Zaten üyeyim` means sign in to an existing account; since sign-in does
+not exist, it shows a temporary message and deliberately neither marks the intro complete
+nor navigates. Both are covered by regression tests.
+
+**Temporary Phase 2 limitation:** there is no sign-in. `onSignInRequested` is named for
+what it means, so a real auth route replaces the handler without changing the component's
+semantics.
+
+### The Trust Score is never calculated here
+
+There is deliberately no scoring function, no weights and no policy in this codebase.
+The design shows two verified steps against a score of 60 — which is not 2/5, and is
+itself evidence that no step-derived formula reproduces the design. A test asserts
+exactly that.
+
+Verification advancement walks a list of clearly labelled presentation scenarios, each
+carrying the score to **display**. The real Trust Score is a backend-owned,
+safety-sensitive concept drawing on identity verification, account age, trip history,
+cancellations, ratings, reports, fraud signals and device risk. Nothing in the client
+pre-empts it.
+
+### Maps
+
+`RmMapCanvas` is **artwork**, not a map. It reproduces the illustrated map the design
+draws as inline SVG, in the design's own coordinate space. There is no tile source, no
+projection, no location and no vendor, and nothing is named as though it were a provider
+contract. The real maps and location architecture remains a later, separate decision.
 
 ### Router
 
 `app_routes.dart` pairs a name and a path per route; navigation always goes by name. The
-router is a provider rather than a global so it can read state, be overridden in tests,
-and gain the Phase 2 verification guard without restructuring. **No redirect guards
-exist yet** — a placeholder one would be architecture theatre.
+router is a provider rather than a global so it can read state and be overridden in tests.
+
+The one redirect gates on whether the intro presentation has been completed. It is **not**
+an auth guard; a future auth guard is a separate condition and must not be folded into
+this one. The `ValueNotifier` bridging state to `refreshListenable` is disposed with the
+provider, and the preferences instance is created once.
 
 The shell hosts the four destinations from the design's tab bar plus a centre action that
 pushes above the shell. Branches build lazily and then stay mounted, which preserves
@@ -163,5 +217,8 @@ a number; nothing charges anyone.
   genuinely exercised rather than bypassed.
 - Token tests pin every value to the design source, so drift cannot pass silently.
 
-`RmSkeleton` animates indefinitely; `pumpAndSettle` will time out on any screen showing
-one. Use `pump(Duration)` there.
+`RmSkeleton` and the pulsing status dot animate indefinitely; `pumpAndSettle` will time
+out on any screen showing one. Use `pump(Duration)` there.
+
+`test/support/fakes.dart` holds the test doubles. Production ships **no** fake
+implementations.

@@ -9,8 +9,13 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 0 — bootstrap.** The Flutter project, quality gates and architecture decisions
-are in place. No product screens are implemented yet.
+**Phase 2 — first product screens.** The design system (Phase 1) is complete, and
+Onboarding, Verification and Home are implemented. Search, Messages, Profile and
+Create route are still placeholders.
+
+There is no backend, no authentication, no identity-verification provider, no
+payments, no location and no maps vendor. Everything those screens display is
+mock presentation data.
 
 ## Requirements
 
@@ -54,6 +59,8 @@ accumulates.
 ```bash
 flutter run -d <android-device-id>
 ```
+
+The design-system gallery is available in debug builds at `/gallery`.
 
 An Android emulator or physical device must be started first (`flutter devices`).
 iOS requires macOS with Xcode.

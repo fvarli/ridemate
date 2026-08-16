@@ -186,6 +186,196 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get searchTitle => 'Search routes';
+
+  @override
+  String get searchFieldOriginLabel => 'FROM';
+
+  @override
+  String get searchFieldDestinationLabel => 'TO';
+
+  @override
+  String get searchSwapSemanticLabel => 'Swap origin and destination';
+
+  @override
+  String get searchWhenLabel => 'WHEN';
+
+  @override
+  String get searchWhenValue => 'Tomorrow · 08:30';
+
+  @override
+  String get searchSeatsLabel => 'SEATS';
+
+  @override
+  String searchSeatsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get searchFiltersTitle => 'TRUST FILTERS';
+
+  @override
+  String get searchFilterVerifiedOnly => 'Verified only';
+
+  @override
+  String get searchFilterMinRating => '4.5+ rating';
+
+  @override
+  String get searchFilterFemaleDriver => 'Female driver';
+
+  @override
+  String get searchFilterNoSmoking => 'No smoking';
+
+  @override
+  String get searchFilterMutualConnection => 'Mutual connection';
+
+  @override
+  String get searchRecentTitle => 'RECENT SEARCHES';
+
+  @override
+  String searchSubmit(String count) {
+    return 'See matches · $count results';
+  }
+
+  @override
+  String get searchPlacePickerOriginTitle => 'Where are you starting?';
+
+  @override
+  String get searchPlacePickerDestinationTitle => 'Where are you going?';
+
+  @override
+  String matchesTitle(String count) {
+    return '$count matches';
+  }
+
+  @override
+  String matchesSubtitle(String route, String when) {
+    return '$route · $when';
+  }
+
+  @override
+  String get matchesWhenSummary => 'Tomorrow 08:30';
+
+  @override
+  String get matchesSortBest => 'Best match';
+
+  @override
+  String get matchesSortNearest => 'Nearest';
+
+  @override
+  String get matchesSortCheapest => 'Lowest share';
+
+  @override
+  String get matchesCompatibilityLabel => 'Route match';
+
+  @override
+  String get matchesInspect => 'View';
+
+  @override
+  String get matchesMetaVerified => 'Verified';
+
+  @override
+  String matchesMetaTrips(String count) {
+    return '$count trips';
+  }
+
+  @override
+  String matchesMetaSharedRoutes(String count) {
+    return '$count shared routes';
+  }
+
+  @override
+  String matchesMetaDeparture(String time) {
+    return 'Departs $time';
+  }
+
+  @override
+  String matchesMetaSeats(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seats',
+      one: '1 seat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String matchesMetaWalk(String minutes) {
+    return '~$minutes min walk';
+  }
+
+  @override
+  String matchesMetaCompatibilityShort(String value) {
+    return '$value match';
+  }
+
+  @override
+  String matchesCardSemanticLabel(
+    String name,
+    String rating,
+    String compatibility,
+    String time,
+    String fare,
+  ) {
+    return '$name, rated $rating. $compatibility route match. Departs $time. $fare per person.';
+  }
+
+  @override
+  String get routeDetailsStatTrustScore => 'Trust Score';
+
+  @override
+  String get routeDetailsStatApprovalRate => 'Approval rate';
+
+  @override
+  String get routeDetailsStatSharedDistance => 'km shared';
+
+  @override
+  String routeDetailsMemberSince(String year, String area) {
+    return 'Member since $year · $area';
+  }
+
+  @override
+  String routeDetailsRatingSummary(String rating, String trips) {
+    return '$rating · $trips trips';
+  }
+
+  @override
+  String get routeDetailsPickupLabel => 'Pickup point';
+
+  @override
+  String routeDetailsArrivalLabel(String minutes) {
+    return 'Arrival · $minutes min';
+  }
+
+  @override
+  String get routeDetailsMutualTitle => 'Mutual connection';
+
+  @override
+  String get routeDetailsFareLabel => 'Your share';
+
+  @override
+  String get routeDetailsMessageSemanticLabel => 'Message the driver';
+
+  @override
+  String get routeDetailsRequestSeat => 'Send request';
+
+  @override
+  String get routeDetailsRequestUnavailable => 'Trip requests are coming soon.';
+
+  @override
+  String get routeDetailsMessagingUnavailable => 'Messaging is coming soon.';
+
+  @override
+  String get routeDetailsNotFound => 'This route is no longer available.';
+
+  @override
   String get dateToday => 'Today';
 
   @override

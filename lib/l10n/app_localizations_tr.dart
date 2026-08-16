@@ -186,6 +186,198 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get searchTitle => 'Rota ara';
+
+  @override
+  String get searchFieldOriginLabel => 'NEREDEN';
+
+  @override
+  String get searchFieldDestinationLabel => 'NEREYE';
+
+  @override
+  String get searchSwapSemanticLabel => 'Kalkış ve varış noktalarını değiştir';
+
+  @override
+  String get searchWhenLabel => 'NE ZAMAN';
+
+  @override
+  String get searchWhenValue => 'Yarın · 08:30';
+
+  @override
+  String get searchSeatsLabel => 'KOLTUK';
+
+  @override
+  String searchSeatsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kişi',
+      one: '1 kişi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get searchFiltersTitle => 'GÜVEN FİLTRELERİ';
+
+  @override
+  String get searchFilterVerifiedOnly => 'Sadece doğrulanmış';
+
+  @override
+  String get searchFilterMinRating => '4.5+ puan';
+
+  @override
+  String get searchFilterFemaleDriver => 'Kadın sürücü';
+
+  @override
+  String get searchFilterNoSmoking => 'Sigara yok';
+
+  @override
+  String get searchFilterMutualConnection => 'Ortak bağlantı';
+
+  @override
+  String get searchRecentTitle => 'SON ARAMALAR';
+
+  @override
+  String searchSubmit(String count) {
+    return 'Eşleşmeleri gör · $count sonuç';
+  }
+
+  @override
+  String get searchPlacePickerOriginTitle => 'Nereden yola çıkıyorsun?';
+
+  @override
+  String get searchPlacePickerDestinationTitle => 'Nereye gidiyorsun?';
+
+  @override
+  String matchesTitle(String count) {
+    return '$count eşleşme';
+  }
+
+  @override
+  String matchesSubtitle(String route, String when) {
+    return '$route · $when';
+  }
+
+  @override
+  String get matchesWhenSummary => 'Yarın 08:30';
+
+  @override
+  String get matchesSortBest => 'En uyumlu';
+
+  @override
+  String get matchesSortNearest => 'En yakın';
+
+  @override
+  String get matchesSortCheapest => 'En ucuz';
+
+  @override
+  String get matchesCompatibilityLabel => 'Rota uyumu';
+
+  @override
+  String get matchesInspect => 'İncele';
+
+  @override
+  String get matchesMetaVerified => 'Doğrulanmış';
+
+  @override
+  String matchesMetaTrips(String count) {
+    return '$count yolculuk';
+  }
+
+  @override
+  String matchesMetaSharedRoutes(String count) {
+    return '$count ortak rota';
+  }
+
+  @override
+  String matchesMetaDeparture(String time) {
+    return 'Kalkış $time';
+  }
+
+  @override
+  String matchesMetaSeats(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count koltuk',
+      one: '1 koltuk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String matchesMetaWalk(String minutes) {
+    return '~$minutes dk yürüme';
+  }
+
+  @override
+  String matchesMetaCompatibilityShort(String value) {
+    return '$value uyum';
+  }
+
+  @override
+  String matchesCardSemanticLabel(
+    String name,
+    String rating,
+    String compatibility,
+    String time,
+    String fare,
+  ) {
+    return '$name, $rating puan. $compatibility rota uyumu. Kalkış $time. Kişi başı $fare.';
+  }
+
+  @override
+  String get routeDetailsStatTrustScore => 'Güven Puanı';
+
+  @override
+  String get routeDetailsStatApprovalRate => 'Onay oranı';
+
+  @override
+  String get routeDetailsStatSharedDistance => 'km paylaşıldı';
+
+  @override
+  String routeDetailsMemberSince(String year, String area) {
+    return '$year\'ten beri üye · $area';
+  }
+
+  @override
+  String routeDetailsRatingSummary(String rating, String trips) {
+    return '$rating · $trips yolculuk';
+  }
+
+  @override
+  String get routeDetailsPickupLabel => 'Alış noktası';
+
+  @override
+  String routeDetailsArrivalLabel(String minutes) {
+    return 'Varış · $minutes dk';
+  }
+
+  @override
+  String get routeDetailsMutualTitle => 'Ortak bağlantı';
+
+  @override
+  String get routeDetailsFareLabel => 'Senin payın';
+
+  @override
+  String get routeDetailsMessageSemanticLabel => 'Sürücüye mesaj gönder';
+
+  @override
+  String get routeDetailsRequestSeat => 'İstek gönder';
+
+  @override
+  String get routeDetailsRequestUnavailable =>
+      'Yolculuk isteği özelliği yakında eklenecek.';
+
+  @override
+  String get routeDetailsMessagingUnavailable =>
+      'Mesajlaşma özelliği yakında eklenecek.';
+
+  @override
+  String get routeDetailsNotFound => 'Bu rota artık görüntülenemiyor.';
+
+  @override
   String get dateToday => 'Bugün';
 
   @override

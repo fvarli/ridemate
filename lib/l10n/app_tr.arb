@@ -245,6 +245,160 @@
     }
   },
 
+  "searchTitle": "Rota ara",
+  "@searchTitle": {"description": "Rota arama ekranının başlığı."},
+  "searchFieldOriginLabel": "NEREDEN",
+  "@searchFieldOriginLabel": {"description": "Kalkış alanının üst etiketi."},
+  "searchFieldDestinationLabel": "NEREYE",
+  "@searchFieldDestinationLabel": {"description": "Varış alanının üst etiketi."},
+  "searchSwapSemanticLabel": "Kalkış ve varış noktalarını değiştir",
+  "@searchSwapSemanticLabel": {"description": "Yön değiştirme düğmesi için ekran okuyucu etiketi."},
+  "searchWhenLabel": "NE ZAMAN",
+  "@searchWhenLabel": {"description": "Tarih/saat seçicisinin üst etiketi."},
+  "searchWhenValue": "Yarın · 08:30",
+  "@searchWhenValue": {"description": "Seçili yolculuk zamanı. Mock sunum verisidir; Phase 3'te tarih seçici yoktur."},
+  "searchSeatsLabel": "KOLTUK",
+  "@searchSeatsLabel": {"description": "Koltuk seçicisinin üst etiketi."},
+  "searchSeatsValue": "{count, plural, =1{1 kişi} other{{count} kişi}}",
+  "@searchSeatsValue": {
+    "description": "Seçili koltuk sayısı.",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "searchFiltersTitle": "GÜVEN FİLTRELERİ",
+  "@searchFiltersTitle": {"description": "Güven filtreleri bölüm başlığı."},
+  "searchFilterVerifiedOnly": "Sadece doğrulanmış",
+  "@searchFilterVerifiedOnly": {"description": "Filtre: yalnızca kimliği doğrulanmış üyeler."},
+  "searchFilterMinRating": "4.5+ puan",
+  "@searchFilterMinRating": {"description": "Filtre: belirli puanın üzerindeki üyeler."},
+  "searchFilterFemaleDriver": "Kadın sürücü",
+  "@searchFilterFemaleDriver": {"description": "Filtre: kadın sürücü tercihi. Phase 3'te yalnızca sunum tercihidir; sonuçları etkilemez. Gerçek eşleştirmeye bağlanmadan önce hukuk, güvenlik ve ürün onayı gerekir."},
+  "searchFilterNoSmoking": "Sigara yok",
+  "@searchFilterNoSmoking": {"description": "Filtre: sigara içilmeyen yolculuk."},
+  "searchFilterMutualConnection": "Ortak bağlantı",
+  "@searchFilterMutualConnection": {"description": "Filtre: ortak bağlantısı olan üyeler."},
+  "searchRecentTitle": "SON ARAMALAR",
+  "@searchRecentTitle": {"description": "Son aramalar bölüm başlığı."},
+  "searchSubmit": "Eşleşmeleri gör · {count} sonuç",
+  "@searchSubmit": {
+    "description": "Eşleşmeleri açan ana eylem. Sayı mock sunum verisidir.",
+    "placeholders": {"count": {"type": "String", "example": "3"}}
+  },
+  "searchPlacePickerOriginTitle": "Nereden yola çıkıyorsun?",
+  "@searchPlacePickerOriginTitle": {"description": "Kalkış noktası seçim sayfasının başlığı."},
+  "searchPlacePickerDestinationTitle": "Nereye gidiyorsun?",
+  "@searchPlacePickerDestinationTitle": {"description": "Varış noktası seçim sayfasının başlığı."},
+  "matchesTitle": "{count} eşleşme",
+  "@matchesTitle": {
+    "description": "Eşleşme sonuçları başlığı.",
+    "placeholders": {"count": {"type": "String", "example": "3"}}
+  },
+  "matchesSubtitle": "{route} · {when}",
+  "@matchesSubtitle": {
+    "description": "Sonuç başlığının altındaki yolculuk özeti.",
+    "placeholders": {
+      "route": {"type": "String", "example": "Kadıköy → Levent"},
+      "when": {"type": "String", "example": "Yarın 08:30"}
+    }
+  },
+  "matchesWhenSummary": "Yarın 08:30",
+  "@matchesWhenSummary": {"description": "Sonuç başlığındaki kısa zaman özeti. Mock sunum verisidir."},
+  "matchesSortBest": "En uyumlu",
+  "@matchesSortBest": {"description": "Sıralama seçeneği: rota uyumuna göre."},
+  "matchesSortNearest": "En yakın",
+  "@matchesSortNearest": {"description": "Sıralama seçeneği: mesafeye göre."},
+  "matchesSortCheapest": "En ucuz",
+  "@matchesSortCheapest": {"description": "Sıralama seçeneği: maliyet payına göre."},
+  "matchesCompatibilityLabel": "Rota uyumu",
+  "@matchesCompatibilityLabel": {"description": "Uyum ölçeğinin etiketi."},
+  "matchesInspect": "İncele",
+  "@matchesInspect": {"description": "Rota ayrıntılarını açan eylem."},
+  "matchesMetaVerified": "Doğrulanmış",
+  "@matchesMetaVerified": {"description": "Kart üzerindeki doğrulanmış üye ifadesi."},
+  "matchesMetaTrips": "{count} yolculuk",
+  "@matchesMetaTrips": {
+    "description": "Tamamlanan yolculuk sayısı. Mock sunum verisidir.",
+    "placeholders": {"count": {"type": "String", "example": "128"}}
+  },
+  "matchesMetaSharedRoutes": "{count} ortak rota",
+  "@matchesMetaSharedRoutes": {
+    "description": "Ortak rota sayısı. Mock sunum verisidir.",
+    "placeholders": {"count": {"type": "String", "example": "2"}}
+  },
+  "matchesMetaDeparture": "Kalkış {time}",
+  "@matchesMetaDeparture": {
+    "description": "Kalkış saati.",
+    "placeholders": {"time": {"type": "String", "example": "08:25"}}
+  },
+  "matchesMetaSeats": "{count, plural, =1{1 koltuk} other{{count} koltuk}}",
+  "@matchesMetaSeats": {
+    "description": "Boş koltuk sayısı.",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "matchesMetaWalk": "~{minutes} dk yürüme",
+  "@matchesMetaWalk": {
+    "description": "Alış noktasına yürüme süresi.",
+    "placeholders": {"minutes": {"type": "String", "example": "5"}}
+  },
+  "matchesMetaCompatibilityShort": "{value} uyum",
+  "@matchesMetaCompatibilityShort": {
+    "description": "Sıkıştırılmış kartta gösterilen kısa uyum ifadesi.",
+    "placeholders": {"value": {"type": "String", "example": "%81"}}
+  },
+  "matchesCardSemanticLabel": "{name}, {rating} puan. {compatibility} rota uyumu. Kalkış {time}. Kişi başı {fare}.",
+  "@matchesCardSemanticLabel": {
+    "description": "Eşleşme kartı için ekran okuyucu etiketi.",
+    "placeholders": {
+      "name": {"type": "String"},
+      "rating": {"type": "String"},
+      "compatibility": {"type": "String"},
+      "time": {"type": "String"},
+      "fare": {"type": "String"}
+    }
+  },
+  "routeDetailsStatTrustScore": "Güven Puanı",
+  "@routeDetailsStatTrustScore": {"description": "İstatistik başlığı: Güven Puanı. Değer backend'e aittir, istemcide hesaplanmaz."},
+  "routeDetailsStatApprovalRate": "Onay oranı",
+  "@routeDetailsStatApprovalRate": {"description": "İstatistik başlığı: isteklerin onaylanma oranı."},
+  "routeDetailsStatSharedDistance": "km paylaşıldı",
+  "@routeDetailsStatSharedDistance": {"description": "İstatistik başlığı: paylaşılan toplam mesafe."},
+  "routeDetailsMemberSince": "{year}'ten beri üye · {area}",
+  "@routeDetailsMemberSince": {
+    "description": "Üyelik yılı ve semt. Mock sunum verisidir.",
+    "placeholders": {
+      "year": {"type": "String", "example": "2023"},
+      "area": {"type": "String", "example": "Kadıköy"}
+    }
+  },
+  "routeDetailsRatingSummary": "{rating} · {trips} yolculuk",
+  "@routeDetailsRatingSummary": {
+    "description": "Başlıktaki puan ve yolculuk özeti.",
+    "placeholders": {
+      "rating": {"type": "String", "example": "4,9"},
+      "trips": {"type": "String", "example": "128"}
+    }
+  },
+  "routeDetailsPickupLabel": "Alış noktası",
+  "@routeDetailsPickupLabel": {"description": "Rota zaman çizelgesinde kalkış noktasının açıklaması."},
+  "routeDetailsArrivalLabel": "Varış · {minutes} dk",
+  "@routeDetailsArrivalLabel": {
+    "description": "Rota zaman çizelgesinde varışın açıklaması.",
+    "placeholders": {"minutes": {"type": "String", "example": "32"}}
+  },
+  "routeDetailsMutualTitle": "Ortak bağlantı",
+  "@routeDetailsMutualTitle": {"description": "Ortak bağlantı kartının başlığı."},
+  "routeDetailsFareLabel": "Senin payın",
+  "@routeDetailsFareLabel": {"description": "Maliyet paylaşımı etiketi. Bu bir ücret veya bilet değildir."},
+  "routeDetailsMessageSemanticLabel": "Sürücüye mesaj gönder",
+  "@routeDetailsMessageSemanticLabel": {"description": "Mesaj düğmesi için ekran okuyucu etiketi."},
+  "routeDetailsRequestSeat": "İstek gönder",
+  "@routeDetailsRequestSeat": {"description": "Yolculuk isteği gönderme eylemi."},
+  "routeDetailsRequestUnavailable": "Yolculuk isteği özelliği yakında eklenecek.",
+  "@routeDetailsRequestUnavailable": {"description": "İstek gönderme henüz uygulanmadığı için gösterilen geçici bilgi mesajı. Hiçbir istek gönderilmez."},
+  "routeDetailsMessagingUnavailable": "Mesajlaşma özelliği yakında eklenecek.",
+  "@routeDetailsMessagingUnavailable": {"description": "Mesajlaşma henüz uygulanmadığı için gösterilen geçici bilgi mesajı."},
+  "routeDetailsNotFound": "Bu rota artık görüntülenemiyor.",
+  "@routeDetailsNotFound": {"description": "Geçersiz bir rota kimliği açıldığında gösterilen savunma amaçlı mesaj."},
+
   "dateToday": "Bugün",
   "@dateToday": {
     "description": "Göreli tarih: bugün."

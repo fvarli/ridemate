@@ -404,6 +404,300 @@ abstract class AppLocalizations {
   /// **'{value} uyum'**
   String homeCompatibility(String value);
 
+  /// Rota arama ekranının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rota ara'**
+  String get searchTitle;
+
+  /// Kalkış alanının üst etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'NEREDEN'**
+  String get searchFieldOriginLabel;
+
+  /// Varış alanının üst etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'NEREYE'**
+  String get searchFieldDestinationLabel;
+
+  /// Yön değiştirme düğmesi için ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalkış ve varış noktalarını değiştir'**
+  String get searchSwapSemanticLabel;
+
+  /// Tarih/saat seçicisinin üst etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'NE ZAMAN'**
+  String get searchWhenLabel;
+
+  /// Seçili yolculuk zamanı. Mock sunum verisidir; Phase 3'te tarih seçici yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarın · 08:30'**
+  String get searchWhenValue;
+
+  /// Koltuk seçicisinin üst etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'KOLTUK'**
+  String get searchSeatsLabel;
+
+  /// Seçili koltuk sayısı.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =1{1 kişi} other{{count} kişi}}'**
+  String searchSeatsValue(int count);
+
+  /// Güven filtreleri bölüm başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'GÜVEN FİLTRELERİ'**
+  String get searchFiltersTitle;
+
+  /// Filtre: yalnızca kimliği doğrulanmış üyeler.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sadece doğrulanmış'**
+  String get searchFilterVerifiedOnly;
+
+  /// Filtre: belirli puanın üzerindeki üyeler.
+  ///
+  /// In tr, this message translates to:
+  /// **'4.5+ puan'**
+  String get searchFilterMinRating;
+
+  /// Filtre: kadın sürücü tercihi. Phase 3'te yalnızca sunum tercihidir; sonuçları etkilemez. Gerçek eşleştirmeye bağlanmadan önce hukuk, güvenlik ve ürün onayı gerekir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kadın sürücü'**
+  String get searchFilterFemaleDriver;
+
+  /// Filtre: sigara içilmeyen yolculuk.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sigara yok'**
+  String get searchFilterNoSmoking;
+
+  /// Filtre: ortak bağlantısı olan üyeler.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ortak bağlantı'**
+  String get searchFilterMutualConnection;
+
+  /// Son aramalar bölüm başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'SON ARAMALAR'**
+  String get searchRecentTitle;
+
+  /// Eşleşmeleri açan ana eylem. Sayı mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşmeleri gör · {count} sonuç'**
+  String searchSubmit(String count);
+
+  /// Kalkış noktası seçim sayfasının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nereden yola çıkıyorsun?'**
+  String get searchPlacePickerOriginTitle;
+
+  /// Varış noktası seçim sayfasının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nereye gidiyorsun?'**
+  String get searchPlacePickerDestinationTitle;
+
+  /// Eşleşme sonuçları başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} eşleşme'**
+  String matchesTitle(String count);
+
+  /// Sonuç başlığının altındaki yolculuk özeti.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} · {when}'**
+  String matchesSubtitle(String route, String when);
+
+  /// Sonuç başlığındaki kısa zaman özeti. Mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarın 08:30'**
+  String get matchesWhenSummary;
+
+  /// Sıralama seçeneği: rota uyumuna göre.
+  ///
+  /// In tr, this message translates to:
+  /// **'En uyumlu'**
+  String get matchesSortBest;
+
+  /// Sıralama seçeneği: mesafeye göre.
+  ///
+  /// In tr, this message translates to:
+  /// **'En yakın'**
+  String get matchesSortNearest;
+
+  /// Sıralama seçeneği: maliyet payına göre.
+  ///
+  /// In tr, this message translates to:
+  /// **'En ucuz'**
+  String get matchesSortCheapest;
+
+  /// Uyum ölçeğinin etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rota uyumu'**
+  String get matchesCompatibilityLabel;
+
+  /// Rota ayrıntılarını açan eylem.
+  ///
+  /// In tr, this message translates to:
+  /// **'İncele'**
+  String get matchesInspect;
+
+  /// Kart üzerindeki doğrulanmış üye ifadesi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulanmış'**
+  String get matchesMetaVerified;
+
+  /// Tamamlanan yolculuk sayısı. Mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} yolculuk'**
+  String matchesMetaTrips(String count);
+
+  /// Ortak rota sayısı. Mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} ortak rota'**
+  String matchesMetaSharedRoutes(String count);
+
+  /// Kalkış saati.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalkış {time}'**
+  String matchesMetaDeparture(String time);
+
+  /// Boş koltuk sayısı.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =1{1 koltuk} other{{count} koltuk}}'**
+  String matchesMetaSeats(int count);
+
+  /// Alış noktasına yürüme süresi.
+  ///
+  /// In tr, this message translates to:
+  /// **'~{minutes} dk yürüme'**
+  String matchesMetaWalk(String minutes);
+
+  /// Sıkıştırılmış kartta gösterilen kısa uyum ifadesi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{value} uyum'**
+  String matchesMetaCompatibilityShort(String value);
+
+  /// Eşleşme kartı için ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name}, {rating} puan. {compatibility} rota uyumu. Kalkış {time}. Kişi başı {fare}.'**
+  String matchesCardSemanticLabel(
+    String name,
+    String rating,
+    String compatibility,
+    String time,
+    String fare,
+  );
+
+  /// İstatistik başlığı: Güven Puanı. Değer backend'e aittir, istemcide hesaplanmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güven Puanı'**
+  String get routeDetailsStatTrustScore;
+
+  /// İstatistik başlığı: isteklerin onaylanma oranı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onay oranı'**
+  String get routeDetailsStatApprovalRate;
+
+  /// İstatistik başlığı: paylaşılan toplam mesafe.
+  ///
+  /// In tr, this message translates to:
+  /// **'km paylaşıldı'**
+  String get routeDetailsStatSharedDistance;
+
+  /// Üyelik yılı ve semt. Mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{year}\'ten beri üye · {area}'**
+  String routeDetailsMemberSince(String year, String area);
+
+  /// Başlıktaki puan ve yolculuk özeti.
+  ///
+  /// In tr, this message translates to:
+  /// **'{rating} · {trips} yolculuk'**
+  String routeDetailsRatingSummary(String rating, String trips);
+
+  /// Rota zaman çizelgesinde kalkış noktasının açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alış noktası'**
+  String get routeDetailsPickupLabel;
+
+  /// Rota zaman çizelgesinde varışın açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varış · {minutes} dk'**
+  String routeDetailsArrivalLabel(String minutes);
+
+  /// Ortak bağlantı kartının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ortak bağlantı'**
+  String get routeDetailsMutualTitle;
+
+  /// Maliyet paylaşımı etiketi. Bu bir ücret veya bilet değildir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Senin payın'**
+  String get routeDetailsFareLabel;
+
+  /// Mesaj düğmesi için ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürücüye mesaj gönder'**
+  String get routeDetailsMessageSemanticLabel;
+
+  /// Yolculuk isteği gönderme eylemi.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönder'**
+  String get routeDetailsRequestSeat;
+
+  /// İstek gönderme henüz uygulanmadığı için gösterilen geçici bilgi mesajı. Hiçbir istek gönderilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk isteği özelliği yakında eklenecek.'**
+  String get routeDetailsRequestUnavailable;
+
+  /// Mesajlaşma henüz uygulanmadığı için gösterilen geçici bilgi mesajı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajlaşma özelliği yakında eklenecek.'**
+  String get routeDetailsMessagingUnavailable;
+
+  /// Geçersiz bir rota kimliği açıldığında gösterilen savunma amaçlı mesaj.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu rota artık görüntülenemiyor.'**
+  String get routeDetailsNotFound;
+
   /// Göreli tarih: bugün.
   ///
   /// In tr, this message translates to:

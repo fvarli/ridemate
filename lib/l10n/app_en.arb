@@ -1,0 +1,25 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "RideMate",
+
+  "navHome": "Home",
+  "navSearch": "Search",
+  "navMessages": "Messages",
+  "navProfile": "Profile",
+  "navCreateRoute": "Create route",
+
+  "commonBack": "Back",
+  "commonClose": "Close",
+  "commonLoading": "Loading",
+
+  "unitDistanceKm": "{value} km",
+  "unitDurationMinutes": "{value} min",
+  "unitDurationApproxMinutes": "~{value} min",
+
+  "dateToday": "Today",
+  "dateYesterday": "Yesterday",
+  "dateTomorrow": "Tomorrow",
+  "dateDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "dateWeeksAgo": "{count, plural, =1{1 week ago} other{{count} weeks ago}}"
+}

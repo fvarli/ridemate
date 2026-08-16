@@ -1,0 +1,104 @@
+{
+  "@@locale": "tr",
+
+  "appTitle": "RideMate",
+  "@appTitle": {
+    "description": "Ürün adı. Çevrilmez."
+  },
+
+  "navHome": "Anasayfa",
+  "@navHome": {
+    "description": "Alt gezinme çubuğu: ana sekme."
+  },
+  "navSearch": "Ara",
+  "@navSearch": {
+    "description": "Alt gezinme çubuğu: rota arama sekmesi."
+  },
+  "navMessages": "Mesajlar",
+  "@navMessages": {
+    "description": "Alt gezinme çubuğu: mesajlar sekmesi."
+  },
+  "navProfile": "Profil",
+  "@navProfile": {
+    "description": "Alt gezinme çubuğu: profil sekmesi."
+  },
+  "navCreateRoute": "Rota oluştur",
+  "@navCreateRoute": {
+    "description": "Alt gezinme çubuğunun ortasındaki eylem düğmesi. Sürücü olarak rota yayınlama akışını açar."
+  },
+
+  "commonBack": "Geri",
+  "@commonBack": {
+    "description": "Geri düğmesi için erişilebilirlik etiketi."
+  },
+  "commonClose": "Kapat",
+  "@commonClose": {
+    "description": "Kapatma düğmesi için erişilebilirlik etiketi."
+  },
+  "commonLoading": "Yükleniyor",
+  "@commonLoading": {
+    "description": "Bir işlem sürerken ekran okuyucuya bildirilen durum."
+  },
+
+  "unitDistanceKm": "{value} km",
+  "@unitDistanceKm": {
+    "description": "Kilometre cinsinden mesafe. Sayı yerel biçimde gelir (örn. 6,2).",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "6,2"
+      }
+    }
+  },
+  "unitDurationMinutes": "{value} dk",
+  "@unitDurationMinutes": {
+    "description": "Dakika cinsinden süre kısaltması.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "18"
+      }
+    }
+  },
+  "unitDurationApproxMinutes": "~{value} dk",
+  "@unitDurationApproxMinutes": {
+    "description": "Yaklaşık süre. Tasarımda '~5 dk yürüme' gibi kullanılır.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "5"
+      }
+    }
+  },
+
+  "dateToday": "Bugün",
+  "@dateToday": {
+    "description": "Göreli tarih: bugün."
+  },
+  "dateYesterday": "Dün",
+  "@dateYesterday": {
+    "description": "Göreli tarih: dün."
+  },
+  "dateTomorrow": "Yarın",
+  "@dateTomorrow": {
+    "description": "Göreli tarih: yarın."
+  },
+  "dateDaysAgo": "{count, plural, =1{1 gün önce} other{{count} gün önce}}",
+  "@dateDaysAgo": {
+    "description": "Göreli tarih: n gün önce.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dateWeeksAgo": "{count, plural, =1{1 hafta önce} other{{count} hafta önce}}",
+  "@dateWeeksAgo": {
+    "description": "Göreli tarih: n hafta önce.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

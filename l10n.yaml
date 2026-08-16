@@ -1,0 +1,17 @@
+# RideMate — localization codegen config (flutter gen-l10n).
+#
+# Turkish is the SOURCE product language: the approved design is written in
+# Turkish, and Istanbul is the pilot market. The template is therefore
+# app_tr.arb, not app_en.arb — descriptions and placeholder metadata are
+# authored against the Turkish original.
+#
+# Generated AppLocalizations files are written into lib/l10n and COMMITTED, so
+# a fresh clone analyzes and builds without first running codegen.
+# (synthetic-package is deprecated on recent Flutter, hence output-dir.)
+
+arb-dir: lib/l10n
+template-arb-file: app_tr.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n
+nullable-getter: false

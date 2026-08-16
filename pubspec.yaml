@@ -12,6 +12,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^3.3.2
+  flutter_svg: ^2.3.0
   intl: any
 
 dev_dependencies:
@@ -24,6 +25,12 @@ flutter:
 
   # Runs flutter gen-l10n as part of the build. See l10n.yaml.
   generate: true
+
+  assets:
+    # Approved icon artwork extracted from the design source, normalized to
+    # currentColor. See lib/core/icons/rm_icons.dart.
+    - assets/icons/
+    - assets/brand/
 
   # Bundled locally on purpose — no runtime font fetching. See assets/fonts/README.md.
   fonts:

@@ -1,37 +1,68 @@
 import 'package:flutter/material.dart';
 
+import '../core/a11y/rm_a11y.dart';
+import '../core/theme/rm_theme.dart';
+
 /// Root widget of the RideMate application.
 ///
-/// Phase 0 deliberately keeps this minimal: it exists so the project has a
-/// real, testable entry point and a stable place for Phase 1 to attach the
-/// router, the design-token themes and localization. It intentionally does
-/// **not** define colors, typography, navigation or product screens — those
-/// are Phase 1 concerns and adding them here early would spread design values
-/// outside the token layer.
+/// Supplies the light and dark themes and lets Flutter resolve brightness via
+/// [ThemeMode], rather than resolving it manually — RideMate renders light
+/// surfaces over dark ones, so every widget must read the palette of its own
+/// subtree.
+///
+/// Routing, localization and the application shell attach here in the
+/// remaining Phase 1 steps. There are still no product screens.
 class RideMateApp extends StatelessWidget {
-  const RideMateApp({super.key});
+  const RideMateApp({super.key, this.themeMode = ThemeMode.system});
 
-  /// Shown in the OS task switcher until localization lands in Phase 1.
+  /// Shown in the OS task switcher until localization lands.
   static const String appTitle = 'RideMate';
+
+  /// Which theme to apply. Driven by a provider once state is wired in.
+  final ThemeMode themeMode;
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: appTitle,
       debugShowCheckedModeBanner: false,
-      home: _BootstrapPlaceholder(),
+      theme: RmTheme.light,
+      darkTheme: RmTheme.dark,
+      themeMode: themeMode,
+      builder: _applyTextScaleCeiling,
+      home: const _BootstrapPlaceholder(),
+    );
+  }
+
+  /// Honours the user's text-size preference but caps the extreme end.
+  ///
+  /// The floor is never raised — scaling down stays fully available. The
+  /// ceiling exists so a 200% system setting cannot push a safety control off
+  /// screen. See [RmA11y.maxTextScale].
+  static Widget _applyTextScaleCeiling(BuildContext context, Widget? child) {
+    final MediaQueryData mq = MediaQuery.of(context);
+    return MediaQuery(
+      data: mq.copyWith(
+        textScaler: mq.textScaler.clamp(maxScaleFactor: RmA11y.maxTextScale),
+      ),
+      child: child ?? const SizedBox.shrink(),
     );
   }
 }
 
-/// Temporary placeholder screen proving the app boots.
+/// Temporary placeholder proving the app boots and the theme resolves.
 ///
-/// Replaced in Phase 1 by the themed app shell.
+/// Replaced by the application shell later in Phase 1.
 class _BootstrapPlaceholder extends StatelessWidget {
   const _BootstrapPlaceholder();
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text(RideMateApp.appTitle)));
+    final ThemeData theme = Theme.of(context);
+    return Scaffold(
+      body: Center(
+        child: Text(RideMateApp.appTitle, style: theme.textTheme.displaySmall),
+      ),
+    );
   }
 }

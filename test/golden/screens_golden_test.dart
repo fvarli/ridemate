@@ -6,6 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
+import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
+import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
+import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
+import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
@@ -15,12 +19,12 @@ import 'package:ridemate/l10n/app_localizations.dart';
 import '../support/fakes.dart';
 import '../support/fonts.dart';
 
-/// Golden coverage for the Phase 2 product screens.
+/// Golden coverage for the product screens.
 ///
-/// Each screen is captured in light and dark, and Home additionally in RTL
-/// because it is the most layout-dense of the three. Dark is covered for every
-/// screen deliberately: dark-mode drift is otherwise invisible until someone
-/// opens the app at night.
+/// Each screen is captured in light and dark, plus an RTL baseline for the
+/// densest screen of each phase — Home for Phase 2, Match Results for Phase 3.
+/// Dark is covered for every screen deliberately: dark-mode drift is otherwise
+/// invisible until someone opens the app at night.
 ///
 /// HOST-DEPENDENT. Baselines were generated on Linux; font rasterization
 /// differs across platforms. Excluded from the default run — see
@@ -116,5 +120,59 @@ void main() {
         matchesGoldenFile('goldens/home_rtl.png'),
       );
     });
+  });
+
+  group('Search', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(tester, const SearchScreen(), brightness: brightness);
+        await expectLater(
+          find.byType(SearchScreen),
+          matchesGoldenFile('goldens/search_${brightness.name}.png'),
+        );
+      });
+    }
+  });
+
+  group('Match results', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(tester, const MatchResultsScreen(), brightness: brightness);
+        await expectLater(
+          find.byType(MatchResultsScreen),
+          matchesGoldenFile('goldens/matches_${brightness.name}.png'),
+        );
+      });
+    }
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      // The densest Phase 3 screen: three card tiers, a meter and a sort row.
+      await pump(
+        tester,
+        const MatchResultsScreen(),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+      );
+      await expectLater(
+        find.byType(MatchResultsScreen),
+        matchesGoldenFile('goldens/matches_rtl.png'),
+      );
+    });
+  });
+
+  group('Route details', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(
+          tester,
+          RouteDetailsScreen(routeId: MockRouteOffers.selin.id),
+          brightness: brightness,
+        );
+        await expectLater(
+          find.byType(RouteDetailsScreen),
+          matchesGoldenFile('goldens/route_details_${brightness.name}.png'),
+        );
+      });
+    }
   });
 }

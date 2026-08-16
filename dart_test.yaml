@@ -1,0 +1,19 @@
+# RideMate — test configuration.
+#
+# Golden tests are tagged and EXCLUDED from the default run, because golden
+# images depend on font rasterization and are therefore host-dependent. The
+# committed baselines were generated on Linux; running them on macOS or on
+# non-Linux CI will produce diffs that are not real regressions.
+#
+#   ./tool/check.sh    format + analyze + widget/unit tests  (host-independent)
+#   ./tool/goldens.sh  golden tests only                     (Linux baselines)
+
+tags:
+  golden:
+    description: >-
+      Pixel comparisons against committed baselines. Host-dependent; see
+      tool/goldens.sh.
+
+# NOTE: the exclusion lives in tool/check.sh (`--exclude-tags golden`) rather
+# than an `exclude_tags` key here, because a config-level exclusion also
+# overrides an explicit `--tags golden`, leaving no way to run them at all.

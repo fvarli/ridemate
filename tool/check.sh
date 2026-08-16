@@ -21,7 +21,8 @@ echo "==> flutter analyze"
 flutter analyze --fatal-infos --fatal-warnings
 
 echo "==> flutter test"
-flutter test
+# Goldens are host-dependent and run separately; see tool/goldens.sh.
+flutter test --exclude-tags golden
 
 echo
 echo "All checks passed."

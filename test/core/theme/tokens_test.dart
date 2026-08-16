@@ -82,6 +82,15 @@ void main() {
       expect(c.border.toARGB32(), 0xFF232A38);
       expect(c.ink.toARGB32(), 0xFFF2F4F8);
     });
+
+    test('onInk inverts with the theme', () {
+      // `ink` is near-black in light and near-white in dark, so a fixed white
+      // onInk would render white-on-white for ink-filled surfaces such as the
+      // selected sort chip.
+      expect(RmColors.light.onInk.toARGB32(), 0xFFFFFFFF);
+      expect(RmColors.dark.onInk.toARGB32(), 0xFF0B0E14);
+      expect(RmColors.dark.onInk, isNot(RmColors.light.onInk));
+    });
   });
 
   group('RmColors interpolation', () {

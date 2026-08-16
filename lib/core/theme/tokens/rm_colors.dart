@@ -169,6 +169,9 @@ class RmColors extends ThemeExtension<RmColors> {
   final Color disabled;
 
   /// Foreground on [ink]-filled surfaces (selected sort chips, map labels).
+  ///
+  /// Must invert with the theme: [ink] is near-black in light and near-white
+  /// in dark, so a fixed white here would render white-on-white in dark mode.
   final Color onInk;
 
   // ── Meters ─────────────────────────────────────────────────
@@ -304,7 +307,9 @@ class RmColors extends ThemeExtension<RmColors> {
     muted: Color(0xFF9BA3B4),
     faint: Color(0xFF5B6478),
     disabled: Color(0xFF3A4252),
-    onInk: Color(0xFFFFFFFF),
+    // Inverted deliberately: `ink` is near-white in dark mode, so a white
+    // foreground would be invisible on an ink-filled surface.
+    onInk: Color(0xFF0B0E14),
     meterTrack: Color(0xFF232A38),
     meterTrackInfo: Color(0xFF24365E),
     meterTrackNeutral: Color(0xFF232A38),

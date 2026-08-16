@@ -61,6 +61,11 @@ class NearbyMatchSheet extends StatelessWidget {
                   child: Text(
                     l10n.homeNearbyRoutesTitle,
                     style: RmTypography.titleSm.copyWith(color: c.ink),
+                    // Bounded: at a large text scale the count beside it takes
+                    // most of the row, and an unbounded title wraps a character
+                    // at a time until the card overflows the screen.
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -83,6 +88,7 @@ class NearbyMatchSheet extends StatelessWidget {
                       style: RmTypography.labelSm.copyWith(
                         color: c.primaryText,
                       ),
+                      maxLines: 1,
                     ),
                   ),
                 ),
@@ -151,29 +157,44 @@ class _MatchRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      // Expanded, not Flexible: the name must absorb ALL the
-                      // shrinkage so the rating keeps its natural size. A
-                      // loose Flexible would keep the name's full width and
-                      // overflow the row instead.
-                      Expanded(
-                        child: Text(
-                          match.displayName,
-                          style: RmTypography.body.copyWith(color: c.ink),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: RmSpacing.sm),
-                      // Never the U+2605 glyph: it is absent from the bundled
-                      // fonts and would render as tofu.
-                      RmBadge(
-                        label: rating,
-                        icon: RmIcons.starFilled,
-                        numeric: true,
-                      ),
-                    ],
+                  LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) =>
+                            Row(
+                              children: <Widget>[
+                                // Expanded, not Flexible: the name must absorb
+                                // ALL the shrinkage so the rating keeps its
+                                // natural size. A loose Flexible would keep the
+                                // name's full width and overflow the row.
+                                Expanded(
+                                  child: Text(
+                                    match.displayName,
+                                    style: RmTypography.body.copyWith(
+                                      color: c.ink,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: RmSpacing.sm),
+                                // The rating may take at most half the row.
+                                // Unbounded, it keeps growing with the text
+                                // scale until it overflows a name that has
+                                // already shrunk to nothing.
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: constraints.maxWidth / 2,
+                                  ),
+                                  // Never the U+2605 glyph: it is absent from
+                                  // the bundled fonts and renders as tofu.
+                                  child: RmBadge(
+                                    label: rating,
+                                    icon: RmIcons.starFilled,
+                                    numeric: true,
+                                  ),
+                                ),
+                              ],
+                            ),
                   ),
                   const SizedBox(height: RmSpacing.xs),
                   Text(
@@ -189,6 +210,11 @@ class _MatchRow extends StatelessWidget {
             // Bounded so the price column can never grow past its share and
             // truncate the member's name. RmBadge ellipsizes inside a bounded
             // row, so a longer localized label degrades rather than pushes.
+            //
+            // Deliberately not scaled with the text: widening it at a large
+            // text scale starves the name and rating beside it. The cost share
+            // wrapping onto two lines there is the better trade — the figure
+            // stays fully readable.
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 96),
               child: Column(

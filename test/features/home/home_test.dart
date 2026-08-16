@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ridemate/core/a11y/rm_a11y.dart';
 import 'package:ridemate/core/widgets/rm_avatar.dart';
 import 'package:ridemate/core/widgets/rm_map_canvas.dart';
 import 'package:ridemate/core/widgets/rm_status_pill.dart';
@@ -89,7 +90,16 @@ void main() {
 
     testWidgets('survives the maximum text scale', (WidgetTester tester) async {
       await tester.pumpRmScreen(
-        const Scaffold(body: HomeScreen()),
+        // The scale has to be applied inside the app, where a MediaQuery to
+        // copy already exists. Pumping without it asserted nothing.
+        Builder(
+          builder: (BuildContext context) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(RmA11y.maxTextScale),
+            ),
+            child: const Scaffold(body: HomeScreen()),
+          ),
+        ),
         surfaceSize: const Size(393, 852),
       );
       await tester.pump();

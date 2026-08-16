@@ -1,0 +1,48 @@
+# RideMate — static analysis configuration.
+#
+# Gate policy: `flutter analyze --fatal-infos --fatal-warnings` must report zero
+# issues in our code. Infos are fatal on purpose — a lint that is only a
+# suggestion is a lint that accumulates.
+#
+# Run everything via `tool/check.sh`.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # Design values must live in the token layer (Phase 1), never inline in
+    # widgets. Missing localization is a product bug for a Turkish-first app.
+    todo: ignore
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/l10n/app_localizations*.dart"
+
+linter:
+  rules:
+    # Correctness
+    - always_declare_return_types
+    - avoid_dynamic_calls
+    - avoid_slow_async_io
+    - cancel_subscriptions
+    - close_sinks
+    - unawaited_futures
+
+    # Immutability — the codebase leans on const/final by default.
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_locals
+
+    # Internationalization: RideMate ships TR + EN and must stay RTL-safe.
+    # These catch layout code that hardcodes a text direction.
+    - use_named_constants
+    - use_super_parameters
+
+    # Consistency
+    - avoid_print
+    - directives_ordering
+    - require_trailing_commas
+    - sort_pub_dependencies
+    - unnecessary_parenthesis

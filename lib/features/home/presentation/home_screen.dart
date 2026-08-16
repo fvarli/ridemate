@@ -65,10 +65,10 @@ class HomeScreen extends ConsumerWidget {
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
-              RmSpacing.lg,
+              RmSpacing.md,
               0,
-              RmSpacing.lg,
-              RmSpacing.lg,
+              RmSpacing.md,
+              RmSpacing.md,
             ),
             child: NearbyMatchSheet(
               snapshot: snapshot,

@@ -49,7 +49,7 @@ class NearbyMatchSheet extends StatelessWidget {
     return RmCard(
       variant: RmCardVariant.elevated,
       radius: RmRadius.xxl,
-      padding: const EdgeInsets.all(RmSpacing.xl),
+      padding: const EdgeInsets.all(RmSpacing.lg),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -137,7 +137,7 @@ class _MatchRow extends StatelessWidget {
           children: <Widget>[
             RmAvatar(
               initials: match.initials,
-              size: RmAvatarSize.xl,
+              size: RmAvatarSize.lg,
               identity: match.identity,
               verification: match.isVerified
                   ? RmVerification.verified
@@ -147,15 +147,17 @@ class _MatchRow extends StatelessWidget {
             ),
             const SizedBox(width: RmSpacing.lg),
             Expanded(
-              flex: 5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      // The name yields first; the rating keeps its size.
-                      Flexible(
+                      // Expanded, not Flexible: the name must absorb ALL the
+                      // shrinkage so the rating keeps its natural size. A
+                      // loose Flexible would keep the name's full width and
+                      // overflow the row instead.
+                      Expanded(
                         child: Text(
                           match.displayName,
                           style: RmTypography.body.copyWith(color: c.ink),
@@ -184,10 +186,11 @@ class _MatchRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: RmSpacing.md),
-            // Shares the row by flex rather than a fixed cap, so a longer
-            // localized label cannot squeeze the identity column out.
-            Expanded(
-              flex: 4,
+            // Bounded so the price column can never grow past its share and
+            // truncate the member's name. RmBadge ellipsizes inside a bounded
+            // row, so a longer localized label degrades rather than pushes.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 96),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,

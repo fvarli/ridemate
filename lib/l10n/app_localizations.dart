@@ -170,6 +170,168 @@ abstract class AppLocalizations {
   /// **'~{value} dk'**
   String unitDurationApproxMinutes(String value);
 
+  /// Onboarding başlığının vurgulanan kelimeden önceki bölümü. Başlık üç parçadan oluşur: bu metin, vurgulanan kelime, sonra kalan metin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aynı yöne gidenlerle '**
+  String get onboardingHeadlineBefore;
+
+  /// Onboarding başlığında marka rengiyle vurgulanan tek kelime.
+  ///
+  /// In tr, this message translates to:
+  /// **'güvenle'**
+  String get onboardingHeadlineEmphasis;
+
+  /// Onboarding başlığının vurgulanan kelimeden sonraki bölümü.
+  ///
+  /// In tr, this message translates to:
+  /// **' yola çık'**
+  String get onboardingHeadlineAfter;
+
+  /// Onboarding alt başlığı. RideMate'in taksi olmadığını vurgular.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.'**
+  String get onboardingSubtitle;
+
+  /// Topluluk kanıtı satırı. Sayı yerel biçimde ve mono yazı tipiyle gösterilir; bu metin mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} doğrulanmış üye İstanbul\'da'**
+  String onboardingSocialProof(String count);
+
+  /// Birincil eylem. Yeni kullanıcı akışına devam eder. Bu bir hesap oluşturma veya kimlik doğrulama işlemi DEĞİLDİR; uygulamada henüz hesap kavramı yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap oluştur'**
+  String get onboardingCreateAccount;
+
+  /// İkincil eylem. Mevcut hesapla giriş yapmayı ifade eder. Giriş özelliği henüz yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zaten üyeyim'**
+  String get onboardingSignIn;
+
+  /// "Zaten üyeyim" dokunulduğunda gösterilen geçici bilgi mesajı. Kimlik doğrulama uygulanana kadar geçerlidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş özelliği yakında eklenecek.'**
+  String get onboardingSignInUnavailable;
+
+  /// Kimlik doğrulama ekranının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimlik doğrulama'**
+  String get verificationTitle;
+
+  /// Güven Puanı halkasının içindeki küçük etiket.
+  ///
+  /// In tr, this message translates to:
+  /// **'PUAN'**
+  String get verificationScoreCaption;
+
+  /// Güven Puanı kartının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güven Puanın oluşuyor'**
+  String get verificationHeroTitle;
+
+  /// Kart açıklamasının vurgulanan kelimeden önceki bölümü.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} adım daha tamamla, '**
+  String verificationHeroSubtitleBefore(String count);
+
+  /// Kart açıklamasında vurgulanan rozet adı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulanmış'**
+  String get verificationHeroSubtitleEmphasis;
+
+  /// Kart açıklamasının vurgulanan kelimeden sonraki bölümü.
+  ///
+  /// In tr, this message translates to:
+  /// **' rozetini kazan.'**
+  String get verificationHeroSubtitleAfter;
+
+  /// Gerekli tüm adımlar doğrulandığında kartta gösterilen açıklama.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm gerekli adımlar tamamlandı.'**
+  String get verificationHeroComplete;
+
+  /// Doğrulama adımı: telefon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefon numarası'**
+  String get verificationStepPhone;
+
+  /// Doğrulama adımı: e-posta.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta adresi'**
+  String get verificationStepEmail;
+
+  /// Doğrulama adımı: kimlik belgesi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimlik (T.C. / Pasaport)'**
+  String get verificationStepIdentity;
+
+  /// Doğrulama adımı: selfie eşleştirme.
+  ///
+  /// In tr, this message translates to:
+  /// **'Selfie eşleştirme'**
+  String get verificationStepSelfie;
+
+  /// Doğrulama adımı: ehliyet. Yalnızca sürücüler için gereklidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ehliyet'**
+  String get verificationStepLicence;
+
+  /// Ehliyet adımının başlığına eklenen, vurgusu azaltılmış açıklama.
+  ///
+  /// In tr, this message translates to:
+  /// **' · sürücüysen'**
+  String get verificationStepLicenceQualifier;
+
+  /// Doğrulanmış adımın alt satırı; detay maskelenmiş telefon gibi mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulandı · {detail}'**
+  String verificationStatusVerifiedWithDetail(String detail);
+
+  /// Doğrulanmış adımın durumu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulandı'**
+  String get verificationStatusVerified;
+
+  /// İşlemdeki adımın durumu. Süre mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'İşleniyor · ~{minutes} dk'**
+  String verificationStatusInProgress(String minutes);
+
+  /// Henüz başlamamış zorunlu adımın durumu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekliyor'**
+  String get verificationStatusPending;
+
+  /// Zorunlu olmayan adımın durumu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Opsiyonel'**
+  String get verificationStatusOptional;
+
+  /// İşlemdeki adımın eylemi. Phase 2'de gerçek belge yükleme yoktur; yalnızca demo durumunu ilerletir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yükle'**
+  String get verificationUpload;
+
   /// Göreli tarih: bugün.
   ///
   /// In tr, this message translates to:

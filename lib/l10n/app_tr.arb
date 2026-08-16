@@ -71,6 +71,124 @@
     }
   },
 
+  "onboardingHeadlineBefore": "Aynı yöne gidenlerle ",
+  "@onboardingHeadlineBefore": {
+    "description": "Onboarding başlığının vurgulanan kelimeden önceki bölümü. Başlık üç parçadan oluşur: bu metin, vurgulanan kelime, sonra kalan metin."
+  },
+  "onboardingHeadlineEmphasis": "güvenle",
+  "@onboardingHeadlineEmphasis": {
+    "description": "Onboarding başlığında marka rengiyle vurgulanan tek kelime."
+  },
+  "onboardingHeadlineAfter": " yola çık",
+  "@onboardingHeadlineAfter": {
+    "description": "Onboarding başlığının vurgulanan kelimeden sonraki bölümü."
+  },
+  "onboardingSubtitle": "Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.",
+  "@onboardingSubtitle": {
+    "description": "Onboarding alt başlığı. RideMate'in taksi olmadığını vurgular."
+  },
+  "onboardingSocialProof": "{count} doğrulanmış üye İstanbul'da",
+  "@onboardingSocialProof": {
+    "description": "Topluluk kanıtı satırı. Sayı yerel biçimde ve mono yazı tipiyle gösterilir; bu metin mock sunum verisidir.",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "example": "12.480"
+      }
+    }
+  },
+  "onboardingCreateAccount": "Hesap oluştur",
+  "@onboardingCreateAccount": {
+    "description": "Birincil eylem. Yeni kullanıcı akışına devam eder. Bu bir hesap oluşturma veya kimlik doğrulama işlemi DEĞİLDİR; uygulamada henüz hesap kavramı yoktur."
+  },
+  "onboardingSignIn": "Zaten üyeyim",
+  "@onboardingSignIn": {
+    "description": "İkincil eylem. Mevcut hesapla giriş yapmayı ifade eder. Giriş özelliği henüz yoktur."
+  },
+  "onboardingSignInUnavailable": "Giriş özelliği yakında eklenecek.",
+  "@onboardingSignInUnavailable": {
+    "description": "\"Zaten üyeyim\" dokunulduğunda gösterilen geçici bilgi mesajı. Kimlik doğrulama uygulanana kadar geçerlidir."
+  },
+
+  "verificationTitle": "Kimlik doğrulama",
+  "@verificationTitle": {
+    "description": "Kimlik doğrulama ekranının başlığı."
+  },
+  "verificationScoreCaption": "PUAN",
+  "@verificationScoreCaption": {
+    "description": "Güven Puanı halkasının içindeki küçük etiket."
+  },
+  "verificationHeroTitle": "Güven Puanın oluşuyor",
+  "@verificationHeroTitle": {
+    "description": "Güven Puanı kartının başlığı."
+  },
+  "verificationHeroSubtitleBefore": "{count} adım daha tamamla, ",
+  "@verificationHeroSubtitleBefore": {
+    "description": "Kart açıklamasının vurgulanan kelimeden önceki bölümü.",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "example": "2"
+      }
+    }
+  },
+  "verificationHeroSubtitleEmphasis": "Doğrulanmış",
+  "@verificationHeroSubtitleEmphasis": {
+    "description": "Kart açıklamasında vurgulanan rozet adı."
+  },
+  "verificationHeroSubtitleAfter": " rozetini kazan.",
+  "@verificationHeroSubtitleAfter": {
+    "description": "Kart açıklamasının vurgulanan kelimeden sonraki bölümü."
+  },
+  "verificationHeroComplete": "Tüm gerekli adımlar tamamlandı.",
+  "@verificationHeroComplete": {
+    "description": "Gerekli tüm adımlar doğrulandığında kartta gösterilen açıklama."
+  },
+  "verificationStepPhone": "Telefon numarası",
+  "@verificationStepPhone": {"description": "Doğrulama adımı: telefon."},
+  "verificationStepEmail": "E-posta adresi",
+  "@verificationStepEmail": {"description": "Doğrulama adımı: e-posta."},
+  "verificationStepIdentity": "Kimlik (T.C. / Pasaport)",
+  "@verificationStepIdentity": {"description": "Doğrulama adımı: kimlik belgesi."},
+  "verificationStepSelfie": "Selfie eşleştirme",
+  "@verificationStepSelfie": {"description": "Doğrulama adımı: selfie eşleştirme."},
+  "verificationStepLicence": "Ehliyet",
+  "@verificationStepLicence": {"description": "Doğrulama adımı: ehliyet. Yalnızca sürücüler için gereklidir."},
+  "verificationStepLicenceQualifier": " · sürücüysen",
+  "@verificationStepLicenceQualifier": {
+    "description": "Ehliyet adımının başlığına eklenen, vurgusu azaltılmış açıklama."
+  },
+  "verificationStatusVerifiedWithDetail": "Doğrulandı · {detail}",
+  "@verificationStatusVerifiedWithDetail": {
+    "description": "Doğrulanmış adımın alt satırı; detay maskelenmiş telefon gibi mock sunum verisidir.",
+    "placeholders": {
+      "detail": {
+        "type": "String",
+        "example": "+90 5•• ••• 42"
+      }
+    }
+  },
+  "verificationStatusVerified": "Doğrulandı",
+  "@verificationStatusVerified": {"description": "Doğrulanmış adımın durumu."},
+  "verificationStatusInProgress": "İşleniyor · ~{minutes} dk",
+  "@verificationStatusInProgress": {
+    "description": "İşlemdeki adımın durumu. Süre mock sunum verisidir.",
+    "placeholders": {
+      "minutes": {
+        "type": "String",
+        "example": "2"
+      }
+    }
+  },
+  "verificationStatusPending": "Bekliyor",
+  "@verificationStatusPending": {"description": "Henüz başlamamış zorunlu adımın durumu."},
+  "verificationStatusOptional": "Opsiyonel",
+  "@verificationStatusOptional": {"description": "Zorunlu olmayan adımın durumu."},
+  "verificationUpload": "Yükle",
+  "@verificationUpload": {
+    "description": "İşlemdeki adımın eylemi. Phase 2'de gerçek belge yükleme yoktur; yalnızca demo durumunu ilerletir."
+  },
+
   "dateToday": "Bugün",
   "@dateToday": {
     "description": "Göreli tarih: bugün."

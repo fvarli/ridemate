@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/app_shell.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
@@ -11,7 +12,10 @@ import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/gallery/presentation/gallery_screen.dart';
+import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
+
+import '../support/fakes.dart';
 
 Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
   tester.view.physicalSize = const Size(1080, 2400);
@@ -19,7 +23,18 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  await tester.pumpWidget(const ProviderScope(child: RideMateApp()));
+  // The shell is only reachable once the intro has been completed, so seed
+  // that. It says nothing about accounts or authentication.
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: <Override>[
+        onboardingRepositoryProvider.overrideWithValue(
+          InMemoryOnboardingRepository(seen: true),
+        ),
+      ],
+      child: const RideMateApp(),
+    ),
+  );
   await tester.pumpAndSettle();
   return ProviderScope.containerOf(tester.element(find.byType(RideMateApp)));
 }
@@ -34,7 +49,7 @@ void main() {
       expect(find.byType(AppShell), findsOneWidget);
       expect(find.byType(RmNavBar), findsOneWidget);
       expect(find.byType(PlaceholderScreen), findsOneWidget);
-      expect(find.text('Phase 3 — Home / Map'), findsOneWidget);
+      expect(find.text('Phase 2 — Home / Map'), findsOneWidget);
     });
 
     testWidgets('shows the four design destinations and the centre action', (
@@ -95,7 +110,7 @@ void main() {
         findsNWidgets(4),
       );
       // Back on Home, and the earlier branches were never torn down.
-      expect(find.text('Phase 3 — Home / Map'), findsOneWidget);
+      expect(find.text('Phase 2 — Home / Map'), findsOneWidget);
     });
 
     testWidgets('the centre action pushes over the shell and pops back', (

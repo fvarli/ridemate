@@ -51,6 +51,96 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get onboardingHeadlineBefore => 'Travel ';
+
+  @override
+  String get onboardingHeadlineEmphasis => 'safely';
+
+  @override
+  String get onboardingHeadlineAfter => ' with people going your way';
+
+  @override
+  String get onboardingSubtitle =>
+      'With verified neighbours, colleagues and students. Not a taxi — a community.';
+
+  @override
+  String onboardingSocialProof(String count) {
+    return '$count verified members in Istanbul';
+  }
+
+  @override
+  String get onboardingCreateAccount => 'Create account';
+
+  @override
+  String get onboardingSignIn => 'I\'m already a member';
+
+  @override
+  String get onboardingSignInUnavailable => 'Sign-in is coming soon.';
+
+  @override
+  String get verificationTitle => 'Identity verification';
+
+  @override
+  String get verificationScoreCaption => 'SCORE';
+
+  @override
+  String get verificationHeroTitle => 'Your Trust Score is building';
+
+  @override
+  String verificationHeroSubtitleBefore(String count) {
+    return 'Complete $count more steps to earn the ';
+  }
+
+  @override
+  String get verificationHeroSubtitleEmphasis => 'Verified';
+
+  @override
+  String get verificationHeroSubtitleAfter => ' badge.';
+
+  @override
+  String get verificationHeroComplete => 'All required steps are complete.';
+
+  @override
+  String get verificationStepPhone => 'Phone number';
+
+  @override
+  String get verificationStepEmail => 'Email address';
+
+  @override
+  String get verificationStepIdentity => 'ID (national ID / passport)';
+
+  @override
+  String get verificationStepSelfie => 'Selfie match';
+
+  @override
+  String get verificationStepLicence => 'Driving licence';
+
+  @override
+  String get verificationStepLicenceQualifier => ' · if you drive';
+
+  @override
+  String verificationStatusVerifiedWithDetail(String detail) {
+    return 'Verified · $detail';
+  }
+
+  @override
+  String get verificationStatusVerified => 'Verified';
+
+  @override
+  String verificationStatusInProgress(String minutes) {
+    return 'Processing · ~$minutes min';
+  }
+
+  @override
+  String get verificationStatusPending => 'Waiting';
+
+  @override
+  String get verificationStatusOptional => 'Optional';
+
+  @override
+  String get verificationUpload => 'Upload';
+
+  @override
   String get dateToday => 'Today';
 
   @override

@@ -9,6 +9,21 @@
 abstract final class AppRoutes {
   const AppRoutes._();
 
+  // ── Launch ─────────────────────────────────────────────────
+
+  /// Neutral surface shown while the stored onboarding flag resolves.
+  /// See [StartupScreen] — launch scaffolding, not product UI.
+  static const String startup = 'startup';
+  static const String startupPath = '/startup';
+
+  // ── New-user flow (outside the shell — neither screen has a tab bar) ──
+
+  static const String onboarding = 'onboarding';
+  static const String onboardingPath = '/onboarding';
+
+  static const String verification = 'verification';
+  static const String verificationPath = '/verification';
+
   // ── Shell branches ─────────────────────────────────────────
   // The four bottom-navigation destinations from the design's tab bar.
 

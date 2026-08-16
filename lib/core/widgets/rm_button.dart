@@ -153,6 +153,9 @@ class RmButton extends StatelessWidget {
           );
 
     Widget button = Semantics(
+      // container: true keeps each button a discrete node. Without it two
+      // adjacent buttons merge into one announcement.
+      container: true,
       button: true,
       enabled: _enabled,
       label: semanticLabel ?? label,

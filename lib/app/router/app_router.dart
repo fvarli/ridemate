@@ -2,11 +2,14 @@
 // RideMate — Router
 //
 // The router is a Riverpod provider rather than a global, so it can read
-// application state, be overridden in tests, and later gain a redirect guard
-// without being rebuilt from scratch.
+// application state, be overridden in tests, and carry redirect guards.
 //
-// NO GUARDS YET. The first real redirect is the verification gate in Phase 2;
-// adding a placeholder one now would be architecture theatre.
+// THE ONLY GUARD, and what it does NOT mean:
+//
+// The redirect gates on whether the intro presentation has been completed.
+// It is NOT an auth guard — RideMate has no accounts, sessions or sign-in yet.
+// A future auth guard is a separate condition and must not be folded into this
+// one. See onboarding_repository.dart.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/foundation.dart';
@@ -15,15 +18,72 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/gallery/presentation/gallery_screen.dart';
+import '../../features/onboarding/application/onboarding_controller.dart';
+import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/verification/presentation/verification_screen.dart';
 import '../app_shell.dart';
+import '../startup_screen.dart';
 import 'app_routes.dart';
 
 /// The application router.
 final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
+  // Bridges the async onboarding state to GoRouter, which needs a Listenable.
+  // Disposed with the provider so it can never retain a stale listener.
+  final ValueNotifier<int> refresh = ValueNotifier<int>(0);
+  ref.listen<AsyncValue<bool>>(
+    onboardingControllerProvider,
+    (_, _) => refresh.value++,
+  );
+  ref.onDispose(refresh.dispose);
+
   return GoRouter(
-    initialLocation: AppRoutes.homePath,
+    initialLocation: AppRoutes.startupPath,
     debugLogDiagnostics: false,
+    refreshListenable: refresh,
+    redirect: (BuildContext context, GoRouterState state) {
+      final AsyncValue<bool> onboarding = ref.read(
+        onboardingControllerProvider,
+      );
+
+      // Not resolved yet: decide nothing, so neither Onboarding nor Home can
+      // flash before the stored value is known.
+      if (!onboarding.hasValue) {
+        return state.matchedLocation == AppRoutes.startupPath
+            ? null
+            : AppRoutes.startupPath;
+      }
+
+      final bool hasSeenOnboarding = onboarding.requireValue;
+      final String location = state.matchedLocation;
+      final bool atLaunchSurface = location == AppRoutes.startupPath;
+      final bool atOnboarding = location == AppRoutes.onboardingPath;
+
+      if (!hasSeenOnboarding) {
+        return atOnboarding ? null : AppRoutes.onboardingPath;
+      }
+      // Intro already completed: the launch surface and the intro itself are
+      // both dead ends, so send them on. Everything else is left alone.
+      return atLaunchSurface || atOnboarding ? AppRoutes.homePath : null;
+    },
     routes: <RouteBase>[
+      GoRoute(
+        path: AppRoutes.startupPath,
+        name: AppRoutes.startup,
+        builder: (BuildContext context, GoRouterState state) =>
+            const StartupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingPath,
+        name: AppRoutes.onboarding,
+        builder: (BuildContext context, GoRouterState state) =>
+            const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.verificationPath,
+        name: AppRoutes.verification,
+        builder: (BuildContext context, GoRouterState state) =>
+            const VerificationScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         // indexedStack keeps each branch alive, so switching tabs preserves
         // scroll position and in-progress input — which matters once the
@@ -35,25 +95,25 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
               StatefulNavigationShell shell,
             ) => AppShell(navigationShell: shell),
         branches: <StatefulShellBranch>[
-          _branch(
+          _placeholderBranch(
             path: AppRoutes.homePath,
             name: AppRoutes.home,
             title: 'Home',
-            phase: 'Phase 3 — Home / Map',
+            phase: 'Phase 2 — Home / Map',
           ),
-          _branch(
+          _placeholderBranch(
             path: AppRoutes.searchPath,
             name: AppRoutes.search,
             title: 'Search',
             phase: 'Phase 3 — Search routes',
           ),
-          _branch(
+          _placeholderBranch(
             path: AppRoutes.messagesPath,
             name: AppRoutes.messages,
             title: 'Messages',
             phase: 'Phase 5 — Chat',
           ),
-          _branch(
+          _placeholderBranch(
             path: AppRoutes.profilePath,
             name: AppRoutes.profile,
             title: 'Profile',
@@ -83,7 +143,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
   );
 });
 
-StatefulShellBranch _branch({
+StatefulShellBranch _placeholderBranch({
   required String path,
   required String name,
   required String title,

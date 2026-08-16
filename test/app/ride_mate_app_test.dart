@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/core/theme/tokens/rm_colors.dart';
+import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
+import '../support/fakes.dart';
+
 Future<void> _pumpApp(WidgetTester tester) async {
-  await tester.pumpWidget(const ProviderScope(child: RideMateApp()));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: <Override>[
+        onboardingRepositoryProvider.overrideWithValue(
+          InMemoryOnboardingRepository(seen: true),
+        ),
+      ],
+      child: const RideMateApp(),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -65,7 +78,14 @@ void main() {
         await tester.pumpWidget(
           MediaQuery(
             data: MediaQueryData(platformBrightness: brightness),
-            child: const ProviderScope(child: RideMateApp()),
+            child: ProviderScope(
+              overrides: <Override>[
+                onboardingRepositoryProvider.overrideWithValue(
+                  InMemoryOnboardingRepository(seen: true),
+                ),
+              ],
+              child: const RideMateApp(),
+            ),
           ),
         );
         await tester.pumpAndSettle();

@@ -98,6 +98,7 @@ class RmIconButton extends StatelessWidget {
     final (Color background, Color foreground, BoxBorder? border) = _resolve(c);
 
     Widget button = Semantics(
+      container: true,
       button: true,
       enabled: _enabled,
       label: semanticLabel,
@@ -185,6 +186,7 @@ class RmFab extends StatelessWidget {
     final RmColors c = context.rmColors;
 
     return Semantics(
+      container: true,
       button: true,
       enabled: onPressed != null,
       label: semanticLabel,

@@ -9,13 +9,21 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 2 — first product screens.** The design system (Phase 1) is complete, and
-Onboarding, Verification and Home are implemented. Search, Messages, Profile and
-Create route are still placeholders.
+**Phase 3 — passenger discovery.** The design system (Phase 1) is complete, and
+Onboarding, Verification, Home, Search, Match Results and Route Details are
+implemented — a member can go from Home to a full route offer and back. Messages,
+Profile and Create route are still placeholders.
 
 There is no backend, no authentication, no identity-verification provider, no
 payments, no location and no maps vendor. Everything those screens display is
 mock presentation data.
+
+Nothing is computed from that data either: there is no matching, ranking, pricing or
+Trust Score logic anywhere in the client. The search filters change no results, and
+**`Kadın sürücü` in particular is presentation only, pending legal, safety and product
+review for Türkiye.** `İstek gönder` shows a "coming soon" message and creates no sent
+state, because nothing was sent. See
+[`docs/architecture.md`](docs/architecture.md).
 
 ## Requirements
 

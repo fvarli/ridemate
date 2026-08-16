@@ -70,6 +70,11 @@ reason. The table is the contract; silent drift is not allowed.
 | **D-onboarding-1** | One onboarding page, with the designed 3-dot indicator showing dot 1 active | Only one page was designed. Two more would need approved copy, which is not invented. |
 | **D-verify-1** | Advancement is a **scripted scenario list**, not a computation | See the Trust Score section of `architecture.md`. No weights, no `calculateTrustScore()`. |
 | **D-widths-1** | Several rows constrain a trailing column or use `Expanded` for the shrinking element | The scaled component set is wider than the 276px artboard it was measured from, so rows that fit the comp can overflow at real device widths. Found via goldens and RTL tests. |
+| **D-button-1** | The brand glow is carried only by the **`lg` and `xl`** primary steps | Every filled primary in the source at 50–52px high declares `box-shadow:0 10–12px 22–24px rgba(46,91,255,.32)`; every inline one (`padding:7×13`, `8×14`) declares none. Found via the Match Results golden, where an in-card `İncele` spilled its glow over the card. `md` has no filled primary in the source and takes the quieter treatment. |
+| **D-search-1** | Search **keeps the bottom navigation bar**, which its comp omits | `Ara` is one of the four designed tab destinations, so Search *is* a tab. The comp omits the bar on almost every screen. The CTA dock therefore sits above the bar rather than at the very bottom. |
+| **D-search-2** | The from/to values render on **up to two lines** | At the scaled type size a full Istanbul address (`Kadıköy, İskele Meydanı` needs 227dp) does not fit beside the swap control on a 393dp screen. Truncating to `İskele Mey…` hides which of two nearby stops it is. The comp's own text runs *under* its swap tile, so one line was never achievable. |
+| **D-details-1** | Route Details adds a **back control** to its hero, which the comp has none of | The screen is pushed over the shell and has no tab bar, so without it the only way back is a system gesture. Match Results' comp draws exactly this control, so the vocabulary is approved. |
+| **D-a11y-1** | Home's rating badge is capped at half its row, and its title is `maxLines: 2` | At the maximum supported text scale (1.6) the title wrapped a character at a time until the card overflowed by 53px, and the badge then overflowed its row by 19px. Neither shifts the layout at normal scale. |
 
 ## 3. Color tokens
 
@@ -214,6 +219,26 @@ components were hardened after tests caught genuine overflows:
 * `RmBadge` — same treatment, so a localized label ellipsizes rather than pushing.
 * `RmButton`, `RmIconButton`, `RmFab` and the verification rows now declare a semantics
   **container**; without it adjacent controls merged into a single announcement.
+
+### 2.4 Core primitives added in Phase 3
+
+Each was promoted to `core/` only because two or more approved screens use it.
+
+| Primitive | Consumers |
+|---|---|
+| `RmJourneyMarker` | The hollow brand ring (origin) and solid ink teardrop (destination): Search's from/to card and Route Details' timeline, and the same vocabulary Home's map pins draw by hand. |
+| `RmCtaDock` | The docked action bar over a scrim fading from the background: Search and Route Details. |
+| `RmSelectorTile` | Search's `NE ZAMAN` and `KOLTUK` tiles. |
+| `RmStatTile` | Route Details' 3-up trust figures. |
+
+Layout notes worth keeping:
+
+* A `Row` with `crossAxisAlignment: stretch` inside a scroll view demands an **infinite
+  height**. Both of Route Details' equal-height tile rows need an `IntrinsicHeight`
+  around them — caught by the first widget test that pumped the screen.
+* Widget tests that assert anything about **width** must call `loadRideMateFonts`.
+  Without it every glyph rasterizes as a square em box, far wider than Manrope, so the
+  assertion measures the placeholder font rather than the product.
 
 ## 8. Missing states — must be designed as we build
 

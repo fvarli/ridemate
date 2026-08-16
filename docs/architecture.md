@@ -38,9 +38,14 @@ lib/
 │   ├── gallery/                    # debug-only design-system catalogue
 │   ├── onboarding/                 # data + application + presentation
 │   ├── verification/               # domain + application + presentation
-│   └── home/                       # domain + application + presentation
+│   ├── home/                       # domain + application + presentation
+│   └── discovery/                  # domain + application + presentation
 └── l10n/                           # ARBs + committed generated localizations
 ```
+
+`discovery/` is one slice rather than three features: `RouteOffer` feeds both the match
+card and the details screen, and splitting them would force a cross-feature domain
+import for no gain.
 
 Each feature has **only the layers it earns**: onboarding needs persistence so it has
 `data/`; verification and home carry domain models; none has a layer it does not use.
@@ -128,6 +133,28 @@ safety-sensitive concept drawing on identity verification, account age, trip his
 cancellations, ratings, reports, fraud signals and device risk. Nothing in the client
 pre-empts it.
 
+### Matching, ranking and cost sharing are never computed here
+
+The same rule as the Trust Score, applied to discovery. There is no
+`calculateCompatibility`, `calculateFare` or `rankMatches`, and no comparator anywhere.
+`RouteOffer` carries every figure the UI shows — compatibility, cost share, trust score,
+approval rate — and the widgets render what they are handed.
+
+Sorting is the case worth spelling out. A sort chip that visibly does nothing reads as
+broken, but sorting "most compatible" in code would mean the client had authored the
+ranking rule for a matching engine that does not exist and will be backend-owned. So
+`MockRouteOffers.orderBySort` **declares** an order per option and `orderedFor` is a
+lookup, not a sort. Tests assert it echoes the declared list verbatim.
+
+The search filters change no results at all. Filtering even a mock list would define how
+RideMate applies these preferences, which is a backend, legal and product decision.
+
+**`Kadın sürücü` needs legal, safety and product review for Türkiye before it is ever
+connected to a matching engine.** Gender-based matching in transport is regulated. The
+chip renders and toggles as designed and is flagged in code as
+`kFilterNeedingPolicyReview`; a test asserts in particular that it filters and reorders
+nothing.
+
 ### Maps
 
 `RmMapCanvas` is **artwork**, not a map. It reproduces the illustrated map the design
@@ -148,6 +175,21 @@ provider, and the preferences instance is created once.
 The shell hosts the four destinations from the design's tab bar plus a centre action that
 pushes above the shell. Branches build lazily and then stay mounted, which preserves
 scroll position and in-progress input once the real screens land.
+
+`/matches` and `/routes/:routeId` are **top-level** routes rather than children of the
+Search branch: the design draws no tab bar on either, so they must render above the
+shell. Route Details is keyed by id because Home reaches the same screen — and, later,
+saved routes will too.
+
+Back behaviour is asserted, not assumed:
+
+| From | Back goes to | Mechanism |
+|---|---|---|
+| Route Details | Match Results | `pop` |
+| Match Results | Search, draft intact | `pop` — the shell stayed mounted underneath |
+| any secondary tab | **Home**, then exits | `PopScope` in `AppShell` |
+
+That last row was a real gap: before it, a system back on any tab left the app.
 
 ## Localization and RTL
 
@@ -207,6 +249,15 @@ presentation data**. No payment infrastructure, payment buttons, wallet behaviou
 transaction state or fake payment services are implemented. `RmFormatters.money` formats
 a number; nothing charges anyone.
 
+## Actions that do not exist yet say so
+
+`İstek gönder` on Route Details shows a localized *"Yolculuk isteği özelliği yakında
+eklenecek."* and creates **no** sent state: it does not flip the button, mutate the offer
+or start a request lifecycle. Nothing was sent anywhere, and claiming otherwise is the
+wrong thing to encode in a trust product. When a backend exists the flow becomes
+request → server acknowledgement → pending → accepted/declined, and only then may the UI
+claim anything was sent. Messaging behaves the same way; chat is Phase 5.
+
 ## Testing
 
 - `tool/check.sh` — format, `analyze --fatal-infos --fatal-warnings`, and the
@@ -219,6 +270,12 @@ a number; nothing charges anyone.
 
 `RmSkeleton` and the pulsing status dot animate indefinitely; `pumpAndSettle` will time
 out on any screen showing one. Use `pump(Duration)` there.
+
+Any test that asserts something about **width** must call `loadRideMateFonts` first.
+Without it every glyph rasterizes as a square em box, much wider than Manrope, so the
+test measures the placeholder font instead of the product — failing where the app is
+fine and passing where it is not. Screens are checked at **360dp as well as 393dp**, in
+both locales, RTL, and at the maximum supported text scale.
 
 `test/support/fakes.dart` holds the test doubles. Production ships **no** fake
 implementations.

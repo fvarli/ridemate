@@ -9,10 +9,10 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 3 — passenger discovery.** The design system (Phase 1) is complete, and
-Onboarding, Verification, Home, Search, Match Results and Route Details are
-implemented — a member can go from Home to a full route offer and back. Messages,
-Profile and Create route are still placeholders.
+**Phase 4 — the driver side.** The design system (Phase 1) is complete, and
+Onboarding, Verification, Home, Search, Match Results, Route Details and Create route
+are implemented — a member can go from Home to a full route offer and back, and a
+driver can compose a journey to share. Messages and Profile are still placeholders.
 
 There is no backend, no authentication, no identity-verification provider, no
 payments, no location and no maps vendor. Everything those screens display is
@@ -20,10 +20,17 @@ mock presentation data.
 
 Nothing is computed from that data either: there is no matching, ranking, pricing or
 Trust Score logic anywhere in the client. The search filters change no results, and
-**`Kadın sürücü` in particular is presentation only, pending legal, safety and product
-review for Türkiye.** `İstek gönder` shows a "coming soon" message and creates no sent
-state, because nothing was sent. See
+**`Kadın sürücü` and `Evcil hayvan yok` are presentation only, pending legal, safety and
+product review.** The Create route cost share is read-only for the same reason.
+`İstek gönder` and `Rotayı yayınla` show honest messages and create no sent or published
+state, because nothing was sent or published. See
 [`docs/architecture.md`](docs/architecture.md).
+
+Create route delivers the **approved design surface**, not a production-complete
+publishing workflow: the design contains no departure date or time control, so a one-off
+journey cannot yet say when it leaves. That and the other gaps found while building are
+listed in [`docs/design-system.md`](docs/design-system.md) §8, to be taken up in a
+dedicated product-gaps phase once the designed screens are built.
 
 ## Requirements
 

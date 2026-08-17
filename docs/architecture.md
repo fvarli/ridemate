@@ -29,6 +29,7 @@ lib/
 │   ├── a11y/                       # RmA11y constants, RmTapTarget
 │   ├── format/                     # RmFormatters, RmTextConventions
 │   ├── icons/rm_icons.dart         # 25-icon registry
+│   ├── places/                     # Place + the İstanbul fixtures (shared)
 │   ├── theme/
 │   │   ├── rm_theme.dart           # light + dark ThemeData
 │   │   └── tokens/                 # colors, shadows, typography, spacing, radius,
@@ -39,13 +40,24 @@ lib/
 │   ├── onboarding/                 # data + application + presentation
 │   ├── verification/               # domain + application + presentation
 │   ├── home/                       # domain + application + presentation
-│   └── discovery/                  # domain + application + presentation
+│   ├── discovery/                  # domain + application + presentation
+│   └── create_route/               # domain + application + presentation
 └── l10n/                           # ARBs + committed generated localizations
 ```
 
 `discovery/` is one slice rather than three features: `RouteOffer` feeds both the match
 card and the details screen, and splitting them would force a cross-feature domain
 import for no gain.
+
+**Features never import each other.** When Create Route needed the same İstanbul places
+and the same picker sheet as Search, the shared vocabulary moved to `core/places/` and
+`core/widgets/rm_place_picker_sheet.dart` rather than the driver-side feature reaching
+into the passenger-side one. Same rule as the design system — promote on the second
+concrete consumer, never in anticipation of one — and a test asserts no file under
+`create_route/` ever mentions `features/discovery`.
+
+`core/` is therefore two things: the design system, and shared product vocabulary that
+belongs to no single feature (`format/`, `places/`).
 
 Each feature has **only the layers it earns**: onboarding needs persistence so it has
 `data/`; verification and home carry domain models; none has a layer it does not use.
@@ -249,6 +261,38 @@ presentation data**. No payment infrastructure, payment buttons, wallet behaviou
 transaction state or fake payment services are implemented. `RmFormatters.money` formats
 a number; nothing charges anyone.
 
+### The driver never sets the amount
+
+Create Route displays a suggested per-person share captioned `Önerilen · maliyet
+paylaşımı`, and it is **read-only**: no input, no stepper, no chevron, no tap target, and
+a semantics node marked read-only rather than as a button.
+
+That is a boundary, not an unfinished control. Making driver-set cost sharing editable
+may materially affect how RideMate is characterized for regulatory purposes, so it
+requires legal and product review before implementation rather than a decision taken in
+the client layer. `kSuggestedCostSharePerPerson` carries that requirement in its doc
+comment so nobody makes it editable in a later phase without meeting it.
+
+The amount is also not derived from distance, duration, seats, recurrence, route or
+vehicle, and **no total is displayed anywhere**: `seats × costShare` would be both a
+formula this layer may not author and a driver-earnings claim the product does not make.
+A test increments the seats and asserts the figure does not move.
+
+Vocabulary inside `create_route/` stays on the design's own words — `KİŞİ BAŞI`,
+`maliyet paylaşımı` — and never becomes fare, price, earnings, income, payout or revenue.
+
+### Ride rules are published rules, not eligibility
+
+A driver's `RideRuleId` and a passenger's `SearchFilterId` carry some of the same words
+(`Sigara yok`) from opposite sides of the same conversation. They stay separate types in
+separate features; reconciling them is a backend concern.
+
+Neither drives any behaviour. `kRuleNeedingPolicyReview` marks `Evcil hayvan yok` the way
+`kFilterNeedingPolicyReview` marks `Kadın sürücü`: it is a policy-sensitive preference,
+the client enforces no eligibility from it, and connecting it to real matching requires
+legal, accessibility and product review first. Those markers record a review requirement
+and assert nothing about how any particular law applies.
+
 ## Actions that do not exist yet say so
 
 `İstek gönder` on Route Details shows a localized *"Yolculuk isteği özelliği yakında
@@ -257,6 +301,20 @@ or start a request lifecycle. Nothing was sent anywhere, and claiming otherwise 
 wrong thing to encode in a trust product. When a backend exists the flow becomes
 request → server acknowledgement → pending → accepted/declined, and only then may the UI
 claim anything was sent. Messaging behaves the same way; chat is Phase 5.
+
+`Rotayı yayınla` on Create Route is the same pattern with sharper copy, because
+*yayınla* implies other members can now see the journey. The message states that the
+route has **not** been published rather than merely that publishing is coming, and the
+action creates no route, marks nothing published, does not mutate or clear the draft, and
+does not navigate. It is also deliberately **not** gated on draft validity: the source
+contains no disabled button anywhere, and inventing validation would author a publishing
+rule that does not exist.
+
+The Create Route draft lives in an app-scoped provider so backing out by accident does
+not discard the driver's edits, and in memory only — nothing is written to
+`SharedPreferences` or any local store, so a new process starts from the designed
+defaults. When publishing is real, drafts become persisted entities and that scope is
+revisited.
 
 ## Testing
 

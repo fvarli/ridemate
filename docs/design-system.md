@@ -49,6 +49,8 @@ Scale governs *proportion*, not interactive ergonomics. These deviations are int
 | Icon button | 34 | 48.4 | **48** | Lands exactly on the 48 dp minimum tap target |
 | Tab bar | 72 | 102 | **64 + safe area** | Use `NavigationBar` |
 | FAB | 50 | 71 | **60** | Between platform norm and design intent |
+| Switch track | 46×27 | 65×38 | **56×32** | A 65dp track dwarfs its row; 32 keeps the knob at 26 with the design's 3px inset |
+| Stepper button | 28 | 40 | **44** | Visual box stays under the touch floor by design; `RmTapTarget` grows the hit area to 48 |
 
 Any further deviation discovered during implementation is added to this table with its
 reason. The table is the contract; silent drift is not allowed.
@@ -75,6 +77,10 @@ reason. The table is the contract; silent drift is not allowed.
 | **D-search-2** | The from/to values render on **up to two lines** | At the scaled type size a full Istanbul address (`Kadıköy, İskele Meydanı` needs 227dp) does not fit beside the swap control on a 393dp screen. Truncating to `İskele Mey…` hides which of two nearby stops it is. The comp's own text runs *under* its swap tile, so one line was never achievable. |
 | **D-details-1** | Route Details adds a **back control** to its hero, which the comp has none of | The screen is pushed over the shell and has no tab bar, so without it the only way back is a system gesture. Match Results' comp draws exactly this control, so the vocabulary is approved. |
 | **D-a11y-1** | Home's rating badge is capped at half its row, and its title is `maxLines: 2` | At the maximum supported text scale (1.6) the title wrapped a character at a time until the card overflowed by 53px, and the badge then overflowed its row by 19px. Neither shifts the layout at normal scale. |
+| **D-create-1** | Create Route adds a **back control** to its header, which the comp has none of | The screen is pushed above the shell with no tab bar, so without it the only way out is a system gesture. Same reasoning and same `chevronLeft` tile as `D-details-1`. `closeX` is not the vocabulary: the source uses it once, as a block/report row icon, never to dismiss a screen. |
+| **D-create-2** | Create Route's endpoint rows are **tappable**, and their semantic labels supply the origin/destination role | The comp drops the `NEREDEN`/`NEREYE` eyebrows and draws no tap affordance, but a publish screen where the driver cannot set their own endpoints is worse than a logged deviation. Without the labels a screen reader hears only `Ataşehir, Palladium`, with nothing saying which end of the journey it is. |
+| **D-create-3** | The recurrence summary is **hidden** when the toggle is off | The comp draws only the ON state, and `Pzt–Cum · 08:00 kalkış` describes a weekday pattern — leaving it up would be actively misleading. Hiding it invents **no copy at all**, only a visibility rule, and the underlying fixtures are not cleared, so turning it back on restores the same line. |
+| **D-create-4** | The stepper's `−` gets a muted **disabled** treatment at 1 seat | The source draws only the enabled control, and the disabled state is extrapolated from the token language. A control that looks tappable and silently does nothing is the worst of the available options. The `+` never disables — there is no ceiling to hit. |
 
 ## 3. Color tokens
 
@@ -240,6 +246,35 @@ Layout notes worth keeping:
   Without it every glyph rasterizes as a square em box, far wider than Manrope, so the
   assertion measures the placeholder font rather than the product.
 
+### 2.5 Form controls added in Phase 4 — deliberately NOT core
+
+The toggle and the stepper each appear **exactly once** across all fifteen approved
+screens, both on Create Route. That is not the concrete reuse the promotion rule asks
+for, so `RecurrenceSwitch` and `SeatsStepper` live in the feature. When a second approved
+screen genuinely needs either — Phase 6's Profile/Safety settings are the likely
+candidate — they get promoted then; the move is cheap.
+
+Two consequences accepted on purpose:
+
+* They consume the `RmSizing.switchTrack*` / `stepperButton` tokens Phase 1 derived,
+  rather than re-declaring 56/32/26/44. Otherwise the tokens stay dead and drift.
+* A feature-local control never reaches the gallery, which is where every other RTL and
+  dark-mode regression gets caught. The **Create Route RTL golden is therefore mandatory,
+  not optional** — it is what proves the switch knob sits at the trailing edge in both
+  directions.
+
+Accessibility patterns worth reusing when these do become core:
+
+* A switch is **one merged node** carrying `toggled:` and **no** `button:` — setting both
+  makes it announce as a button. The whole row is the target, since a 56×32 track is
+  under the touch floor on its own.
+* A stepper is **one adjustable node** (`value` / `increasedValue` / `decreasedValue` /
+  `onIncrease` / `onDecrease`) with its buttons under `ExcludeSemantics`. Two labelled
+  buttons never announce that the value changed; doing both patterns announces it twice.
+  At a boundary the corresponding action is dropped, so assistive tech agrees with the
+  muted control.
+* Knob and glyph positions use `AlignmentDirectional`, never `Alignment.centerRight`.
+
 ## 8. Missing states — must be designed as we build
 
 The source contains **none** of: disabled button, loading/spinner, toggle-off state,
@@ -253,6 +288,20 @@ SOS specifically is gated behind a written spec (see `architecture.md`).
 **Screens implied but absent:** login, OTP entry, document/selfie capture, request
 sent/accepted/declined, driver request inbox, my-routes, conversation list, rate-your-trip,
 trusted-contacts editor, QR scanner, block/report form, settings, notifications.
+
+**Gaps found in Phase 4, on Create Route specifically:**
+
+* **No departure date or time control exists on the screen at all.** The only time
+  information is the static recurrence summary. A driver can publish a weekday-recurring
+  journey at a fixed 08:00 — or, with the toggle off, a journey with no stated departure
+  time whatsoever. This is the largest gap found so far: when a driver leaves is basic
+  information for a shared journey. Phase 4 renders the approved surface and does not
+  invent a picker.
+* The toggle's **off state** is undesigned (already covered by the general
+  "toggle-off state" entry above). The off track colour is extrapolated from the tokens.
+* The stepper's **disabled boundary** is undesigned; see `D-create-4`.
+* There is **no vehicle selection**, so nothing supplies a real seat capacity. That is why
+  the stepper has a floor and no ceiling.
 
 ## 9. Turkish formatting rules (Phase 1 → `lib/core/format/`)
 

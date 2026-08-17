@@ -11,6 +11,7 @@ import 'package:ridemate/core/a11y/rm_a11y.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
+import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/gallery/presentation/gallery_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
@@ -154,12 +155,13 @@ void main() {
 
       await tester.tap(find.byType(RmFab));
       await tester.pumpAndSettle();
-      expect(find.text('Phase 4 — Create route'), findsOneWidget);
+      expect(find.byType(CreateRouteScreen), findsOneWidget);
       // Pushed over the shell, so the navigation bar is gone.
       expect(find.byType(RmNavBar), findsNothing);
 
-      await tester.tap(find.byType(BackButton));
+      await tester.tap(find.bySemanticsLabel('Back').first);
       await tester.pumpAndSettle();
+      expect(find.byType(CreateRouteScreen), findsNothing);
       expect(find.byType(RmNavBar), findsOneWidget);
     });
 

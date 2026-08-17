@@ -17,6 +17,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/create_route/presentation/create_route_screen.dart';
 import '../../features/discovery/presentation/match_results_screen.dart';
 import '../../features/discovery/presentation/route_details_screen.dart';
 import '../../features/discovery/presentation/search_screen.dart';
@@ -151,11 +152,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         path: AppRoutes.createRoutePath,
         name: AppRoutes.createRoute,
         builder: (BuildContext context, GoRouterState state) =>
-            const PlaceholderScreen(
-              routeName: 'Create route',
-              phase: 'Phase 4 — Create route',
-              showBackButton: true,
-            ),
+            const CreateRouteScreen(),
       ),
       // Developer tooling: never reachable in a release build.
       if (kDebugMode)

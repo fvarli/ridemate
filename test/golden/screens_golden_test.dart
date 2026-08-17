@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
+import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
@@ -174,5 +175,33 @@ void main() {
         );
       });
     }
+  });
+
+  group('Create route', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(tester, const CreateRouteScreen(), brightness: brightness);
+        await expectLater(
+          find.byType(CreateRouteScreen),
+          matchesGoldenFile('goldens/create_route_${brightness.name}.png'),
+        );
+      });
+    }
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      // Mandatory rather than optional here. This is the only screen with
+      // directional form controls, and its switch and stepper are
+      // feature-local, so they never reach the gallery's review surface.
+      await pump(
+        tester,
+        const CreateRouteScreen(),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+      );
+      await expectLater(
+        find.byType(CreateRouteScreen),
+        matchesGoldenFile('goldens/create_route_rtl.png'),
+      );
+    });
   });
 }

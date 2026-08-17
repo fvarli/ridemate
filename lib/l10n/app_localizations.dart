@@ -698,6 +698,132 @@ abstract class AppLocalizations {
   /// **'Bu rota artık görüntülenemiyor.'**
   String get routeDetailsNotFound;
 
+  /// Rota oluştur ekranının başlığı. Sürücünün kendi yolculuğunu paylaşmasıdır; ticari yolcu taşımacılığı değildir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rota oluştur'**
+  String get createRouteTitle;
+
+  /// Rota oluştur başlığının altındaki açıklama.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürücü olarak koltuk paylaş'**
+  String get createRouteSubtitle;
+
+  /// Kalkış noktası satırının ekran okuyucu etiketi. Tasarımda görsel bir NEREDEN etiketi yok, bu yüzden hangi uç olduğunu yalnızca bu etiket söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalkış: {place}'**
+  String createRouteOriginSemanticLabel(String place);
+
+  /// Varış noktası satırının ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varış: {place}'**
+  String createRouteDestinationSemanticLabel(String place);
+
+  /// Kalkış noktası seçme sayfasının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nereden yola çıkıyorsun?'**
+  String get createRouteOriginPickerTitle;
+
+  /// Varış noktası seçme sayfasının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nereye gidiyorsun?'**
+  String get createRouteDestinationPickerTitle;
+
+  /// Yolculuğun hafta içi her gün tekrarlanmasını açıp kapatan anahtarın başlığı. Tasarımdaki tek tekrar seçeneğidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her hafta içi tekrarla'**
+  String get createRouteRecurrenceTitle;
+
+  /// Tekrar açıkken gösterilen özet. Yalnızca açıkken görünür; kapalıyken tasarımda bir karşılığı yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Pzt–Cum · {time} kalkış'**
+  String createRouteRecurrenceDetail(String time);
+
+  /// Paylaşılan boş koltuk sayısı alanının üst etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'BOŞ KOLTUK'**
+  String get createRouteSeatsLabel;
+
+  /// Koltuk sayısı artır/azalt denetiminin ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Boş koltuk'**
+  String get createRouteSeatsSemanticLabel;
+
+  /// Koltuk sayısının ekran okuyucuya okunan değeri.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =1{1 koltuk} other{{count} koltuk}}'**
+  String createRouteSeatsValue(int count);
+
+  /// Kişi başına düşen maliyet payı alanının üst etiketi. Ücret veya fiyat değildir.
+  ///
+  /// In tr, this message translates to:
+  /// **'KİŞİ BAŞI'**
+  String get createRouteCostShareLabel;
+
+  /// Maliyet payının altındaki açıklama. Gösterilen tutar sabit bir örnek değerdir; hiçbir hesaplamadan gelmez ve bu aşamada değiştirilemez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önerilen · maliyet paylaşımı'**
+  String get createRouteCostShareCaption;
+
+  /// Maliyet payı kutusunun ekran okuyucu etiketi. Bir düğme değil, salt okunur bir bilgidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişi başı önerilen maliyet paylaşımı: {amount}'**
+  String createRouteCostShareSemanticLabel(String amount);
+
+  /// Sürücünün yolculukla birlikte yayımladığı kuralların bölüm başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'YOLCULUK KURALLARI'**
+  String get createRouteRulesTitle;
+
+  /// Yolculuk kuralı. Aramadaki aynı adlı yolcu filtresinden ayrıdır: burada sürücünün ilan ettiği kuraldır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sigara yok'**
+  String get createRouteRuleNoSmoking;
+
+  /// Yolculuk kuralı: müzik dinlenebilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Müzik OK'**
+  String get createRouteRuleMusicOk;
+
+  /// Yolculuk kuralı. Politika açısından hassas bir tercihtir; istemci bundan bir uygunluk kuralı türetmez ve arka uçta uygulanmadan önce hukuk, erişilebilirlik ve ürün incelemesi gerekir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Evcil hayvan yok'**
+  String get createRouteRuleNoPets;
+
+  /// Yolculuk kuralı: sessiz yolculuk.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessiz'**
+  String get createRouteRuleQuiet;
+
+  /// Rota oluştur ekranının ana eylemi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rotayı yayınla'**
+  String get createRoutePublish;
+
+  /// Yayınla düğmesine basıldığında gösterilen geçici bilgi. Hiçbir rota oluşturulmadığını açıkça söylemelidir; başarı ya da 'yayınlandı' izlenimi vermemelidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.'**
+  String get createRoutePublishUnavailable;
+
   /// Göreli tarih: bugün.
   ///
   /// In tr, this message translates to:

@@ -376,6 +376,86 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routeDetailsNotFound => 'This route is no longer available.';
 
   @override
+  String get createRouteTitle => 'Create route';
+
+  @override
+  String get createRouteSubtitle => 'Share a seat as a driver';
+
+  @override
+  String createRouteOriginSemanticLabel(String place) {
+    return 'From: $place';
+  }
+
+  @override
+  String createRouteDestinationSemanticLabel(String place) {
+    return 'To: $place';
+  }
+
+  @override
+  String get createRouteOriginPickerTitle => 'Where are you starting?';
+
+  @override
+  String get createRouteDestinationPickerTitle => 'Where are you going?';
+
+  @override
+  String get createRouteRecurrenceTitle => 'Repeat every weekday';
+
+  @override
+  String createRouteRecurrenceDetail(String time) {
+    return 'Mon–Fri · departs $time';
+  }
+
+  @override
+  String get createRouteSeatsLabel => 'FREE SEATS';
+
+  @override
+  String get createRouteSeatsSemanticLabel => 'Free seats';
+
+  @override
+  String createRouteSeatsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seats',
+      one: '1 seat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get createRouteCostShareLabel => 'PER PERSON';
+
+  @override
+  String get createRouteCostShareCaption => 'Suggested · cost sharing';
+
+  @override
+  String createRouteCostShareSemanticLabel(String amount) {
+    return 'Suggested cost share per person: $amount';
+  }
+
+  @override
+  String get createRouteRulesTitle => 'RIDE RULES';
+
+  @override
+  String get createRouteRuleNoSmoking => 'No smoking';
+
+  @override
+  String get createRouteRuleMusicOk => 'Music OK';
+
+  @override
+  String get createRouteRuleNoPets => 'No pets';
+
+  @override
+  String get createRouteRuleQuiet => 'Quiet';
+
+  @override
+  String get createRoutePublish => 'Publish route';
+
+  @override
+  String get createRoutePublishUnavailable =>
+      'The route has not been published. Publishing will be added later.';
+
+  @override
   String get dateToday => 'Today';
 
   @override

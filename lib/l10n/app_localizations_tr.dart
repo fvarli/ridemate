@@ -378,6 +378,86 @@ class AppLocalizationsTr extends AppLocalizations {
   String get routeDetailsNotFound => 'Bu rota artık görüntülenemiyor.';
 
   @override
+  String get createRouteTitle => 'Rota oluştur';
+
+  @override
+  String get createRouteSubtitle => 'Sürücü olarak koltuk paylaş';
+
+  @override
+  String createRouteOriginSemanticLabel(String place) {
+    return 'Kalkış: $place';
+  }
+
+  @override
+  String createRouteDestinationSemanticLabel(String place) {
+    return 'Varış: $place';
+  }
+
+  @override
+  String get createRouteOriginPickerTitle => 'Nereden yola çıkıyorsun?';
+
+  @override
+  String get createRouteDestinationPickerTitle => 'Nereye gidiyorsun?';
+
+  @override
+  String get createRouteRecurrenceTitle => 'Her hafta içi tekrarla';
+
+  @override
+  String createRouteRecurrenceDetail(String time) {
+    return 'Pzt–Cum · $time kalkış';
+  }
+
+  @override
+  String get createRouteSeatsLabel => 'BOŞ KOLTUK';
+
+  @override
+  String get createRouteSeatsSemanticLabel => 'Boş koltuk';
+
+  @override
+  String createRouteSeatsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count koltuk',
+      one: '1 koltuk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get createRouteCostShareLabel => 'KİŞİ BAŞI';
+
+  @override
+  String get createRouteCostShareCaption => 'Önerilen · maliyet paylaşımı';
+
+  @override
+  String createRouteCostShareSemanticLabel(String amount) {
+    return 'Kişi başı önerilen maliyet paylaşımı: $amount';
+  }
+
+  @override
+  String get createRouteRulesTitle => 'YOLCULUK KURALLARI';
+
+  @override
+  String get createRouteRuleNoSmoking => 'Sigara yok';
+
+  @override
+  String get createRouteRuleMusicOk => 'Müzik OK';
+
+  @override
+  String get createRouteRuleNoPets => 'Evcil hayvan yok';
+
+  @override
+  String get createRouteRuleQuiet => 'Sessiz';
+
+  @override
+  String get createRoutePublish => 'Rotayı yayınla';
+
+  @override
+  String get createRoutePublishUnavailable =>
+      'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.';
+
+  @override
   String get dateToday => 'Bugün';
 
   @override

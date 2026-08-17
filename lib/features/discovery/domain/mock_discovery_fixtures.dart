@@ -16,41 +16,11 @@
 // chips genuinely working while inventing nothing.
 // ─────────────────────────────────────────────────────────────
 
+import '../../../core/places/mock_places.dart';
+import '../../../core/places/place.dart';
 import '../../../core/widgets/rm_avatar.dart';
-import 'place.dart';
 import 'route_offer.dart';
 import 'search_draft.dart';
-
-/// Selectable endpoints. Every label appears in the design source.
-abstract final class MockPlaces {
-  const MockPlaces._();
-
-  static const Place kadikoy = Place(
-    id: 'kadikoy-iskele',
-    label: 'Kadıköy, İskele Meydanı',
-  );
-  static const Place levent = Place(
-    id: 'levent-metro',
-    label: 'Levent, Metro İstasyonu',
-  );
-  static const Place maslak = Place(
-    id: 'maslak-42',
-    label: 'Maslak, 42 Maslak',
-  );
-  static const Place atasehir = Place(
-    id: 'atasehir-palladium',
-    label: 'Ataşehir, Palladium',
-  );
-  static const Place university = Place(id: 'universite', label: 'Üniversite');
-
-  static const List<Place> all = <Place>[
-    kadikoy,
-    levent,
-    maslak,
-    atasehir,
-    university,
-  ];
-}
 
 /// The journey the design shows already filled in.
 const SearchDraft kInitialSearchDraft = SearchDraft(

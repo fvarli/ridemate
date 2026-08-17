@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
+import 'package:ridemate/core/places/mock_places.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/discovery/application/discovery_providers.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';

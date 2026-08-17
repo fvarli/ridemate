@@ -17,10 +17,10 @@ abstract final class RmA11y {
   /// `kMinInteractiveDimension`). Named here so the intent is explicit at
   /// call sites.
   ///
-  /// Several design controls are visually smaller than this — the 28px
-  /// stepper buttons and the 7x13 padded inline buttons. Those keep their
-  /// visual size and are wrapped in [RmTapTarget] so the *tappable* area
-  /// still reaches 48.
+  /// Several design controls are visually smaller than this — the stepper
+  /// buttons ([RmSizing.stepperButton], 44, scaled from the design's 28px)
+  /// and the 7x13 padded inline buttons. Those keep their visual size and are
+  /// wrapped in [RmTapTarget] so the *tappable* area still reaches 48.
   static const double minTouchTarget = 48;
 
   /// Upper bound honoured when reasoning about layout under text scaling.

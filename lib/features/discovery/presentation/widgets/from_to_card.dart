@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/icons/rm_icons.dart';
+import '../../../../core/places/place.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_radius.dart';
 import '../../../../core/theme/tokens/rm_shadows.dart';
@@ -24,7 +25,6 @@ import '../../../../core/theme/tokens/rm_typography.dart';
 import '../../../../core/widgets/rm_icon_button.dart';
 import '../../../../core/widgets/rm_journey_marker.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/place.dart';
 
 /// The journey endpoints, with a swap control.
 class FromToCard extends StatelessWidget {

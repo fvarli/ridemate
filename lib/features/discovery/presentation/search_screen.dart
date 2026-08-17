@@ -23,6 +23,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/format/rm_formatters.dart';
 import '../../../core/icons/rm_icons.dart';
+import '../../../core/places/mock_places.dart';
+import '../../../core/places/place.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
 import '../../../core/theme/tokens/rm_sizing.dart';
 import '../../../core/theme/tokens/rm_spacing.dart';
@@ -31,14 +33,13 @@ import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_chip.dart';
 import '../../../core/widgets/rm_cta_dock.dart';
 import '../../../core/widgets/rm_list_row.dart';
+import '../../../core/widgets/rm_place_picker_sheet.dart';
 import '../../../core/widgets/rm_selector_tile.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/discovery_providers.dart';
 import '../domain/mock_discovery_fixtures.dart';
-import '../domain/place.dart';
 import '../domain/search_draft.dart';
 import 'widgets/from_to_card.dart';
-import 'widgets/place_picker_sheet.dart';
 
 /// The journey search screen.
 class SearchScreen extends ConsumerWidget {

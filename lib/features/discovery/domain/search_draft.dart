@@ -10,7 +10,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'place.dart';
+import '../../../core/places/place.dart';
 
 /// The trust filters the design draws on the Search screen.
 ///

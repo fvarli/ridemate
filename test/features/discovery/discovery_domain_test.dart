@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ridemate/core/places/mock_places.dart';
 import 'package:ridemate/features/discovery/application/discovery_providers.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/domain/route_offer.dart';

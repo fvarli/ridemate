@@ -10,8 +10,8 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/places/place.dart';
 import '../domain/mock_discovery_fixtures.dart';
-import '../domain/place.dart';
 import '../domain/route_offer.dart';
 import '../domain/search_draft.dart';
 

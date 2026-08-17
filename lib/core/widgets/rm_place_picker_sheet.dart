@@ -3,6 +3,11 @@
 //
 // A modal sheet listing the places a member can choose from.
 //
+// Shared because Search and Create Route use it with an identical interaction
+// contract: the same sheet, the same rows, the same `Future<Place?>`. If either
+// side ever needs a different treatment, it comes back out rather than growing
+// flags.
+//
 // DELIBERATELY NOT A SEARCH FIELD. The approved design contains no text input,
 // no autocomplete and no suggestion list, so none is invented here. This is a
 // deterministic local list.
@@ -13,12 +18,12 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/tokens/rm_colors.dart';
-import '../../../../core/theme/tokens/rm_spacing.dart';
-import '../../../../core/theme/tokens/rm_typography.dart';
-import '../../../../core/widgets/rm_journey_marker.dart';
-import '../../../../core/widgets/rm_list_row.dart';
-import '../../domain/place.dart';
+import '../places/place.dart';
+import '../theme/tokens/rm_colors.dart';
+import '../theme/tokens/rm_spacing.dart';
+import '../theme/tokens/rm_typography.dart';
+import 'rm_journey_marker.dart';
+import 'rm_list_row.dart';
 
 /// Shows the picker and resolves to the chosen place, or null if dismissed.
 Future<Place?> showPlacePicker(

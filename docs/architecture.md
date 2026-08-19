@@ -1,7 +1,8 @@
 # RideMate — Architecture
 
-> **Status:** Phase 2 complete — Onboarding, Verification and Home.
-> Search, Messages, Profile and Create route remain placeholders.
+> **Status:** Phase 5 complete — Onboarding, Verification, Home, Search, Match Results,
+> Route Details, Create Route and Chat. Active Trip is built but reachable only in debug
+> builds. Messages and Profile remain placeholders.
 
 ## Product framing
 
@@ -41,7 +42,9 @@ lib/
 │   ├── verification/               # domain + application + presentation
 │   ├── home/                       # domain + application + presentation
 │   ├── discovery/                  # domain + application + presentation
-│   └── create_route/               # domain + application + presentation
+│   ├── create_route/               # domain + application + presentation
+│   ├── chat/                       # domain + presentation
+│   └── trip/                       # domain + application + presentation
 └── l10n/                           # ARBs + committed generated localizations
 ```
 
@@ -167,12 +170,87 @@ chip renders and toggles as designed and is flagged in code as
 `kFilterNeedingPolicyReview`; a test asserts in particular that it filters and reorders
 nothing.
 
+### Presence is not verification
+
+```
+VerificationState → identity has been checked      RmVerification
+PresenceState     → this member is online now      RmPresence
+```
+
+The design draws both as a green circle, distinguished only by a check glyph — one signal
+carrying two meanings, which is a real hazard in a trust product. The rendering matches
+the design exactly; the API keeps the two as **distinct types that cannot be passed for
+one another**, and `RmAvatar` refuses to stack them.
+
+Chat's header is the design's own proof that they are separate: it shows a presence dot on
+the avatar **and** a verified check beside the name, at once. So the avatar takes presence
+only and the check is a standalone `RmVerifiedBadge` — which is also why that badge is
+public.
+
+Neither the dot nor the badge announces itself. The correct announcement differs by
+screen, so the screen composes it: Chat's header already shows a visible `Çevrimiçi` line,
+so saying it again would be saying it twice, while Active Trip's driver row has no such
+text and must carry the meaning in its label.
+
+**Both are mock presentation state.** There is no presence service, and `Çevrimiçi` is a
+fixture exactly like `★ 4.9`.
+
+### Nothing on Active Trip is live
+
+No trip session, location, GPS, permission, map vendor, realtime transport or presence
+service. The car's position, the route progress, the ETA, the distance and the "live"
+badge are figures from the comp, displayed unchanged.
+
+So there is no `calculateEta`, `calculateRemainingDistance`, `calculateProgress`,
+`updateVehiclePosition`, `derivePresence` or `trackingTimer`, no `TripService`,
+`TrackingService`, `LocationService`, `RealtimeService` or `PresenceService`, and no
+`Notifier` — the snapshot is a plain `Provider` returning a constant, because mutable trip
+state is the first brick of a lifecycle that does not exist. **`travelledFraction` is never
+animated and the vehicle never moves**, since a progress bar creeping over a fixture is a
+route-progress calculation wearing a different hat. A test scans for every name above.
+
+Two map fixtures are declared independently: the travelled fraction, measured once against
+the chosen route point list, and the vehicle's design coordinate, which the comp puts
+slightly *off* the polyline. Neither is derived from the other.
+
+**The screen is registered only under `kDebugMode` and linked from nowhere.** Reaching an
+active trip honestly needs a request, an acceptance and a departure, and fabricating
+`acceptedTrip` or `currentRide` to unlock a screen is the kind of lie earlier phases
+refused. It also keeps two things away from real members: an SOS control with no emergency
+behaviour, and a footer claiming their live location is shared with two emergency contacts
+when nothing is shared with anyone. That copy is presentation only — no location, no
+contact, no background tracking, no emergency state — and a test asserts it never appears
+on a release-reachable surface.
+
+### Chat sends nothing
+
+No backend, socket, push, delivery, read state, typing indicator, unread count or retry
+queue — and none of them stubbed. `ChatEntry` carries what the design draws and nothing
+added on a future backend's behalf: no `serverId`, `deliveryStatus`, `deliveredAt`,
+`readAt`, `retryCount`, `remoteUserId`, `socketSequence` or `syncState`. The design shows
+no timestamps, so none are manufactured, and there is no `groupByDay()` helper — it would
+have to invent the very timestamps the design left out.
+
+Send shows a message saying plainly that nothing was sent, then appends no bubble, creates
+no entry, clears nothing and navigates nowhere. Leaving the typed text in place is part of
+that: clearing it is what "sent" looks like. Appending a bubble was considered and
+rejected — even one marked "not sent" introduces a message entity, a lifecycle and a
+failed state, which is the messaging domain this phase must not build.
+
+Opening a conversation creates no request, match, booking, accepted ride or active trip.
+Messaging a driver about a route is not agreeing to travel with them.
+
 ### Maps
 
 `RmMapCanvas` is **artwork**, not a map. It reproduces the illustrated map the design
 draws as inline SVG, in the design's own coordinate space. There is no tile source, no
 projection, no location and no vendor, and nothing is named as though it were a provider
 contract. The real maps and location architecture remains a later, separate decision.
+
+`RmMapProjection` maps artboard coordinates onto the widget box so overlays land on the
+artwork. It is a **drawing transform and nothing else** — no latitude, no longitude, no
+camera, no zoom, no tiles, no vendor. Wanting `latLngToScreen` there means wanting the real
+maps architecture, which does not start in that file.
 
 ### Router
 
@@ -261,6 +339,12 @@ presentation data**. No payment infrastructure, payment buttons, wallet behaviou
 transaction state or fake payment services are implemented. `RmFormatters.money` formats
 a number; nothing charges anyone.
 
+This also constrains **copy**. Chat's approved safety banner tells the member to pay only
+inside the app, which only makes sense if in-app payment exists. It does not, and Chat is
+release-reachable, so the shipped wording keeps the banner's safety purpose without
+claiming the capability (`D-chat-3`). The general rule it follows: deviate from the
+approved design for truthfulness or safety, never for implementation convenience.
+
 ### The driver never sets the amount
 
 Create Route displays a suggested per-person share captioned `Önerilen · maliyet
@@ -300,7 +384,15 @@ eklenecek."* and creates **no** sent state: it does not flip the button, mutate 
 or start a request lifecycle. Nothing was sent anywhere, and claiming otherwise is the
 wrong thing to encode in a trust product. When a backend exists the flow becomes
 request → server acknowledgement → pending → accepted/declined, and only then may the UI
-claim anything was sent. Messaging behaves the same way; chat is Phase 5.
+claim anything was sent.
+
+Phase 5 added three more, each naming what did not happen rather than promising a feature:
+sending a message (`Mesaj gönderilmedi.`), sharing a trip (`Hiçbir şey paylaşılmadı.`) and
+SOS (`Kimseye bildirim gönderilmedi.`). The SOS wording is deliberately narrow: no
+countdown, no confirmation, no armed or triggered state, no call, no contact notification,
+no location sharing and **no emergency number** — none appears in the approved design, and
+hard-coding one country's would invent safety guidance for every market. The real SOS state
+machine stays gated behind the written specification above.
 
 `Rotayı yayınla` on Create Route is the same pattern with sharper copy, because
 *yayınla* implies other members can now see the journey. The message states that the

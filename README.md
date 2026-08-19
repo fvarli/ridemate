@@ -9,10 +9,10 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 4 — the driver side.** The design system (Phase 1) is complete, and
-Onboarding, Verification, Home, Search, Match Results, Route Details and Create route
-are implemented — a member can go from Home to a full route offer and back, and a
-driver can compose a journey to share. Messages and Profile are still placeholders.
+**Phase 5 — in-journey communication.** The design system (Phase 1) is complete, and
+Onboarding, Verification, Home, Search, Match Results, Route Details, Create route and
+Chat are implemented. Active Trip is built and tested but reachable **only in debug
+builds** — see below. Messages and Profile are still placeholders.
 
 There is no backend, no authentication, no identity-verification provider, no
 payments, no location and no maps vendor. Everything those screens display is
@@ -25,6 +25,18 @@ product review.** The Create route cost share is read-only for the same reason.
 `İstek gönder` and `Rotayı yayınla` show honest messages and create no sent or published
 state, because nothing was sent or published. See
 [`docs/architecture.md`](docs/architecture.md).
+
+Chat sends nothing. There is no messaging backend, no delivery or read state and no
+typing indicator, so the send button says plainly that the message was not sent and adds
+nothing to the conversation. Its safety banner also differs from the comp on purpose: the
+approved wording tells you to pay inside the app, and there is no payment feature, so it
+keeps the safety advice without the false claim.
+
+**Active Trip is debug-only.** Reaching a trip in progress honestly needs a request, an
+acceptance and a departure, none of which exist — and rather than fake that lifecycle to
+unlock a screen, the route is left out of release builds entirely. It also carries an SOS
+control with no emergency behaviour and a footer saying your live location is shared with
+two emergency contacts, which is not true of anything.
 
 Create route delivers the **approved design surface**, not a production-complete
 publishing workflow: the design contains no departure date or time control, so a one-off

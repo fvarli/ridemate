@@ -1,8 +1,9 @@
 # RideMate — Design System
 
-> **Status:** Phase 2 — the token layer and primitives are in production use by
-> Onboarding, Verification and Home. Token code lives in `lib/core/theme/tokens/`,
-> primitives in `lib/core/widgets/`.
+> **Status:** Phase 5 — the token layer and primitives are in production use by every
+> built screen: Onboarding, Verification, Home, Search, Match Results, Route Details,
+> Create Route, Chat, and Active Trip (debug-only). Token code lives in
+> `lib/core/theme/tokens/`, primitives in `lib/core/widgets/`.
 > Every value below is pinned by `test/core/theme/tokens_test.dart`.
 >
 > **Source of truth:** `docs/claude-designs/RideMate App.dc.html` — immutable.
@@ -55,6 +56,13 @@ Scale governs *proportion*, not interactive ergonomics. These deviations are int
 Any further deviation discovered during implementation is added to this table with its
 reason. The table is the contract; silent drift is not allowed.
 
+**When a deviation is allowed at all.** Depart from the approved design for
+**truthfulness or safety, never for implementation convenience.** Phase 5 tested the rule
+in both directions on the same screen: Chat's payment sentence was rewritten because it
+claimed a capability that does not exist (`D-chat-3`), and its emoji were *kept* because a
+missing glyph in the bundled fonts is a technical problem, not a licence to reword approved
+copy (`D-chat-2`).
+
 ### 2.2 Deviations recorded during implementation
 
 | # | Deviation | Reason |
@@ -80,6 +88,12 @@ reason. The table is the contract; silent drift is not allowed.
 | **D-create-1** | Create Route adds a **back control** to its header, which the comp has none of | The screen is pushed above the shell with no tab bar, so without it the only way out is a system gesture. Same reasoning and same `chevronLeft` tile as `D-details-1`. `closeX` is not the vocabulary: the source uses it once, as a block/report row icon, never to dismiss a screen. |
 | **D-create-2** | Create Route's endpoint rows are **tappable**, and their semantic labels supply the origin/destination role | The comp drops the `NEREDEN`/`NEREYE` eyebrows and draws no tap affordance, but a publish screen where the driver cannot set their own endpoints is worse than a logged deviation. Without the labels a screen reader hears only `Ataşehir, Palladium`, with nothing saying which end of the journey it is. |
 | **D-create-3** | The recurrence summary is **hidden** when the toggle is off | The comp draws only the ON state, and `Pzt–Cum · 08:00 kalkış` describes a weekday pattern — leaving it up would be actively misleading. Hiding it invents **no copy at all**, only a visibility rule, and the underlying fixtures are not cleared, so turning it back on restores the same line. |
+| **D-trip-1** | Active Trip has **no back control**, unlike Route Details and Create Route | Its comp's top row has no free slot — the live pill holds the start, the clock tile the end. The screen is also debug-only and linked from nowhere, so a deep link is the only way in and there is nothing beneath it to pop to. |
+| **D-trip-2** | The Active Trip **clock tile** and the Chat composer's **`+`** render non-interactively | Neither has a defined behaviour anywhere in the fifteen screens. Giving them an action would invent a purpose — attachments? schedule? history? — that nobody has decided, so they are drawn and left inert. **Open ambiguity:** the clock tile is styled as a button, so an inert render is not self-evidently right. Recorded in §8 for design input rather than quietly resolved. |
+| **D-trip-3** | Active Trip's two actions **stack on phones** instead of sharing a row | `Yolculuğu paylaş` needs 138dp of label at the scaled type size, plus its icon and padding, beside a fixed 148dp SOS — about 214dp against the 185dp a 393dp screen leaves. The comp is marginal at its own artboard for the same reason as `D-search-2`. Neither label may be truncated: one is a safety control, the other would read as `Yolculuğu ...`. The designed row returns on a wider surface. |
+| **D-chat-1** | The Chat composer is a **real text field**, where the comp draws a static pill | There is no `<input>` in any of the fifteen screens. Home's search field has the same shape and is deliberately inert, because tapping it opens a picker — a static summary is sufficient there. Here the placeholder says `Mesaj yaz…` beside a send button, so a pill that cannot be typed into would be the more dishonest of the two. **No generic `RmTextField`:** one composer with an embedded send button is not a form field, and promoting it would mean inventing five states with no reference. |
+| **D-chat-2** | Message emoji render through an **isolated fallback span** | 👍 🙌 📍 are in neither bundled family, but they are approved copy and `Görüşürüz 🙌` is not `Görüşürüz`. They keep their place and are rendered in their own span naming the platform emoji families, rather than smuggled through Manrope and left to whatever the engine picks. `D-icon-4` remains about icon-like glyphs where a real icon exists; it is not a ban on emoji. |
+| **D-chat-3** | The Chat safety banner's **payment sentence is replaced** | The approved copy tells the member to pay only inside the app. RideMate has no payments, and Chat is the one Phase 5 screen a real member can reach, so shipping it would claim a capability that does not exist — the same failure as a button claiming a request was sent. The wording keeps the banner's safety purpose and drops the false claim. The approved sentence is untouched in `docs/claude-designs/` and returns when payment does. |
 | **D-create-4** | The stepper's `−` gets a muted **disabled** treatment at 1 seat | The source draws only the enabled control, and the disabled state is extrapolated from the token language. A control that looks tappable and silently does nothing is the worst of the available options. The `+` never disables — there is no ceiling to hit. |
 
 ## 3. Color tokens
@@ -275,6 +289,37 @@ Accessibility patterns worth reusing when these do become core:
   muted control.
 * Knob and glyph positions use `AlignmentDirectional`, never `Alignment.centerRight`.
 
+### 2.6 Core primitives added in Phase 5
+
+| Primitive | Consumers |
+|---|---|
+| `RmPulseDot` | The `rm-pulse` dot, extracted from `RmStatusPill` because Active Trip's live-location footer uses it **bare**, with no pill around it. Three instances across two containers. |
+| `RmMapProjection` | The cover-fit transform from artboard coordinates to widget pixels. It was private in `RmMapCanvas` and re-implemented verbatim in `HomeMap`; Active Trip's markers and Chat's mini map would have been copies three and four. |
+
+`RmMapScene` also gained a `designSize` — Chat's location card draws a **220×84**
+artboard, and cover-scaling that to the phone's 276×598 would crop it into a meaningless
+fragment — and value equality, because the painter's `shouldRepaint` compares scenes and
+an identity comparison meant any scene built outside a single `const` would silently stop
+repainting.
+
+**`RmMapProjection` is a drawing transform and nothing else.** No latitude, no longitude,
+no camera, no zoom, no tiles, no vendor. Wanting `latLngToScreen` there means wanting the
+real maps architecture, which is a separate decision that does not start in that file.
+`RmMapCanvas` remains artwork.
+
+### 2.7 Reduced motion
+
+Four animations in the app repeat indefinitely — the status dot, the live-location dot,
+the SOS halo and `RmSkeleton`. WCAG 2.2.2 says a member must be able to stop motion that
+runs past five seconds, and none of them could. All four now honour
+`MediaQuery.disableAnimationsOf`, and the Phase 5 goldens are captured with animations
+disabled so each baseline also tests that path.
+
+**No infinite animation may be added that the approved design does not draw** — and in
+particular, animating `RmMapScene.travelledFraction` or moving the vehicle marker over
+time is forbidden: a progress bar creeping over a fixture is a route-progress calculation
+wearing a different hat.
+
 ## 8. Missing states — must be designed as we build
 
 The source contains **none** of: disabled button, loading/spinner, toggle-off state,
@@ -302,6 +347,30 @@ trusted-contacts editor, QR scanner, block/report form, settings, notifications.
 * The stepper's **disabled boundary** is undesigned; see `D-create-4`.
 * There is **no vehicle selection**, so nothing supplies a real seat capacity. That is why
   the stepper has a floor and no ceiling.
+
+**Gaps found in Phase 5:**
+
+* **No conversation list / inbox exists.** The design draws a single chat thread and a
+  `Mesajlar` tab, but never the screen the tab implies. The tab therefore keeps a
+  placeholder rather than opening the one fixture thread, which would present a
+  hard-coded conversation as the member's whole inbox.
+* **The Active Trip clock tile has no defined behaviour** — no destination, no label, no
+  state anywhere in the source — yet it is styled exactly like a button (white elevated
+  tile, the same treatment as Match Results' back control). It ships inert, and this is
+  the ambiguity most in need of design input. The Chat composer's `+` is the same class of
+  problem, though its flat grey glyph reads as decorative.
+* **Active Trip's footer states something untrue.** `Canlı konumun 2 acil kişiyle
+  paylaşılıyor` is presentation copy: no location is shared, no contact is reached, no
+  background location exists. It is one of the reasons the screen is debug-only, and a
+  test asserts the string never reaches a release-reachable surface.
+* **Chat's safety banner assumes in-app payment**, which does not exist. Shipped with
+  honest temporary wording — see `D-chat-3`.
+* **`Levent'e varış` cannot be parameterised** without a Turkish suffix engine, so the
+  whole label is one ARB message. The same trap is already live in
+  `routeDetailsMemberSince: "{year}'ten beri üye"`, which is wrong for years like `2019`
+  (`2019'dan`) — deferred cleanup.
+* The **vehicle marker sits behind the bottom sheet** at phone proportions. So does the
+  comp's, once its sheet is scaled, so this is reproduced rather than corrected.
 
 ## 9. Turkish formatting rules (Phase 1 → `lib/core/format/`)
 

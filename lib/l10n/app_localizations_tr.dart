@@ -454,6 +454,85 @@ class AppLocalizationsTr extends AppLocalizations {
       'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.';
 
   @override
+  String get activeTripLiveBadge => 'CANLI YOLCULUK';
+
+  @override
+  String get activeTripEtaLabel => 'Levent\'e varış';
+
+  @override
+  String activeTripEtaValue(String duration, String distance) {
+    return '$duration $distance';
+  }
+
+  @override
+  String get activeTripOnTime => 'Zamanında';
+
+  @override
+  String activeTripEtaSemanticLabel(
+    String label,
+    String duration,
+    String distance,
+    String status,
+  ) {
+    return '$label, $duration, $distance, $status';
+  }
+
+  @override
+  String activeTripDriverSemanticLabel(
+    String name,
+    String rating,
+    String vehicle,
+    String plate,
+  ) {
+    return '$name, $rating puan, çevrimiçi. $vehicle, $plate.';
+  }
+
+  @override
+  String activeTripDriverMeta(String vehicle, String plate) {
+    return '$vehicle · $plate';
+  }
+
+  @override
+  String activeTripDriverName(String name, String rating) {
+    return '$name · $rating';
+  }
+
+  @override
+  String get activeTripCall => 'Sürücüyü ara';
+
+  @override
+  String get activeTripMessage => 'Sürücüye mesaj gönder';
+
+  @override
+  String get activeTripShare => 'Yolculuğu paylaş';
+
+  @override
+  String get activeTripSos => 'SOS';
+
+  @override
+  String activeTripLocationSharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Canlı konumun $count acil kişiyle paylaşılıyor',
+      one: 'Canlı konumun 1 acil kişiyle paylaşılıyor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get activeTripShareUnavailable =>
+      'Yolculuk paylaşma özelliği henüz aktif değil. Hiçbir şey paylaşılmadı.';
+
+  @override
+  String get activeTripCallUnavailable =>
+      'Arama özelliği henüz aktif değil. Hiçbir arama başlatılmadı.';
+
+  @override
+  String get activeTripSosUnavailable =>
+      'Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.';
+
+  @override
   String get chatOnline => 'Çevrimiçi';
 
   @override

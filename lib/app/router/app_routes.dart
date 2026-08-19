@@ -74,6 +74,13 @@ abstract final class AppRoutes {
   static const String gallery = 'gallery';
   static const String galleryPath = '/gallery';
 
+  /// A journey in progress. Registered only in debug builds, and linked from
+  /// nowhere: reaching it honestly needs a trip lifecycle that does not exist,
+  /// and it carries an SOS control and a live-location claim that no real
+  /// member should meet. See active_trip_screen.dart.
+  static const String activeTrip = 'activeTrip';
+  static const String activeTripPath = '/trip/active';
+
   /// The branch destinations, in the order the design's tab bar shows them.
   static const List<String> shellPaths = <String>[
     homePath,

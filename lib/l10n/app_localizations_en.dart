@@ -453,6 +453,85 @@ class AppLocalizationsEn extends AppLocalizations {
       'The route has not been published. Publishing will be added later.';
 
   @override
+  String get activeTripLiveBadge => 'LIVE TRIP';
+
+  @override
+  String get activeTripEtaLabel => 'Arriving in Levent';
+
+  @override
+  String activeTripEtaValue(String duration, String distance) {
+    return '$duration $distance';
+  }
+
+  @override
+  String get activeTripOnTime => 'On time';
+
+  @override
+  String activeTripEtaSemanticLabel(
+    String label,
+    String duration,
+    String distance,
+    String status,
+  ) {
+    return '$label, $duration, $distance, $status';
+  }
+
+  @override
+  String activeTripDriverSemanticLabel(
+    String name,
+    String rating,
+    String vehicle,
+    String plate,
+  ) {
+    return '$name, rated $rating, online. $vehicle, $plate.';
+  }
+
+  @override
+  String activeTripDriverMeta(String vehicle, String plate) {
+    return '$vehicle · $plate';
+  }
+
+  @override
+  String activeTripDriverName(String name, String rating) {
+    return '$name · $rating';
+  }
+
+  @override
+  String get activeTripCall => 'Call the driver';
+
+  @override
+  String get activeTripMessage => 'Message the driver';
+
+  @override
+  String get activeTripShare => 'Share trip';
+
+  @override
+  String get activeTripSos => 'SOS';
+
+  @override
+  String activeTripLocationSharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Your live location is shared with $count emergency contacts',
+      one: 'Your live location is shared with 1 emergency contact',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get activeTripShareUnavailable =>
+      'Trip sharing is not active yet. Nothing was shared.';
+
+  @override
+  String get activeTripCallUnavailable =>
+      'Calling is not active yet. No call was started.';
+
+  @override
+  String get activeTripSosUnavailable =>
+      'Emergency features are not active yet. Nobody was notified.';
+
+  @override
   String get chatOnline => 'Online';
 
   @override

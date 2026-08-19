@@ -507,6 +507,128 @@
     "description": "Yayınla düğmesine basıldığında gösterilen geçici bilgi. Hiçbir rota oluşturulmadığını açıkça söylemelidir; başarı ya da 'yayınlandı' izlenimi vermemelidir."
   },
 
+  "activeTripLiveBadge": "CANLI YOLCULUK",
+  "@activeTripLiveBadge": {
+    "description": "Harita üstündeki canlı yolculuk rozeti. Yalnızca görsel bir işarettir; arkasında gerçek bir konum takibi yoktur."
+  },
+  "activeTripEtaLabel": "Levent'e varış",
+  "@activeTripEtaLabel": {
+    "description": "Varış bilgisinin üst satırı. Varış noktası Türkçe yönelme ekiyle birlikte tek bir metin olarak tutulur; ek, sesli uyuma göre değiştiği için yer adı yer tutucu yapılmaz."
+  },
+  "activeTripEtaValue": "{duration} {distance}",
+  "@activeTripEtaValue": {
+    "description": "Kalan süre ve mesafe. İkisi de sabit örnek değerlerdir; hiçbir hesaplamadan gelmez.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripOnTime": "Zamanında",
+  "@activeTripOnTime": {
+    "description": "Yolculuğun gecikme durumu. Tasarımda yalnızca bu tek durum çizilmiştir."
+  },
+  "activeTripEtaSemanticLabel": "{label}, {duration}, {distance}, {status}",
+  "@activeTripEtaSemanticLabel": {
+    "description": "Varış bloğunun ekran okuyucu etiketi.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripDriverSemanticLabel": "{name}, {rating} puan, çevrimiçi. {vehicle}, {plate}.",
+  "@activeTripDriverSemanticLabel": {
+    "description": "Sürücü satırının ekran okuyucu etiketi. Bu ekranda çevrimiçi bilgisini yazan görünür bir metin olmadığı için, avatardaki nokta yerine bu etiket taşır. Çevrimiçi durumu kimlik doğrulamasından ayrı bir kavramdır.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "rating": {
+        "type": "String"
+      },
+      "vehicle": {
+        "type": "String"
+      },
+      "plate": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripDriverMeta": "{vehicle} · {plate}",
+  "@activeTripDriverMeta": {
+    "description": "Sürücü satırındaki araç ve plaka.",
+    "placeholders": {
+      "vehicle": {
+        "type": "String"
+      },
+      "plate": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripDriverName": "{name} · {rating}",
+  "@activeTripDriverName": {
+    "description": "Sürücü adı ve puanı, tasarımdaki gibi tek satırda.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "rating": {
+        "type": "String"
+      }
+    }
+  },
+  "activeTripCall": "Sürücüyü ara",
+  "@activeTripCall": {
+    "description": "Sürücüyü arama düğmesinin ekran okuyucu etiketi. Telefon araması özelliği yoktur."
+  },
+  "activeTripMessage": "Sürücüye mesaj gönder",
+  "@activeTripMessage": {
+    "description": "Sohbeti açan düğmenin ekran okuyucu etiketi."
+  },
+  "activeTripShare": "Yolculuğu paylaş",
+  "@activeTripShare": {
+    "description": "Yolculuğu paylaşma düğmesi. Paylaşım özelliği henüz yoktur."
+  },
+  "activeTripSos": "SOS",
+  "@activeTripSos": {
+    "description": "Acil durum düğmesi. Tasarımdaki kırmızı düğme; arkasında hiçbir acil durum akışı yoktur."
+  },
+  "activeTripLocationSharing": "{count, plural, =1{Canlı konumun 1 acil kişiyle paylaşılıyor} other{Canlı konumun {count} acil kişiyle paylaşılıyor}}",
+  "@activeTripLocationSharing": {
+    "description": "SUNUM METNİ — GERÇEK DEĞİL. Tasarımdaki alt bilgi satırı. Hiçbir konum paylaşılmıyor, hiçbir acil kişiye ulaşılmıyor, arka planda konum takibi yok. Bu yüzden ekran yalnızca hata ayıklama derlemesinde açılabilir ve bu metin yayına çıkan hiçbir ekranda kullanılamaz.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTripShareUnavailable": "Yolculuk paylaşma özelliği henüz aktif değil. Hiçbir şey paylaşılmadı.",
+  "@activeTripShareUnavailable": {
+    "description": "Yolculuğu paylaş düğmesine basıldığında gösterilen geçici bilgi. Hiçbir şeyin paylaşılmadığını açıkça söylemelidir."
+  },
+  "activeTripCallUnavailable": "Arama özelliği henüz aktif değil. Hiçbir arama başlatılmadı.",
+  "@activeTripCallUnavailable": {
+    "description": "Arama düğmesine basıldığında gösterilen geçici bilgi."
+  },
+  "activeTripSosUnavailable": "Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.",
+  "@activeTripSosUnavailable": {
+    "description": "SOS düğmesine basıldığında gösterilen geçici bilgi. Kimseye ulaşılmadığını açıkça söylemelidir. Acil durum numarası veya başka bir yönlendirme eklenmez; gerçek acil durum akışı ayrı bir aşamada tasarlanacaktır."
+  },
+
   "chatOnline": "Çevrimiçi",
   "@chatOnline": {
     "description": "Sohbet başlığındaki çevrimiçi bilgisi. Sunum verisidir; gerçek bir çevrimiçi durumu servisi yoktur. Kimlik doğrulamasından ayrı bir kavramdır."

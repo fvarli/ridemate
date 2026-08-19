@@ -818,6 +818,112 @@ abstract class AppLocalizations {
   /// **'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.'**
   String get createRoutePublishUnavailable;
 
+  /// Harita üstündeki canlı yolculuk rozeti. Yalnızca görsel bir işarettir; arkasında gerçek bir konum takibi yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'CANLI YOLCULUK'**
+  String get activeTripLiveBadge;
+
+  /// Varış bilgisinin üst satırı. Varış noktası Türkçe yönelme ekiyle birlikte tek bir metin olarak tutulur; ek, sesli uyuma göre değiştiği için yer adı yer tutucu yapılmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Levent\'e varış'**
+  String get activeTripEtaLabel;
+
+  /// Kalan süre ve mesafe. İkisi de sabit örnek değerlerdir; hiçbir hesaplamadan gelmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'{duration} {distance}'**
+  String activeTripEtaValue(String duration, String distance);
+
+  /// Yolculuğun gecikme durumu. Tasarımda yalnızca bu tek durum çizilmiştir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zamanında'**
+  String get activeTripOnTime;
+
+  /// Varış bloğunun ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{label}, {duration}, {distance}, {status}'**
+  String activeTripEtaSemanticLabel(
+    String label,
+    String duration,
+    String distance,
+    String status,
+  );
+
+  /// Sürücü satırının ekran okuyucu etiketi. Bu ekranda çevrimiçi bilgisini yazan görünür bir metin olmadığı için, avatardaki nokta yerine bu etiket taşır. Çevrimiçi durumu kimlik doğrulamasından ayrı bir kavramdır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name}, {rating} puan, çevrimiçi. {vehicle}, {plate}.'**
+  String activeTripDriverSemanticLabel(
+    String name,
+    String rating,
+    String vehicle,
+    String plate,
+  );
+
+  /// Sürücü satırındaki araç ve plaka.
+  ///
+  /// In tr, this message translates to:
+  /// **'{vehicle} · {plate}'**
+  String activeTripDriverMeta(String vehicle, String plate);
+
+  /// Sürücü adı ve puanı, tasarımdaki gibi tek satırda.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} · {rating}'**
+  String activeTripDriverName(String name, String rating);
+
+  /// Sürücüyü arama düğmesinin ekran okuyucu etiketi. Telefon araması özelliği yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürücüyü ara'**
+  String get activeTripCall;
+
+  /// Sohbeti açan düğmenin ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürücüye mesaj gönder'**
+  String get activeTripMessage;
+
+  /// Yolculuğu paylaşma düğmesi. Paylaşım özelliği henüz yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuğu paylaş'**
+  String get activeTripShare;
+
+  /// Acil durum düğmesi. Tasarımdaki kırmızı düğme; arkasında hiçbir acil durum akışı yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'SOS'**
+  String get activeTripSos;
+
+  /// SUNUM METNİ — GERÇEK DEĞİL. Tasarımdaki alt bilgi satırı. Hiçbir konum paylaşılmıyor, hiçbir acil kişiye ulaşılmıyor, arka planda konum takibi yok. Bu yüzden ekran yalnızca hata ayıklama derlemesinde açılabilir ve bu metin yayına çıkan hiçbir ekranda kullanılamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =1{Canlı konumun 1 acil kişiyle paylaşılıyor} other{Canlı konumun {count} acil kişiyle paylaşılıyor}}'**
+  String activeTripLocationSharing(int count);
+
+  /// Yolculuğu paylaş düğmesine basıldığında gösterilen geçici bilgi. Hiçbir şeyin paylaşılmadığını açıkça söylemelidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk paylaşma özelliği henüz aktif değil. Hiçbir şey paylaşılmadı.'**
+  String get activeTripShareUnavailable;
+
+  /// Arama düğmesine basıldığında gösterilen geçici bilgi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama özelliği henüz aktif değil. Hiçbir arama başlatılmadı.'**
+  String get activeTripCallUnavailable;
+
+  /// SOS düğmesine basıldığında gösterilen geçici bilgi. Kimseye ulaşılmadığını açıkça söylemelidir. Acil durum numarası veya başka bir yönlendirme eklenmez; gerçek acil durum akışı ayrı bir aşamada tasarlanacaktır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.'**
+  String get activeTripSosUnavailable;
+
   /// Sohbet başlığındaki çevrimiçi bilgisi. Sunum verisidir; gerçek bir çevrimiçi durumu servisi yoktur. Kimlik doğrulamasından ayrı bir kavramdır.
   ///
   /// In tr, this message translates to:

@@ -26,6 +26,7 @@ import '../../features/gallery/presentation/gallery_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import '../app_shell.dart';
 import '../startup_screen.dart';
@@ -174,6 +175,17 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
           name: AppRoutes.gallery,
           builder: (BuildContext context, GoRouterState state) =>
               const GalleryScreen(),
+        ),
+      // Debug only, and deliberately linked from nowhere. Active Trip needs a
+      // trip lifecycle this product does not have, so rather than fabricate one
+      // to unlock the screen it is kept out of the release route table
+      // altogether. See active_trip_screen.dart.
+      if (kDebugMode)
+        GoRoute(
+          path: AppRoutes.activeTripPath,
+          name: AppRoutes.activeTrip,
+          builder: (BuildContext context, GoRouterState state) =>
+              const ActiveTripScreen(),
         ),
     ],
   );

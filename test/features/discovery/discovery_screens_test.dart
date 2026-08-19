@@ -38,18 +38,6 @@ const Size kNarrowPhone = Size(360, 800);
 /// The reference device the design targets.
 const Size kStandardPhone = Size(393, 852);
 
-/// Re-scales text without discarding the ambient [MediaQueryData].
-Widget _atTextScale(double scale, Widget child) {
-  return Builder(
-    builder: (BuildContext context) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(scale)),
-      child: child,
-    ),
-  );
-}
-
 void main() {
   setUpAll(loadRideMateFonts);
 
@@ -63,11 +51,12 @@ void main() {
       double textScale = 1,
     }) async {
       await tester.pumpRmScreen(
-        _atTextScale(textScale, const SearchScreen()),
+        const SearchScreen(),
         brightness: brightness,
         textDirection: textDirection,
         locale: locale,
         surfaceSize: size,
+        textScaler: TextScaler.linear(textScale),
       );
       await tester.pump();
     }
@@ -252,11 +241,12 @@ void main() {
       double textScale = 1,
     }) async {
       await tester.pumpRmScreen(
-        _atTextScale(textScale, const MatchResultsScreen()),
+        const MatchResultsScreen(),
         brightness: brightness,
         textDirection: textDirection,
         locale: locale,
         surfaceSize: size,
+        textScaler: TextScaler.linear(textScale),
       );
       await tester.pump();
     }
@@ -393,11 +383,12 @@ void main() {
       double textScale = 1,
     }) async {
       await tester.pumpRmScreen(
-        _atTextScale(textScale, RouteDetailsScreen(routeId: routeId)),
+        RouteDetailsScreen(routeId: routeId),
         brightness: brightness,
         textDirection: textDirection,
         locale: locale,
         surfaceSize: size,
+        textScaler: TextScaler.linear(textScale),
       );
       await tester.pump();
     }

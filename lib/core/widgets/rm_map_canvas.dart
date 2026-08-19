@@ -12,10 +12,17 @@
 // location architecture is a later, separate decision, and nothing here should
 // be mistaken for its interface.
 //
-// The scene is described in the design's own 276x598 coordinate space and
-// scaled to whatever box the widget is given — the same contract an SVG
-// `viewBox` provides — so the illustration keeps its proportions on any
-// screen.
+// The scene is described in its own artboard coordinate space (276x598 for a
+// full screen, 220x84 for the chat location card) and scaled to whatever box
+// the widget is given — the same contract an SVG `viewBox` provides — so the
+// illustration keeps its proportions on any screen.
+//
+// [RmMapProjection] exposes that mapping so overlays can sit on top of the
+// artwork. It is a DRAWING transform and nothing more: artboard pixels in,
+// widget pixels out. It must never grow latitude/longitude semantics, a
+// camera, zoom, bearing, tiles or a vendor. If you find yourself wanting
+// `latLngToScreen` here, you want the real maps architecture, which is a
+// separate decision and does not start in this file.
 //
 // Colours come from the map tokens, so light and dark are a re-palette of the
 // same scene rather than two different scenes.
@@ -23,6 +30,7 @@
 
 import 'dart:ui' show PathMetric;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/widgets.dart';
 
 import '../theme/tokens/rm_colors.dart';
@@ -66,6 +74,7 @@ class RmMapScene {
     required this.route,
     this.routeWidth = 6,
     this.travelledFraction = 0,
+    this.designSize = kRmMapDesignSize,
   });
 
   final List<RmMapRoad> roads;
@@ -78,8 +87,86 @@ class RmMapScene {
 
   /// 0..1 of the route already covered, drawn in a muted tone.
   ///
-  /// Used by the live-trip treatment; 0 leaves the whole route highlighted.
+  /// A DISPLAYED figure, never a computed one. Nothing in this codebase
+  /// derives it from a position, an ETA or elapsed time, and it is never
+  /// animated — a progress bar creeping over a fixture would be a route-
+  /// progress calculation with extra steps.
   final double travelledFraction;
+
+  /// The artboard this scene's coordinates belong to.
+  ///
+  /// Full-screen maps use the default 276x598; the chat location card draws a
+  /// 220x84 artboard, and cover-scaling that to the phone artboard would crop
+  /// it into a meaningless fragment.
+  final Size designSize;
+
+  @override
+  bool operator ==(Object other) =>
+      other is RmMapScene &&
+      listEquals(other.roads, roads) &&
+      listEquals(other.buildings, buildings) &&
+      listEquals(other.route, route) &&
+      other.routeWidth == routeWidth &&
+      other.travelledFraction == travelledFraction &&
+      other.designSize == designSize;
+
+  @override
+  int get hashCode => Object.hash(
+    Object.hashAll(roads),
+    Object.hashAll(buildings),
+    Object.hashAll(route),
+    routeWidth,
+    travelledFraction,
+    designSize,
+  );
+}
+
+/// Maps a scene's artboard coordinates onto the box the canvas was given.
+///
+/// The canvas cover-fits — it crops rather than letterboxes, so the artwork
+/// always bleeds to the edges — and any widget layered over the map has to
+/// apply exactly the same transform or the overlays drift off the artwork.
+/// This is that transform, in one place.
+///
+/// STRICTLY A DRAWING TRANSFORM. No geography, no camera, no vendor. See the
+/// file header.
+@immutable
+class RmMapProjection {
+  const RmMapProjection._(this.scale, this._dx, this._dy);
+
+  /// The cover-fit projection of [designSize] onto [box].
+  factory RmMapProjection.cover({required Size box, required Size designSize}) {
+    final double x = box.width / designSize.width;
+    final double y = box.height / designSize.height;
+    final double scale = x > y ? x : y;
+    return RmMapProjection._(
+      scale,
+      (box.width - designSize.width * scale) / 2,
+      (box.height - designSize.height * scale) / 2,
+    );
+  }
+
+  /// The projection for [scene] inside [box].
+  factory RmMapProjection.of(RmMapScene scene, Size box) =>
+      RmMapProjection.cover(box: box, designSize: scene.designSize);
+
+  final double scale;
+  final double _dx;
+  final double _dy;
+
+  /// Where [design] lands inside the box.
+  Offset place(Offset design) =>
+      Offset(_dx + design.dx * scale, _dy + design.dy * scale);
+
+  @override
+  bool operator ==(Object other) =>
+      other is RmMapProjection &&
+      other.scale == scale &&
+      other._dx == _dx &&
+      other._dy == _dy;
+
+  @override
+  int get hashCode => Object.hash(scale, _dx, _dy);
 }
 
 /// Paints an [RmMapScene] using the palette's map tokens.
@@ -160,29 +247,23 @@ class _MapPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, Paint()..color = canvasColor);
 
-    // Scale the design artboard to fill the box, cropping rather than
-    // letterboxing so the illustration always bleeds to the edges.
-    final double scale = _coverScale(size);
-    final double dx = (size.width - kRmMapDesignSize.width * scale) / 2;
-    final double dy = (size.height - kRmMapDesignSize.height * scale) / 2;
+    // Scale the artboard to fill the box, cropping rather than letterboxing so
+    // the illustration always bleeds to the edges. Overlays use the same
+    // projection, which is why it is public.
+    final RmMapProjection projection = RmMapProjection.of(scene, size);
+    final Offset origin = projection.place(Offset.zero);
 
     canvas
       ..save()
       ..clipRect(Offset.zero & size)
-      ..translate(dx, dy)
-      ..scale(scale);
+      ..translate(origin.dx, origin.dy)
+      ..scale(projection.scale);
 
     _paintRoads(canvas);
     _paintBuildings(canvas);
     _paintRoute(canvas);
 
     canvas.restore();
-  }
-
-  double _coverScale(Size size) {
-    final double x = size.width / kRmMapDesignSize.width;
-    final double y = size.height / kRmMapDesignSize.height;
-    return x > y ? x : y;
   }
 
   void _paintRoads(Canvas canvas) {

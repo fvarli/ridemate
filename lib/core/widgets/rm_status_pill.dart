@@ -7,18 +7,19 @@
 //   * Home        the current location chip (tinted surface, brand label)
 //   * Active Trip the live-trip pill (ink fill, white label, pulsing dot)
 //
-// The pulsing variant reuses the source's `rm-pulse` keyframe. It is a purely
-// visual "this is live" cue and carries no trip or SOS semantics.
+// The pulsing variant delegates to [RmPulseDot], which the Active Trip footer
+// also uses on its own. It is a purely visual "this is live" cue and carries
+// no trip or SOS semantics, and it stills itself under reduced motion.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 
 import '../theme/tokens/rm_colors.dart';
-import '../theme/tokens/rm_motion.dart';
 import '../theme/tokens/rm_radius.dart';
 import '../theme/tokens/rm_sizing.dart';
 import '../theme/tokens/rm_spacing.dart';
 import '../theme/tokens/rm_typography.dart';
+import 'rm_pulse_dot.dart';
 
 /// Fill treatment of an [RmStatusPill].
 enum RmStatusPillTone {
@@ -83,7 +84,7 @@ class RmStatusPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            _StatusDot(color: dotColor ?? c.success, pulsing: pulsing),
+            RmPulseDot(color: dotColor ?? c.success, pulsing: pulsing),
             const SizedBox(width: RmSpacing.sm),
             Flexible(
               child: Text(
@@ -95,82 +96,6 @@ class RmStatusPill extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StatusDot extends StatefulWidget {
-  const _StatusDot({required this.color, required this.pulsing});
-
-  final Color color;
-  final bool pulsing;
-
-  static const double size = RmSpacing.md;
-
-  @override
-  State<_StatusDot> createState() => _StatusDotState();
-}
-
-class _StatusDotState extends State<_StatusDot>
-    with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.pulsing) _start();
-  }
-
-  @override
-  void didUpdateWidget(_StatusDot oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.pulsing && _controller == null) {
-      _start();
-    } else if (!widget.pulsing && _controller != null) {
-      _controller!.dispose();
-      _controller = null;
-    }
-  }
-
-  void _start() {
-    _controller = AnimationController(vsync: this, duration: RmMotion.pulse)
-      ..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Widget dot = Container(
-      width: _StatusDot.size,
-      height: _StatusDot.size,
-      decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
-    );
-
-    final AnimationController? controller = _controller;
-    if (controller == null) return dot;
-
-    // The source's rm-pulse: opacity and scale drop together, then recover.
-    final Animation<double> curved = CurvedAnimation(
-      parent: controller,
-      curve: RmMotion.ease,
-    );
-    return FadeTransition(
-      opacity: Tween<double>(
-        begin: 1,
-        end: RmMotion.pulseMinOpacity,
-      ).animate(curved),
-      child: ScaleTransition(
-        scale: Tween<double>(
-          begin: 1,
-          end: RmMotion.pulseMinScale,
-        ).animate(curved),
-        child: dot,
       ),
     );
   }

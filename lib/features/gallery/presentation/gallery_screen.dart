@@ -30,6 +30,8 @@ import '../../../core/widgets/rm_icon.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
 import '../../../core/widgets/rm_meters.dart';
+import '../../../core/widgets/rm_pulse_dot.dart';
+import '../../../core/widgets/rm_status_pill.dart';
 
 /// Browsable catalogue of every design-system primitive.
 class GalleryScreen extends ConsumerWidget {
@@ -81,6 +83,7 @@ class GalleryScreen extends ConsumerWidget {
           const _Section('Meters', child: _MeterSpecimen()),
           const _Section('List rows', child: _ListRowSpecimen()),
           const _Section('States', child: _StateSpecimen()),
+          const _Section('Live status', child: _LiveStatusSpecimen()),
           const _Section('Formatting', child: _FormatSpecimen()),
           const _Section('Icons', child: _IconSheet()),
           const SizedBox(height: RmSpacing.huge),
@@ -513,6 +516,49 @@ class _ListRowSpecimen extends StatelessWidget {
           tone: RmRowTone.success,
           trailing: const RmBadge(label: '4 / 5', numeric: true),
           onTap: () {},
+        ),
+      ],
+    );
+  }
+}
+
+/// The live-status family.
+///
+/// Both of these were built in Phase 1 for the Active Trip screen and had no
+/// consumer until Phase 5, so this specimen is the first place a reviewer can
+/// see them. The dots animate indefinitely and still themselves under reduced
+/// motion.
+class _LiveStatusSpecimen extends StatelessWidget {
+  const _LiveStatusSpecimen();
+
+  @override
+  Widget build(BuildContext context) {
+    final RmColors c = context.rmColors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const Wrap(
+          spacing: RmSpacing.sm,
+          runSpacing: RmSpacing.sm,
+          children: <Widget>[
+            RmStatusPill(label: 'Kadıköy'),
+            RmStatusPill(
+              label: 'CANLI YOLCULUK',
+              tone: RmStatusPillTone.ink,
+              pulsing: true,
+            ),
+          ],
+        ),
+        const SizedBox(height: RmSpacing.xl),
+        Row(
+          children: <Widget>[
+            RmPulseDot(color: c.success, pulsing: true),
+            const SizedBox(width: RmSpacing.sm),
+            RmPulseDot(color: c.primary, pulsing: true),
+            const SizedBox(width: RmSpacing.sm),
+            RmPulseDot(color: c.muted),
+          ],
         ),
       ],
     );

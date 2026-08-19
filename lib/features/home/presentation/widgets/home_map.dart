@@ -79,14 +79,13 @@ class HomeMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final Size box = constraints.biggest;
-        // Same cover-scale the canvas uses, so overlays land on the artwork.
-        final double scale = _coverScale(box);
-        final double dx = (box.width - kRmMapDesignSize.width * scale) / 2;
-        final double dy = (box.height - kRmMapDesignSize.height * scale) / 2;
-
-        Offset place(Offset design) =>
-            Offset(dx + design.dx * scale, dy + design.dy * scale);
+        // The same projection the canvas paints with, so overlays land on the
+        // artwork rather than drifting off it.
+        final RmMapProjection projection = RmMapProjection.of(
+          kHomeMapScene,
+          constraints.biggest,
+        );
+        final Offset Function(Offset) place = projection.place;
 
         return Stack(
           children: <Widget>[
@@ -123,12 +122,6 @@ class HomeMap extends StatelessWidget {
         );
       },
     );
-  }
-
-  static double _coverScale(Size size) {
-    final double x = size.width / kRmMapDesignSize.width;
-    final double y = size.height / kRmMapDesignSize.height;
-    return x > y ? x : y;
   }
 }
 

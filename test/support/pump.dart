@@ -69,9 +69,11 @@ extension RmPumpExtension on WidgetTester {
     Widget screen, {
     Brightness brightness = Brightness.light,
     TextDirection textDirection = TextDirection.ltr,
+    TextScaler textScaler = TextScaler.noScaling,
     Locale locale = kDefaultTestLocale,
     List<Override> overrides = const <Override>[],
     Size? surfaceSize,
+    bool disableAnimations = false,
   }) async {
     if (surfaceSize != null) {
       await binding.setSurfaceSize(surfaceSize);
@@ -87,7 +89,21 @@ extension RmPumpExtension on WidgetTester {
           locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Directionality(textDirection: textDirection, child: screen),
+          home: Directionality(
+            textDirection: textDirection,
+            child: Builder(
+              // Layered over the MaterialApp's own MediaQuery so the screen
+              // keeps its real size, insets and padding — a bare MediaQuery
+              // here would hand it a zero-sized viewport.
+              builder: (BuildContext context) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: textScaler,
+                  disableAnimations: disableAnimations,
+                ),
+                child: screen,
+              ),
+            ),
+          ),
         ),
       ),
     );

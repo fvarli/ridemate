@@ -231,7 +231,24 @@ class _RmSkeletonState extends State<RmSkeleton>
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: RmMotion.pulse,
-  )..repeat(reverse: true);
+  );
+  late final Animation<double> _opacity = Tween<double>(
+    begin: 1,
+    end: RmMotion.pulseMinOpacity,
+  ).animate(CurvedAnimation(parent: _controller, curve: RmMotion.ease));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Repeats indefinitely, so a member who has asked for reduced motion gets
+    // a still placeholder instead (WCAG 2.2.2).
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+      _controller.value = 0;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    }
+  }
 
   @override
   void dispose() {
@@ -247,10 +264,7 @@ class _RmSkeletonState extends State<RmSkeleton>
       child: FadeTransition(
         // Reuses the source's rm-pulse opacity range so loading feels like
         // part of the same system as the live-trip dot.
-        opacity: Tween<double>(
-          begin: 1,
-          end: RmMotion.pulseMinOpacity,
-        ).animate(CurvedAnimation(parent: _controller, curve: RmMotion.ease)),
+        opacity: _opacity,
         child: Container(
           width: widget.width,
           height: widget.height,

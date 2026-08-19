@@ -573,10 +573,13 @@ class _StateSpecimen extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        // The shipped Chat wording, not the comp's. The approved sentence
+        // tells the member to pay inside the app, and there is no payment
+        // feature — see D-chat-3.
         RmInlineMessage(
           message:
-              'Ödemeyi yalnızca uygulama içinden yapın. '
-              'Kişisel bilgi paylaşmayın.',
+              'Ödeme özelliği henüz aktif değil. '
+              'Kişisel veya finansal bilgilerinizi paylaşmayın.',
         ),
         SizedBox(height: RmSpacing.md),
         RmInlineMessage(

@@ -17,6 +17,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/create_route/presentation/create_route_screen.dart';
 import '../../features/discovery/presentation/match_results_screen.dart';
 import '../../features/discovery/presentation/route_details_screen.dart';
@@ -124,7 +125,11 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
             path: AppRoutes.messagesPath,
             name: AppRoutes.messages,
             title: 'Messages',
-            phase: 'Phase 5 — Chat',
+            // Chat itself shipped in Phase 5, reached from Route Details. What
+            // is missing is the inbox: the design has no conversation-list
+            // screen, and wiring this tab to the one fixture thread would fake
+            // one. Recorded in design-system.md §8.
+            phase: 'Conversation list — not designed yet',
           ),
           _placeholderBranch(
             path: AppRoutes.profilePath,
@@ -153,6 +158,14 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.createRoute,
         builder: (BuildContext context, GoRouterState state) =>
             const CreateRouteScreen(),
+      ),
+      // Above the shell: the comp draws no tab bar. Reached from Route Details
+      // in every build, and from Active Trip in debug ones.
+      GoRoute(
+        path: AppRoutes.chatPath,
+        name: AppRoutes.chat,
+        builder: (BuildContext context, GoRouterState state) =>
+            const ChatScreen(),
       ),
       // Developer tooling: never reachable in a release build.
       if (kDebugMode)

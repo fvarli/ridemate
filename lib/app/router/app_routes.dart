@@ -62,6 +62,12 @@ abstract final class AppRoutes {
   static const String createRoute = 'createRoute';
   static const String createRoutePath = '/route/create';
 
+  /// A conversation with one other member. Reached from Route Details, and
+  /// from Active Trip in debug builds. The design has no inbox, so there is no
+  /// conversation-list route.
+  static const String chat = 'chat';
+  static const String chatPath = '/chat';
+
   // ── Developer tooling ──────────────────────────────────────
 
   /// The design-system gallery. Registered only in debug builds.

@@ -16,8 +16,6 @@
 // request → server acknowledgement → pending → accepted/declined, and only
 // then may the UI claim anything was sent.
 //
-// Messaging is the same: Chat is Phase 5.
-//
 // Every figure on this screen is carried by the offer. Nothing is computed —
 // not the Trust Score, not the approval rate, not the cost share.
 // ─────────────────────────────────────────────────────────────
@@ -27,6 +25,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router/app_routes.dart';
 import '../../../core/format/rm_formatters.dart';
 import '../../../core/format/rm_text_conventions.dart';
 import '../../../core/icons/rm_icons.dart';
@@ -416,10 +415,9 @@ class _ActionDock extends StatelessWidget {
           semanticLabel: l10n.routeDetailsMessageSemanticLabel,
           variant: RmIconButtonVariant.surface,
           size: RmIconButtonSize.md,
-          onPressed: () => _notifyUnavailable(
-            context,
-            l10n.routeDetailsMessagingUnavailable,
-          ),
+          // Chat exists now. Opening it creates no request, match, booking or
+          // trip — it is a conversation surface, nothing more.
+          onPressed: () => context.pushNamed(AppRoutes.chat),
         ),
         Expanded(
           child: RmButton(

@@ -371,10 +371,6 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yolculuk isteği özelliği yakında eklenecek.';
 
   @override
-  String get routeDetailsMessagingUnavailable =>
-      'Mesajlaşma özelliği yakında eklenecek.';
-
-  @override
   String get routeDetailsNotFound => 'Bu rota artık görüntülenemiyor.';
 
   @override
@@ -456,6 +452,64 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get createRoutePublishUnavailable =>
       'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.';
+
+  @override
+  String get chatOnline => 'Çevrimiçi';
+
+  @override
+  String chatHeaderSemanticLabel(String name) {
+    return '$name, kimliği doğrulanmış, çevrimiçi';
+  }
+
+  @override
+  String get chatSafetyBanner =>
+      'Ödeme özelliği henüz aktif değil. Kişisel veya finansal bilgilerinizi paylaşmayın.';
+
+  @override
+  String get chatMessageIncoming =>
+      'Merhaba Elif! Yarın 08:25\'te Kadıköy İskele\'de olurum 👍';
+
+  @override
+  String get chatMessageOutgoing =>
+      'Harika, teşekkürler! Ben de orada olacağım.';
+
+  @override
+  String get chatMessageOutgoingClosing => 'Görüşürüz 🙌';
+
+  @override
+  String get chatLocationLabel => '📍 Buluşma noktası';
+
+  @override
+  String chatLocationSemanticLabel(String name, String label) {
+    return '$name konum paylaştı: $label';
+  }
+
+  @override
+  String chatBubbleSemanticLabel(String speaker, String text) {
+    return '$speaker: $text';
+  }
+
+  @override
+  String get chatSpeakerSelf => 'Sen';
+
+  @override
+  String get chatQuickReplyOnMyWay => 'Yoldayım';
+
+  @override
+  String get chatQuickReplyRunningLate => '5 dk geç';
+
+  @override
+  String get chatComposerHint => 'Mesaj yaz…';
+
+  @override
+  String get chatComposerLabel => 'Mesajını yaz';
+
+  @override
+  String get chatSend => 'Gönder';
+
+  @override
+  String get chatSendUnavailable =>
+      'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.';
 
   @override
   String get dateToday => 'Bugün';

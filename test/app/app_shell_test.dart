@@ -220,7 +220,7 @@ void main() {
 
       container.read(routerProvider).go(AppRoutes.messagesPath);
       await tester.pumpAndSettle();
-      expect(find.text('Phase 5 — Chat'), findsOneWidget);
+      expect(find.text('Conversation list — not designed yet'), findsOneWidget);
     });
   });
 

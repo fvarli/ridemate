@@ -370,9 +370,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routeDetailsRequestUnavailable => 'Trip requests are coming soon.';
 
   @override
-  String get routeDetailsMessagingUnavailable => 'Messaging is coming soon.';
-
-  @override
   String get routeDetailsNotFound => 'This route is no longer available.';
 
   @override
@@ -454,6 +451,63 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get createRoutePublishUnavailable =>
       'The route has not been published. Publishing will be added later.';
+
+  @override
+  String get chatOnline => 'Online';
+
+  @override
+  String chatHeaderSemanticLabel(String name) {
+    return '$name, identity verified, online';
+  }
+
+  @override
+  String get chatSafetyBanner =>
+      'Payments are not available yet. Do not share personal or financial information.';
+
+  @override
+  String get chatMessageIncoming =>
+      'Hi Elif! I\'ll be at Kadıköy İskele at 08:25 tomorrow 👍';
+
+  @override
+  String get chatMessageOutgoing => 'Great, thank you! I\'ll be there too.';
+
+  @override
+  String get chatMessageOutgoingClosing => 'See you 🙌';
+
+  @override
+  String get chatLocationLabel => '📍 Meeting point';
+
+  @override
+  String chatLocationSemanticLabel(String name, String label) {
+    return '$name shared a location: $label';
+  }
+
+  @override
+  String chatBubbleSemanticLabel(String speaker, String text) {
+    return '$speaker: $text';
+  }
+
+  @override
+  String get chatSpeakerSelf => 'You';
+
+  @override
+  String get chatQuickReplyOnMyWay => 'On my way';
+
+  @override
+  String get chatQuickReplyRunningLate => '5 min late';
+
+  @override
+  String get chatComposerHint => 'Write a message…';
+
+  @override
+  String get chatComposerLabel => 'Write your message';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatSendUnavailable =>
+      'Message was not sent. Messaging is not available yet.';
 
   @override
   String get dateToday => 'Today';

@@ -484,18 +484,16 @@ void main() {
       expect(button.loading, isFalse);
     });
 
-    testWidgets('messaging is honest about not existing yet', (
+    testWidgets('the message button opens the conversation', (
       WidgetTester tester,
     ) async {
+      // Chat shipped in Phase 5, so this no longer apologises for itself. The
+      // navigation is asserted in chat_flow_test.dart, which has a real router;
+      // here the point is only that the temporary message is gone.
       await pump(tester);
 
-      await tester.tap(find.bySemanticsLabel('Sürücüye mesaj gönder'));
-      await tester.pump();
-
-      expect(
-        find.text('Mesajlaşma özelliği yakında eklenecek.'),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel('Sürücüye mesaj gönder'), findsOneWidget);
+      expect(find.textContaining('yakında eklenecek'), findsNothing);
     });
 
     testWidgets('an unknown id shows a message rather than crashing', (

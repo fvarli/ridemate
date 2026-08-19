@@ -686,12 +686,6 @@ abstract class AppLocalizations {
   /// **'Yolculuk isteği özelliği yakında eklenecek.'**
   String get routeDetailsRequestUnavailable;
 
-  /// Mesajlaşma henüz uygulanmadığı için gösterilen geçici bilgi mesajı.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mesajlaşma özelliği yakında eklenecek.'**
-  String get routeDetailsMessagingUnavailable;
-
   /// Geçersiz bir rota kimliği açıldığında gösterilen savunma amaçlı mesaj.
   ///
   /// In tr, this message translates to:
@@ -823,6 +817,102 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.'**
   String get createRoutePublishUnavailable;
+
+  /// Sohbet başlığındaki çevrimiçi bilgisi. Sunum verisidir; gerçek bir çevrimiçi durumu servisi yoktur. Kimlik doğrulamasından ayrı bir kavramdır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimiçi'**
+  String get chatOnline;
+
+  /// Sohbet başlığının ekran okuyucu etiketi. Doğrulama ve çevrimiçi durumu ayrı ayrı ve birer kez okunur; ikisi farklı kavramlardır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name}, kimliği doğrulanmış, çevrimiçi'**
+  String chatHeaderSemanticLabel(String name);
+
+  /// Sohbetin üstündeki güvenlik uyarısı. Tasarımdaki metin uygulama içi ödeme yapılmasını söylüyor; RideMate'te henüz ödeme özelliği olmadığı ve bu ekran yayına çıktığı için, uyarının güvenlik amacı korunarak olmayan bir özelliğe işaret etmeyen geçici metin kullanılır. Ödeme gerçekten geldiğinde tasarımdaki metin geri alınacaktır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödeme özelliği henüz aktif değil. Kişisel veya finansal bilgilerinizi paylaşmayın.'**
+  String get chatSafetyBanner;
+
+  /// Örnek konuşmanın ilk mesajı, sürücüden. Sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Merhaba Elif! Yarın 08:25\'te Kadıköy İskele\'de olurum 👍'**
+  String get chatMessageIncoming;
+
+  /// Örnek konuşmanın ikinci mesajı, üyeden.
+  ///
+  /// In tr, this message translates to:
+  /// **'Harika, teşekkürler! Ben de orada olacağım.'**
+  String get chatMessageOutgoing;
+
+  /// Örnek konuşmanın son mesajı, üyeden.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görüşürüz 🙌'**
+  String get chatMessageOutgoingClosing;
+
+  /// Konum paylaşımı kartının etiketi. Emoji tasarımdan gelir ve metnin anlamı emoji olmadan da tamdır.
+  ///
+  /// In tr, this message translates to:
+  /// **'📍 Buluşma noktası'**
+  String get chatLocationLabel;
+
+  /// Konum kartının ekran okuyucu etiketi. Kart bir yere gitmez; düğme değildir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} konum paylaştı: {label}'**
+  String chatLocationSemanticLabel(String name, String label);
+
+  /// Mesaj balonunun ekran okuyucu etiketi. Kimin konuştuğu yalnızca hizalama ve renkle belli olduğu için etikete yazılır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{speaker}: {text}'**
+  String chatBubbleSemanticLabel(String speaker, String text);
+
+  /// Ekran okuyucuda üyenin kendi mesajlarını tanımlayan sözcük.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sen'**
+  String get chatSpeakerSelf;
+
+  /// Hazır yanıt. Dokunmak metni yazma alanına ekler; mesaj göndermez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoldayım'**
+  String get chatQuickReplyOnMyWay;
+
+  /// Hazır yanıt. Dokunmak metni yazma alanına ekler; mesaj göndermez.
+  ///
+  /// In tr, this message translates to:
+  /// **'5 dk geç'**
+  String get chatQuickReplyRunningLate;
+
+  /// Yazma alanının ipucu metni.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj yaz…'**
+  String get chatComposerHint;
+
+  /// Yazma alanının kalıcı ekran okuyucu etiketi. İpucu metni odaklanınca kaybolduğu için ayrı bir etiket gerekir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajını yaz'**
+  String get chatComposerLabel;
+
+  /// Gönder düğmesinin ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get chatSend;
+
+  /// Gönder düğmesine basıldığında gösterilen geçici bilgi. Mesajın gönderilmediğini açıkça söylemelidir; yazılan metin alanda kalır ve konuşmaya hiçbir şey eklenmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.'**
+  String get chatSendUnavailable;
 
   /// Göreli tarih: bugün.
   ///

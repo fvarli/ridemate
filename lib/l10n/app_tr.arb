@@ -394,8 +394,6 @@
   "@routeDetailsRequestSeat": {"description": "Yolculuk isteği gönderme eylemi."},
   "routeDetailsRequestUnavailable": "Yolculuk isteği özelliği yakında eklenecek.",
   "@routeDetailsRequestUnavailable": {"description": "İstek gönderme henüz uygulanmadığı için gösterilen geçici bilgi mesajı. Hiçbir istek gönderilmez."},
-  "routeDetailsMessagingUnavailable": "Mesajlaşma özelliği yakında eklenecek.",
-  "@routeDetailsMessagingUnavailable": {"description": "Mesajlaşma henüz uygulanmadığı için gösterilen geçici bilgi mesajı."},
   "routeDetailsNotFound": "Bu rota artık görüntülenemiyor.",
   "@routeDetailsNotFound": {"description": "Geçersiz bir rota kimliği açıldığında gösterilen savunma amaçlı mesaj."},
 
@@ -507,6 +505,92 @@
   "createRoutePublishUnavailable": "Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.",
   "@createRoutePublishUnavailable": {
     "description": "Yayınla düğmesine basıldığında gösterilen geçici bilgi. Hiçbir rota oluşturulmadığını açıkça söylemelidir; başarı ya da 'yayınlandı' izlenimi vermemelidir."
+  },
+
+  "chatOnline": "Çevrimiçi",
+  "@chatOnline": {
+    "description": "Sohbet başlığındaki çevrimiçi bilgisi. Sunum verisidir; gerçek bir çevrimiçi durumu servisi yoktur. Kimlik doğrulamasından ayrı bir kavramdır."
+  },
+  "chatHeaderSemanticLabel": "{name}, kimliği doğrulanmış, çevrimiçi",
+  "@chatHeaderSemanticLabel": {
+    "description": "Sohbet başlığının ekran okuyucu etiketi. Doğrulama ve çevrimiçi durumu ayrı ayrı ve birer kez okunur; ikisi farklı kavramlardır.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSafetyBanner": "Ödeme özelliği henüz aktif değil. Kişisel veya finansal bilgilerinizi paylaşmayın.",
+  "@chatSafetyBanner": {
+    "description": "Sohbetin üstündeki güvenlik uyarısı. Tasarımdaki metin uygulama içi ödeme yapılmasını söylüyor; RideMate'te henüz ödeme özelliği olmadığı ve bu ekran yayına çıktığı için, uyarının güvenlik amacı korunarak olmayan bir özelliğe işaret etmeyen geçici metin kullanılır. Ödeme gerçekten geldiğinde tasarımdaki metin geri alınacaktır."
+  },
+  "chatMessageIncoming": "Merhaba Elif! Yarın 08:25'te Kadıköy İskele'de olurum 👍",
+  "@chatMessageIncoming": {
+    "description": "Örnek konuşmanın ilk mesajı, sürücüden. Sunum verisidir."
+  },
+  "chatMessageOutgoing": "Harika, teşekkürler! Ben de orada olacağım.",
+  "@chatMessageOutgoing": {
+    "description": "Örnek konuşmanın ikinci mesajı, üyeden."
+  },
+  "chatMessageOutgoingClosing": "Görüşürüz 🙌",
+  "@chatMessageOutgoingClosing": {
+    "description": "Örnek konuşmanın son mesajı, üyeden."
+  },
+  "chatLocationLabel": "📍 Buluşma noktası",
+  "@chatLocationLabel": {
+    "description": "Konum paylaşımı kartının etiketi. Emoji tasarımdan gelir ve metnin anlamı emoji olmadan da tamdır."
+  },
+  "chatLocationSemanticLabel": "{name} konum paylaştı: {label}",
+  "@chatLocationSemanticLabel": {
+    "description": "Konum kartının ekran okuyucu etiketi. Kart bir yere gitmez; düğme değildir.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "chatBubbleSemanticLabel": "{speaker}: {text}",
+  "@chatBubbleSemanticLabel": {
+    "description": "Mesaj balonunun ekran okuyucu etiketi. Kimin konuştuğu yalnızca hizalama ve renkle belli olduğu için etikete yazılır.",
+    "placeholders": {
+      "speaker": {
+        "type": "String"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSpeakerSelf": "Sen",
+  "@chatSpeakerSelf": {
+    "description": "Ekran okuyucuda üyenin kendi mesajlarını tanımlayan sözcük."
+  },
+  "chatQuickReplyOnMyWay": "Yoldayım",
+  "@chatQuickReplyOnMyWay": {
+    "description": "Hazır yanıt. Dokunmak metni yazma alanına ekler; mesaj göndermez."
+  },
+  "chatQuickReplyRunningLate": "5 dk geç",
+  "@chatQuickReplyRunningLate": {
+    "description": "Hazır yanıt. Dokunmak metni yazma alanına ekler; mesaj göndermez."
+  },
+  "chatComposerHint": "Mesaj yaz…",
+  "@chatComposerHint": {
+    "description": "Yazma alanının ipucu metni."
+  },
+  "chatComposerLabel": "Mesajını yaz",
+  "@chatComposerLabel": {
+    "description": "Yazma alanının kalıcı ekran okuyucu etiketi. İpucu metni odaklanınca kaybolduğu için ayrı bir etiket gerekir."
+  },
+  "chatSend": "Gönder",
+  "@chatSend": {
+    "description": "Gönder düğmesinin ekran okuyucu etiketi."
+  },
+  "chatSendUnavailable": "Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.",
+  "@chatSendUnavailable": {
+    "description": "Gönder düğmesine basıldığında gösterilen geçici bilgi. Mesajın gönderilmediğini açıkça söylemelidir; yazılan metin alanda kalır ve konuşmaya hiçbir şey eklenmez."
   },
 
   "dateToday": "Bugün",

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
+import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
@@ -14,6 +15,7 @@ import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
 import 'package:ridemate/features/verification/presentation/verification_screen.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
@@ -38,6 +40,7 @@ void main() {
     Widget screen, {
     required Brightness brightness,
     TextDirection textDirection = TextDirection.ltr,
+    bool disableAnimations = false,
   }) async {
     // A representative modern phone.
     await tester.binding.setSurfaceSize(const Size(393, 852));
@@ -57,7 +60,17 @@ void main() {
           locale: const Locale('tr'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Directionality(textDirection: textDirection, child: screen),
+          home: Directionality(
+            textDirection: textDirection,
+            child: Builder(
+              builder: (BuildContext context) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(disableAnimations: disableAnimations),
+                child: screen,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -175,6 +188,61 @@ void main() {
         );
       });
     }
+  });
+
+  // Phase 5's two screens pump with animations disabled. Three of their
+  // animations repeat forever, so a baseline taken mid-cycle would be pinning
+  // an arbitrary frame; pinning them at rest also makes each image a test of
+  // the reduced-motion path.
+  group('Active trip', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(
+          tester,
+          const ActiveTripScreen(),
+          brightness: brightness,
+          disableAnimations: true,
+        );
+        await expectLater(
+          find.byType(ActiveTripScreen),
+          matchesGoldenFile('goldens/active_trip_${brightness.name}.png'),
+        );
+      });
+    }
+  });
+
+  group('Chat', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(
+          tester,
+          const ChatScreen(),
+          brightness: brightness,
+          disableAnimations: true,
+        );
+        await expectLater(
+          find.byType(ChatScreen),
+          matchesGoldenFile('goldens/chat_${brightness.name}.png'),
+        );
+      });
+    }
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      // The densest directional screen of the phase: the bubbles' tight corner
+      // follows the reading axis, the header mirrors, and the send glyph is one
+      // of only three icons that flip.
+      await pump(
+        tester,
+        const ChatScreen(),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+        disableAnimations: true,
+      );
+      await expectLater(
+        find.byType(ChatScreen),
+        matchesGoldenFile('goldens/chat_rtl.png'),
+      );
+    });
   });
 
   group('Create route', () {

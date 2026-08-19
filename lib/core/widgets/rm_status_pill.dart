@@ -62,7 +62,14 @@ class RmStatusPill extends StatelessWidget {
         c.primaryText,
         c.primarySoftBorder,
       ),
-      RmStatusPillTone.ink => (c.ink, c.onInk, null),
+      // The dark comp does NOT invert this to a white pill. It draws a
+      // surface-coloured one with a hairline and a light label — inverting
+      // would put a bright slab over a near-black map. See "ACTIVE TRIP ·
+      // DARK" in the source.
+      RmStatusPillTone.ink =>
+        c.brightness == Brightness.dark
+            ? (c.surface, c.ink, c.border)
+            : (c.ink, c.onInk, null),
     };
 
     return Semantics(

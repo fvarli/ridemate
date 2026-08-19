@@ -42,18 +42,31 @@ void main() {
       expect(find.bySemanticsLabel('Kadıköy'), findsOneWidget);
     });
 
-    testWidgets('the ink tone uses the inverted foreground', (
+    testWidgets('the ink tone inverts its label in light', (
       WidgetTester tester,
     ) async {
-      // onInk inverts with the theme, so an ink pill stays readable in dark.
+      await tester.pumpRm(
+        const RmStatusPill(label: 'CANLI', tone: RmStatusPillTone.ink),
+      );
+      expect(
+        tester.widget<Text>(find.text('CANLI')).style!.color,
+        RmColors.light.onInk,
+      );
+    });
+
+    testWidgets('the ink tone follows the dark comp rather than inverting', (
+      WidgetTester tester,
+    ) async {
+      // The source does NOT turn this into a white slab over a near-black map.
+      // Its dark comp draws a surface-coloured pill with a light label.
       await tester.pumpRm(
         const RmStatusPill(label: 'CANLI', tone: RmStatusPillTone.ink),
         brightness: Brightness.dark,
       );
-
-      final Text text = tester.widget(find.text('CANLI'));
-      expect(text.style!.color, RmColors.dark.onInk);
-      expect(text.style!.color, isNot(RmColors.light.onInk));
+      expect(
+        tester.widget<Text>(find.text('CANLI')).style!.color,
+        RmColors.dark.ink,
+      );
     });
 
     testWidgets('the pulsing dot animates and is disposed cleanly', (

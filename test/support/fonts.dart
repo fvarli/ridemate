@@ -57,7 +57,35 @@ Future<void> loadRideMateFonts() async {
   }
 
   await _loadMaterialIcons();
+  await _loadEmojiFont();
   _loaded = true;
+}
+
+/// Loads a colour emoji font, if the host has one.
+///
+/// The approved chat copy contains emoji, which are in neither bundled family —
+/// on a device they hit the platform emoji font, and without an equivalent here
+/// the goldens would bake tofu into the baseline instead.
+///
+/// Best-effort by design: the golden suite is already declared host-dependent
+/// and Linux-generated (see tool/goldens.sh), and no emoji package is added for
+/// three glyphs. If no font is found the tests still run.
+Future<void> _loadEmojiFont() async {
+  const List<String> candidates = <String>[
+    '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf',
+    '/usr/share/fonts/noto/NotoColorEmoji.ttf',
+    '/System/Library/Fonts/Apple Color Emoji.ttc',
+  ];
+  for (final String path in candidates) {
+    final File file = File(path);
+    if (!file.existsSync()) continue;
+    final FontLoader loader = FontLoader('Noto Color Emoji')
+      ..addFont(
+        Future<ByteData>.value(ByteData.sublistView(file.readAsBytesSync())),
+      );
+    await loader.load();
+    return;
+  }
 }
 
 /// Loads Flutter's MaterialIcons from the SDK cache.

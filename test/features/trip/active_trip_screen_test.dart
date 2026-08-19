@@ -60,7 +60,9 @@ void main() {
       expect(find.text("Levent'e varış"), findsOneWidget);
       expect(find.text('Zamanında'), findsOneWidget);
       expect(find.text('Selin K. · 4,9'), findsOneWidget);
-      expect(find.text('VW Passat · 34 ABC 128'), findsOneWidget);
+      // The plate's own spaces are non-breaking, so a wrap falls at the
+      // separator rather than splitting "34 ABC 128" across two lines.
+      expect(find.text('VW Passat · 34\u00A0ABC\u00A0128'), findsOneWidget);
       expect(find.text('Yolculuğu paylaş'), findsOneWidget);
       expect(find.text('SOS'), findsOneWidget);
       expect(

@@ -238,11 +238,13 @@ class _DriverBar extends StatelessWidget {
                         ),
                         const SizedBox(height: RmSpacing.xxs),
                         // Two lines, never truncated: the plate is an identity
-                        // and safety datum, not decoration.
+                        // and safety datum, not decoration. Its own spaces are
+                        // non-breaking so a wrap falls at the separator rather
+                        // than splitting "34 ABC 128" across lines.
                         Text(
                           l10n.activeTripDriverMeta(
                             trip.vehicleName,
-                            trip.plate,
+                            trip.plate.replaceAll(' ', '\u00A0'),
                           ),
                           style: RmTypography.captionSm.copyWith(
                             color: c.muted,
@@ -282,9 +284,16 @@ class _Actions extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onSos;
 
-  /// Below this the two actions cannot sit side by side without squeezing the
-  /// share label into the SOS button.
-  static const double _sideBySideMin = 300;
+  /// The width at which the designed side-by-side row actually fits.
+  ///
+  /// DEVIATION D-trip-3: on a phone it does not. "Yolculuğu paylaş" needs 138dp
+  /// of label at the scaled type size, plus its icon and padding, beside a
+  /// fixed 148dp SOS — about 214dp against the 185dp a 393dp screen leaves. The
+  /// comp is marginal at its own artboard for the same reason the Search
+  /// endpoints were (D-search-2), and neither label may be truncated: one is a
+  /// safety control and the other would read as "Yolculuğu ...". So the two
+  /// stack on phones and only regain the designed row on a wider surface.
+  static const double _sideBySideMin = 420;
 
   @override
   Widget build(BuildContext context) {

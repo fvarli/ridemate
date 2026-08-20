@@ -15,6 +15,9 @@ import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:ridemate/features/profile/presentation/profile_screen.dart';
+import 'package:ridemate/features/reviews/presentation/reviews_screen.dart';
+import 'package:ridemate/features/safety/presentation/safety_screen.dart';
 import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
 import 'package:ridemate/features/verification/presentation/verification_screen.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
@@ -25,7 +28,8 @@ import '../support/fonts.dart';
 /// Golden coverage for the product screens.
 ///
 /// Each screen is captured in light and dark, plus an RTL baseline for the
-/// densest screen of each phase — Home for Phase 2, Match Results for Phase 3.
+/// densest screen of each phase — Home for Phase 2, Match Results for Phase 3,
+/// and both Profile and Safety for Phase 6.
 /// Dark is covered for every screen deliberately: dark-mode drift is otherwise
 /// invisible until someone opens the app at night.
 ///
@@ -241,6 +245,83 @@ void main() {
       await expectLater(
         find.byType(ChatScreen),
         matchesGoldenFile('goldens/chat_rtl.png'),
+      );
+    });
+  });
+
+  group('Profile', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(tester, const ProfileScreen(), brightness: brightness);
+        await expectLater(
+          find.byType(ProfileScreen),
+          matchesGoldenFile('goldens/profile_${brightness.name}.png'),
+        );
+      });
+    }
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      // The densest screen of the phase, and the only one anywhere with a
+      // negative-margin overlap: the trust card rides up over the header, and
+      // the breakdown's measured columns have to mirror with it.
+      await pump(
+        tester,
+        const ProfileScreen(),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+      );
+      await expectLater(
+        find.byType(ProfileScreen),
+        matchesGoldenFile('goldens/profile_rtl.png'),
+      );
+    });
+  });
+
+  group('Reviews', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(tester, const ReviewsScreen(), brightness: brightness);
+        await expectLater(
+          find.byType(ReviewsScreen),
+          matchesGoldenFile('goldens/reviews_${brightness.name}.png'),
+        );
+      });
+    }
+  });
+
+  // The SOS halo repeats forever, so these capture with animations disabled:
+  // a baseline taken mid-cycle would pin an arbitrary frame, and pinning it
+  // at rest also makes each image a test of the reduced-motion path.
+  group('Safety center', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(
+          tester,
+          const SafetyScreen(),
+          brightness: brightness,
+          disableAnimations: true,
+        );
+        await expectLater(
+          find.byType(SafetyScreen),
+          matchesGoldenFile('goldens/safety_${brightness.name}.png'),
+        );
+      });
+    }
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      // Three chevron rows and two tinted tiles: the classic mirroring bug.
+      // Its SOS card is feature-local, so it never reaches the gallery's own
+      // review surface either.
+      await pump(
+        tester,
+        const SafetyScreen(),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+        disableAnimations: true,
+      );
+      await expectLater(
+        find.byType(SafetyScreen),
+        matchesGoldenFile('goldens/safety_rtl.png'),
       );
     });
   });

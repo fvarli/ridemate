@@ -363,7 +363,7 @@
   "@routeDetailsStatSharedDistance": {"description": "İstatistik başlığı: paylaşılan toplam mesafe."},
   "routeDetailsMemberSince": "{year}'ten beri üye · {area}",
   "@routeDetailsMemberSince": {
-    "description": "Üyelik yılı ve semt. Mock sunum verisidir.",
+    "description": "Üyelik yılı ve semt. Mock sunum verisidir. UYARI: ekteki 'ten yalnızca mevcut 2023/2024 sabit değerleri için doğrudur; 2019 (2019'dan), 2020 ve 2021 ('den) yanlış çıkar. Doğrusu sayıyı okunuşuna çevirip ünlü uyumu uygulamayı gerektirir; iki durumluk bir if bu hatayı çözmez, saklar. Ertelenmiş: design-system.md §8.",
     "placeholders": {
       "year": {"type": "String", "example": "2023"},
       "area": {"type": "String", "example": "Kadıköy"}

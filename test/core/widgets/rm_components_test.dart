@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/a11y/rm_a11y.dart';
 import 'package:ridemate/core/icons/rm_icons.dart';
@@ -328,6 +329,30 @@ void main() {
       await tester.tap(find.byType(RmCard));
       expect(taps, 1);
     });
+
+    testWidgets('a label replaces its children whether or not it is tappable', (
+      WidgetTester tester,
+    ) async {
+      // The untapped branch used to label the node without excluding its
+      // children, so the two merged and every labelled non-tappable card
+      // announced its own contents a second time.
+      for (final VoidCallback? onTap in <VoidCallback?>[null, () {}]) {
+        await tester.pumpRm(
+          RmCard(
+            onTap: onTap,
+            semanticLabel: 'Tek cümle',
+            child: const Text('Görsel metin'),
+          ),
+        );
+
+        final SemanticsNode node = tester.getSemantics(find.byType(RmCard));
+        expect(
+          node.label,
+          'Tek cümle',
+          reason: 'onTap == null ? ${onTap == null}',
+        );
+      }
+    });
   });
 
   group('RmListRow', () {
@@ -366,6 +391,52 @@ void main() {
       expect(
         find.bySemanticsLabel('Güvenilir kişiler. 2 kişi eklendi'),
         findsOneWidget,
+      );
+    });
+
+    testWidgets('drops a trailing badge from the default announcement', (
+      WidgetTester tester,
+    ) async {
+      // Guards the reason semanticLabel exists. RmBadge emits no semantics, so
+      // a row that carries meaning in its trailing widget announces nothing
+      // about it unless the caller says so.
+      await tester.pumpRm(
+        const RmListRow(
+          title: 'Doğrulama rozetleri',
+          trailing: RmBadge(label: '4 / 5', tone: RmBadgeTone.success),
+        ),
+      );
+
+      expect(find.text('4 / 5'), findsOneWidget, reason: 'drawn');
+      expect(
+        find.bySemanticsLabel(RegExp('4')),
+        findsNothing,
+        reason: 'but not announced',
+      );
+    });
+
+    testWidgets('announces the override instead when one is given', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpRm(
+        const RmListRow(
+          title: 'Doğrulama rozetleri',
+          trailing: RmBadge(label: '4 / 5', tone: RmBadgeTone.success),
+          semanticLabel: 'Doğrulama rozetleri: 5 adımdan 4 tanesi tamamlandı',
+        ),
+      );
+
+      expect(
+        find.bySemanticsLabel(
+          'Doğrulama rozetleri: 5 adımdan 4 tanesi tamamlandı',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel('Doğrulama rozetleri'),
+        findsNothing,
+        reason:
+            'the override replaces the composed label, it does not add to it',
       );
     });
   });

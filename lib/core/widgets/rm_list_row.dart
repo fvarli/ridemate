@@ -39,6 +39,7 @@ class RmListRow extends StatelessWidget {
     this.tintedIcon = true,
     this.trailing,
     this.onTap,
+    this.semanticLabel,
   });
 
   final String title;
@@ -57,6 +58,15 @@ class RmListRow extends StatelessWidget {
   final Widget? trailing;
 
   final VoidCallback? onTap;
+
+  /// Overrides the announced label.
+  ///
+  /// The default is composed from [title] and [subtitle] alone, so anything a
+  /// row carries in [trailing] is dropped from the accessibility tree —
+  /// RmBadge, the usual occupant, emits no semantics of its own. A row whose
+  /// trailing widget carries meaning (Profile's `4 / 5` verification count)
+  /// must therefore spell the whole announcement out here.
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +97,8 @@ class RmListRow extends StatelessWidget {
         horizontal: RmSpacing.lg,
         vertical: RmSpacing.md,
       ),
-      semanticLabel: subtitle == null ? title : '$title. $subtitle',
+      semanticLabel:
+          semanticLabel ?? (subtitle == null ? title : '$title. $subtitle'),
       child: Row(
         children: <Widget>[
           if (leading != null) ...<Widget>[

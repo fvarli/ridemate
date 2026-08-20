@@ -113,6 +113,9 @@ class RmCard extends StatelessWidget {
       return Semantics(
         label: semanticLabel,
         container: semanticLabel != null,
+        // Same reason as the tappable branch below: without this the children
+        // merge into the labelled node and a row reads its own title twice.
+        excludeSemantics: semanticLabel != null,
         child: Container(
           decoration: decoration,
           padding: padding,

@@ -16,6 +16,7 @@ import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/gallery/presentation/gallery_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/presentation/profile_screen.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
 import '../support/fakes.dart';
@@ -108,7 +109,7 @@ void main() {
 
       await tester.tap(_navTab('Profile'));
       await tester.pumpAndSettle();
-      expect(find.text('Phase 6 — Profile / Trust'), findsOneWidget);
+      expect(find.byType(ProfileScreen), findsOneWidget);
     });
 
     testWidgets('branch state is preserved across tab switches', (
@@ -131,13 +132,17 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Home and Search are real screens now; Messages and Profile are still
-      // placeholders.
+      // Home, Search and Profile are real screens now; only Messages is
+      // still a placeholder, because the design has no conversation list.
       expect(
         find.byType(PlaceholderScreen, skipOffstage: false),
-        findsNWidgets(2),
+        findsOneWidget,
       );
-      for (final Type screen in <Type>[HomeScreen, SearchScreen]) {
+      for (final Type screen in <Type>[
+        HomeScreen,
+        SearchScreen,
+        ProfileScreen,
+      ]) {
         expect(
           find.byType(screen, skipOffstage: false),
           findsOneWidget,

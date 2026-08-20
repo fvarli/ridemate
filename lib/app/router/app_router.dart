@@ -26,6 +26,7 @@ import '../../features/gallery/presentation/gallery_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
@@ -133,11 +134,15 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
             // one. Recorded in design-system.md §8.
             phase: 'Conversation list — not designed yet',
           ),
-          _placeholderBranch(
-            path: AppRoutes.profilePath,
-            name: AppRoutes.profile,
-            title: 'Profile',
-            phase: 'Phase 6 — Profile / Trust',
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.profilePath,
+                name: AppRoutes.profile,
+                builder: (BuildContext context, GoRouterState state) =>
+                    const ProfileScreen(),
+              ),
+            ],
           ),
         ],
       ),

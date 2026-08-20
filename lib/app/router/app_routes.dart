@@ -62,6 +62,11 @@ abstract final class AppRoutes {
   static const String createRoute = 'createRoute';
   static const String createRoutePath = '/route/create';
 
+  /// A member's reputation in full, reached from Profile. Above the shell:
+  /// the comp draws a back control and no tab bar.
+  static const String reviews = 'reviews';
+  static const String reviewsPath = '/reviews';
+
   /// A conversation with one other member. Reached from Route Details, and
   /// from Active Trip in debug builds. The design has no inbox, so there is no
   /// conversation-list route.

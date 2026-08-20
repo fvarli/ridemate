@@ -26,6 +26,7 @@ import '../../features/gallery/presentation/gallery_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import '../app_shell.dart';
@@ -159,6 +160,13 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.createRoute,
         builder: (BuildContext context, GoRouterState state) =>
             const CreateRouteScreen(),
+      ),
+      // Above the shell: the comp draws a back control and no tab bar.
+      GoRoute(
+        path: AppRoutes.reviewsPath,
+        name: AppRoutes.reviews,
+        builder: (BuildContext context, GoRouterState state) =>
+            const ReviewsScreen(),
       ),
       // Above the shell: the comp draws no tab bar. Reached from Route Details
       // in every build, and from Active Trip in debug ones.

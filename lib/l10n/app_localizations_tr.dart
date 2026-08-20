@@ -591,6 +591,132 @@ class AppLocalizationsTr extends AppLocalizations {
       'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.';
 
   @override
+  String get profileMemberBadge => 'Doğrulanmış üye · 2024\'ten beri';
+
+  @override
+  String get profileTrustScoreTitle => 'Güven Puanı';
+
+  @override
+  String get profileTrustScoreOutOf => '/ 100';
+
+  @override
+  String profileTrustTier(String percentile) {
+    return 'Üst $percentile · Güvenilir';
+  }
+
+  @override
+  String get profileTrustNextStep => '100\'e ulaşmak için 1 yolculuk daha';
+
+  @override
+  String get profileTrustFactorIdentity => 'Kimlik';
+
+  @override
+  String get profileTrustFactorCommunity => 'Topluluk';
+
+  @override
+  String get profileTrustFactorReliability => 'Güvenilirlik';
+
+  @override
+  String get profileTrustFactorActivity => 'Aktiflik';
+
+  @override
+  String get profileStatTrips => 'Yolculuk';
+
+  @override
+  String get profileStatRating => 'Puan';
+
+  @override
+  String get profileStatSavings => 'Tasarruf';
+
+  @override
+  String get profileVerificationBadges => 'Doğrulama rozetleri';
+
+  @override
+  String get profileMyReviews => 'Değerlendirmelerim';
+
+  @override
+  String profileTrustScoreSemanticLabel(String score) {
+    return 'Güven Puanı: $score, 100 üzerinden';
+  }
+
+  @override
+  String profileTrustFactorSemanticLabel(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String profileTrustFactorAttentionSemanticLabel(String label, String value) {
+    return '$label: $value, dikkat';
+  }
+
+  @override
+  String profileVerificationBadgesSemanticLabel(String done, String total) {
+    return 'Doğrulama rozetleri: $total adımdan $done tanesi tamamlandı';
+  }
+
+  @override
+  String get reviewsTitle => 'Değerlendirmeler';
+
+  @override
+  String reviewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count değerlendirme',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewsTagPunctual => 'Dakik';
+
+  @override
+  String get reviewsTagSafeDriving => 'Güvenli sürüş';
+
+  @override
+  String get reviewsTagFriendly => 'Güler yüzlü';
+
+  @override
+  String get reviewsTagCleanCar => 'Temiz araç';
+
+  @override
+  String reviewsTagLabel(String label, String count) {
+    return '$label · $count';
+  }
+
+  @override
+  String get reviewsContextRegularRoute => 'Düzenli rota';
+
+  @override
+  String get reviewsMockBodyFirst =>
+      'Çok güvenli ve dakik bir yolculuktu. Selin gerçekten güler yüzlü, kesinlikle tekrar tercih ederim.';
+
+  @override
+  String get reviewsMockBodySecond =>
+      'Her sabah aynı saatte, tertemiz araç. Trafikte sohbet etmek güzel.';
+
+  @override
+  String reviewsRatingSemanticLabel(String rating) {
+    return '5 üzerinden $rating';
+  }
+
+  @override
+  String reviewsDistributionSemanticLabel(String stars, String share) {
+    return '$stars yıldız: değerlendirmelerin $share kadarı';
+  }
+
+  @override
+  String reviewsEntrySemanticLabel(
+    String author,
+    String age,
+    String context,
+    String rating,
+    String body,
+  ) {
+    return '$author, $age, $context. $rating. $body';
+  }
+
+  @override
   String get dateToday => 'Bugün';
 
   @override

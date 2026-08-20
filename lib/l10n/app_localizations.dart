@@ -632,7 +632,7 @@ abstract class AppLocalizations {
   /// **'km paylaşıldı'**
   String get routeDetailsStatSharedDistance;
 
-  /// Üyelik yılı ve semt. Mock sunum verisidir.
+  /// Üyelik yılı ve semt. Mock sunum verisidir. UYARI: ekteki 'ten yalnızca mevcut 2023/2024 sabit değerleri için doğrudur; 2019 (2019'dan), 2020 ve 2021 ('den) yanlış çıkar. Doğrusu sayıyı okunuşuna çevirip ünlü uyumu uygulamayı gerektirir; iki durumluk bir if bu hatayı çözmez, saklar. Ertelenmiş: design-system.md §8.
   ///
   /// In tr, this message translates to:
   /// **'{year}\'ten beri üye · {area}'**
@@ -1019,6 +1019,198 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.'**
   String get chatSendUnavailable;
+
+  /// Profil başlığındaki üyelik rozeti. Yıl bilerek parametre DEĞİLDİR: Türkçede ekin biçimi sayının okunuşuna bağlıdır ve değişkene ek yapıştırmak yanlış sonuç verir. Mock sunum verisidir; hiçbir hesap veya doğrulama sistemi yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulanmış üye · 2024\'ten beri'**
+  String get profileMemberBadge;
+
+  /// Güven Puanı kartının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güven Puanı'**
+  String get profileTrustScoreTitle;
+
+  /// Halkanın ortasında puanın altında görünen ölçek.
+  ///
+  /// In tr, this message translates to:
+  /// **'/ 100'**
+  String get profileTrustScoreOutOf;
+
+  /// Yüzdelik dilim rozeti. Gerçek bir üye kitlesi olmadığı için tamamen sunum verisidir; hiçbir sıralama hesaplanmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üst {percentile} · Güvenilir'**
+  String profileTrustTier(String percentile);
+
+  /// Tasarımdaki cümle, olduğu gibi. PARAMETRE EKLEMEYİN: '1 yolculuk' sayısını değişkene çevirmek, yolculuk başına puan diye bir kural olduğunu varsaymak olur. Böyle bir kural yok.
+  ///
+  /// In tr, this message translates to:
+  /// **'100\'e ulaşmak için 1 yolculuk daha'**
+  String get profileTrustNextStep;
+
+  /// Güven Puanı dökümü satırı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimlik'**
+  String get profileTrustFactorIdentity;
+
+  /// Güven Puanı dökümü satırı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Topluluk'**
+  String get profileTrustFactorCommunity;
+
+  /// Güven Puanı dökümü satırı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenilirlik'**
+  String get profileTrustFactorReliability;
+
+  /// Güven Puanı dökümü satırı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktiflik'**
+  String get profileTrustFactorActivity;
+
+  /// İstatistik kutusu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk'**
+  String get profileStatTrips;
+
+  /// İstatistik kutusu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Puan'**
+  String get profileStatRating;
+
+  /// İstatistik kutusu etiketi. Masraf paylaşımı sunumudur; uygulamada ödeme yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tasarruf'**
+  String get profileStatSavings;
+
+  /// Profil listesi satırı. Tasarımda dokunulabilir değildir ve bir yere gitmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama rozetleri'**
+  String get profileVerificationBadges;
+
+  /// Profil listesi satırı; değerlendirmeler ekranını açar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değerlendirmelerim'**
+  String get profileMyReviews;
+
+  /// Halkanın ekran okuyucu metni. Puanın nasıl oluştuğunu ima eden hiçbir ifade EKLEMEYİN; bir hesap yöntemi yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güven Puanı: {score}, 100 üzerinden'**
+  String profileTrustScoreSemanticLabel(String score);
+
+  /// Döküm satırının ekran okuyucu metni.
+  ///
+  /// In tr, this message translates to:
+  /// **'{label}: {value}'**
+  String profileTrustFactorSemanticLabel(String label, String value);
+
+  /// Amber satırın ekran okuyucu metni. Uyarıyı yalnızca renk taşımasın diye vardır (WCAG 1.4.1).
+  ///
+  /// In tr, this message translates to:
+  /// **'{label}: {value}, dikkat'**
+  String profileTrustFactorAttentionSemanticLabel(String label, String value);
+
+  /// Rozet sayısı yalnızca trailing rozette yazdığı için satırın etiketi elle verilir; yoksa sayı hiç okunmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama rozetleri: {total} adımdan {done} tanesi tamamlandı'**
+  String profileVerificationBadgesSemanticLabel(String done, String total);
+
+  /// Değerlendirmeler ekranının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değerlendirmeler'**
+  String get reviewsTitle;
+
+  /// Toplam değerlendirme sayısı. Tasarım iki kart gösterip 73 yazar; bu çelişki bilerek korunmuştur, design-system.md §8.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, other{{count} değerlendirme}}'**
+  String reviewsCount(int count);
+
+  /// Değerlendirme etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dakik'**
+  String get reviewsTagPunctual;
+
+  /// Değerlendirme etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenli sürüş'**
+  String get reviewsTagSafeDriving;
+
+  /// Değerlendirme etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güler yüzlü'**
+  String get reviewsTagFriendly;
+
+  /// Değerlendirme etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Temiz araç'**
+  String get reviewsTagCleanCar;
+
+  /// Etiket ve kaç değerlendirmede geçtiği. Sayılar toplamı değerlendirme sayısını aşar; bir değerlendirme birden çok etiket taşır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{label} · {count}'**
+  String reviewsTagLabel(String label, String count);
+
+  /// Değerlendirme kartındaki bağlam metni. Bir rota değil, yolculuğun düzenliliğidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenli rota'**
+  String get reviewsContextRegularRoute;
+
+  /// Tasarımdaki örnek değerlendirme metni, olduğu gibi. Mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok güvenli ve dakik bir yolculuktu. Selin gerçekten güler yüzlü, kesinlikle tekrar tercih ederim.'**
+  String get reviewsMockBodyFirst;
+
+  /// Tasarımdaki örnek değerlendirme metni, olduğu gibi. Mock sunum verisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her sabah aynı saatte, tertemiz araç. Trafikte sohbet etmek güzel.'**
+  String get reviewsMockBodySecond;
+
+  /// Yıldız sırasının ekran okuyucu metni. Beş yıldız beş kez okunmasın diye tek düğümde toplanır.
+  ///
+  /// In tr, this message translates to:
+  /// **'5 üzerinden {rating}'**
+  String reviewsRatingSemanticLabel(String rating);
+
+  /// Histogram satırının ekran okuyucu metni. Oran olduğu açıkça söylenir; yoksa çubuğun kendi sayısı değerlendirme adedi sanılır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{stars} yıldız: değerlendirmelerin {share} kadarı'**
+  String reviewsDistributionSemanticLabel(String stars, String share);
+
+  /// Değerlendirme kartının ekran okuyucu metni; yoksa baş harfler harf harf okunur ve puan bağlamsız kalır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{author}, {age}, {context}. {rating}. {body}'**
+  String reviewsEntrySemanticLabel(
+    String author,
+    String age,
+    String context,
+    String rating,
+    String body,
+  );
 
   /// Göreli tarih: bugün.
   ///

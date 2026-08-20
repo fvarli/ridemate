@@ -589,6 +589,133 @@ class AppLocalizationsEn extends AppLocalizations {
       'Message was not sent. Messaging is not available yet.';
 
   @override
+  String get profileMemberBadge => 'Verified member · since 2024';
+
+  @override
+  String get profileTrustScoreTitle => 'Trust Score';
+
+  @override
+  String get profileTrustScoreOutOf => '/ 100';
+
+  @override
+  String profileTrustTier(String percentile) {
+    return 'Top $percentile · Trusted';
+  }
+
+  @override
+  String get profileTrustNextStep => '1 more journey to reach 100';
+
+  @override
+  String get profileTrustFactorIdentity => 'Identity';
+
+  @override
+  String get profileTrustFactorCommunity => 'Community';
+
+  @override
+  String get profileTrustFactorReliability => 'Reliability';
+
+  @override
+  String get profileTrustFactorActivity => 'Activity';
+
+  @override
+  String get profileStatTrips => 'Journeys';
+
+  @override
+  String get profileStatRating => 'Rating';
+
+  @override
+  String get profileStatSavings => 'Saved';
+
+  @override
+  String get profileVerificationBadges => 'Verification badges';
+
+  @override
+  String get profileMyReviews => 'My reviews';
+
+  @override
+  String profileTrustScoreSemanticLabel(String score) {
+    return 'Trust Score: $score out of 100';
+  }
+
+  @override
+  String profileTrustFactorSemanticLabel(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String profileTrustFactorAttentionSemanticLabel(String label, String value) {
+    return '$label: $value, needs attention';
+  }
+
+  @override
+  String profileVerificationBadgesSemanticLabel(String done, String total) {
+    return 'Verification badges: $done of $total steps complete';
+  }
+
+  @override
+  String get reviewsTitle => 'Reviews';
+
+  @override
+  String reviewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reviews',
+      one: '1 review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewsTagPunctual => 'Punctual';
+
+  @override
+  String get reviewsTagSafeDriving => 'Safe driving';
+
+  @override
+  String get reviewsTagFriendly => 'Friendly';
+
+  @override
+  String get reviewsTagCleanCar => 'Clean car';
+
+  @override
+  String reviewsTagLabel(String label, String count) {
+    return '$label · $count';
+  }
+
+  @override
+  String get reviewsContextRegularRoute => 'Regular route';
+
+  @override
+  String get reviewsMockBodyFirst =>
+      'A very safe and punctual journey. Selin is genuinely friendly — I would absolutely ride again.';
+
+  @override
+  String get reviewsMockBodySecond =>
+      'Same time every morning, spotless car. Nice to chat in the traffic.';
+
+  @override
+  String reviewsRatingSemanticLabel(String rating) {
+    return '$rating out of 5';
+  }
+
+  @override
+  String reviewsDistributionSemanticLabel(String stars, String share) {
+    return '$stars stars: $share of reviews';
+  }
+
+  @override
+  String reviewsEntrySemanticLabel(
+    String author,
+    String age,
+    String context,
+    String rating,
+    String body,
+  ) {
+    return '$author, $age, $context. $rating. $body';
+  }
+
+  @override
   String get dateToday => 'Today';
 
   @override

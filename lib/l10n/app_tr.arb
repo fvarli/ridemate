@@ -715,6 +715,169 @@
     "description": "Gönder düğmesine basıldığında gösterilen geçici bilgi. Mesajın gönderilmediğini açıkça söylemelidir; yazılan metin alanda kalır ve konuşmaya hiçbir şey eklenmez."
   },
 
+  "profileMemberBadge": "Doğrulanmış üye · 2024'ten beri",
+  "@profileMemberBadge": {
+    "description": "Profil başlığındaki üyelik rozeti. Yıl bilerek parametre DEĞİLDİR: Türkçede ekin biçimi sayının okunuşuna bağlıdır ve değişkene ek yapıştırmak yanlış sonuç verir. Mock sunum verisidir; hiçbir hesap veya doğrulama sistemi yoktur."
+  },
+  "profileTrustScoreTitle": "Güven Puanı",
+  "@profileTrustScoreTitle": {
+    "description": "Güven Puanı kartının başlığı."
+  },
+  "profileTrustScoreOutOf": "/ 100",
+  "@profileTrustScoreOutOf": {
+    "description": "Halkanın ortasında puanın altında görünen ölçek."
+  },
+  "profileTrustTier": "Üst {percentile} · Güvenilir",
+  "@profileTrustTier": {
+    "description": "Yüzdelik dilim rozeti. Gerçek bir üye kitlesi olmadığı için tamamen sunum verisidir; hiçbir sıralama hesaplanmaz.",
+    "placeholders": {
+      "percentile": {"type": "String", "example": "%8"}
+    }
+  },
+  "profileTrustNextStep": "100'e ulaşmak için 1 yolculuk daha",
+  "@profileTrustNextStep": {
+    "description": "Tasarımdaki cümle, olduğu gibi. PARAMETRE EKLEMEYİN: '1 yolculuk' sayısını değişkene çevirmek, yolculuk başına puan diye bir kural olduğunu varsaymak olur. Böyle bir kural yok."
+  },
+  "profileTrustFactorIdentity": "Kimlik",
+  "@profileTrustFactorIdentity": {
+    "description": "Güven Puanı dökümü satırı."
+  },
+  "profileTrustFactorCommunity": "Topluluk",
+  "@profileTrustFactorCommunity": {
+    "description": "Güven Puanı dökümü satırı."
+  },
+  "profileTrustFactorReliability": "Güvenilirlik",
+  "@profileTrustFactorReliability": {
+    "description": "Güven Puanı dökümü satırı."
+  },
+  "profileTrustFactorActivity": "Aktiflik",
+  "@profileTrustFactorActivity": {
+    "description": "Güven Puanı dökümü satırı."
+  },
+  "profileStatTrips": "Yolculuk",
+  "@profileStatTrips": {
+    "description": "İstatistik kutusu etiketi."
+  },
+  "profileStatRating": "Puan",
+  "@profileStatRating": {
+    "description": "İstatistik kutusu etiketi."
+  },
+  "profileStatSavings": "Tasarruf",
+  "@profileStatSavings": {
+    "description": "İstatistik kutusu etiketi. Masraf paylaşımı sunumudur; uygulamada ödeme yoktur."
+  },
+  "profileVerificationBadges": "Doğrulama rozetleri",
+  "@profileVerificationBadges": {
+    "description": "Profil listesi satırı. Tasarımda dokunulabilir değildir ve bir yere gitmez."
+  },
+  "profileMyReviews": "Değerlendirmelerim",
+  "@profileMyReviews": {
+    "description": "Profil listesi satırı; değerlendirmeler ekranını açar."
+  },
+  "profileTrustScoreSemanticLabel": "Güven Puanı: {score}, 100 üzerinden",
+  "@profileTrustScoreSemanticLabel": {
+    "description": "Halkanın ekran okuyucu metni. Puanın nasıl oluştuğunu ima eden hiçbir ifade EKLEMEYİN; bir hesap yöntemi yoktur.",
+    "placeholders": {
+      "score": {"type": "String", "example": "92"}
+    }
+  },
+  "profileTrustFactorSemanticLabel": "{label}: {value}",
+  "@profileTrustFactorSemanticLabel": {
+    "description": "Döküm satırının ekran okuyucu metni.",
+    "placeholders": {
+      "label": {"type": "String", "example": "Kimlik"},
+      "value": {"type": "String", "example": "100"}
+    }
+  },
+  "profileTrustFactorAttentionSemanticLabel": "{label}: {value}, dikkat",
+  "@profileTrustFactorAttentionSemanticLabel": {
+    "description": "Amber satırın ekran okuyucu metni. Uyarıyı yalnızca renk taşımasın diye vardır (WCAG 1.4.1).",
+    "placeholders": {
+      "label": {"type": "String", "example": "Aktiflik"},
+      "value": {"type": "String", "example": "82"}
+    }
+  },
+  "profileVerificationBadgesSemanticLabel": "Doğrulama rozetleri: {total} adımdan {done} tanesi tamamlandı",
+  "@profileVerificationBadgesSemanticLabel": {
+    "description": "Rozet sayısı yalnızca trailing rozette yazdığı için satırın etiketi elle verilir; yoksa sayı hiç okunmaz.",
+    "placeholders": {
+      "done": {"type": "String", "example": "4"},
+      "total": {"type": "String", "example": "5"}
+    }
+  },
+  "reviewsTitle": "Değerlendirmeler",
+  "@reviewsTitle": {
+    "description": "Değerlendirmeler ekranının başlığı."
+  },
+  "reviewsCount": "{count, plural, other{{count} değerlendirme}}",
+  "@reviewsCount": {
+    "description": "Toplam değerlendirme sayısı. Tasarım iki kart gösterip 73 yazar; bu çelişki bilerek korunmuştur, design-system.md §8.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewsTagPunctual": "Dakik",
+  "@reviewsTagPunctual": {
+    "description": "Değerlendirme etiketi."
+  },
+  "reviewsTagSafeDriving": "Güvenli sürüş",
+  "@reviewsTagSafeDriving": {
+    "description": "Değerlendirme etiketi."
+  },
+  "reviewsTagFriendly": "Güler yüzlü",
+  "@reviewsTagFriendly": {
+    "description": "Değerlendirme etiketi."
+  },
+  "reviewsTagCleanCar": "Temiz araç",
+  "@reviewsTagCleanCar": {
+    "description": "Değerlendirme etiketi."
+  },
+  "reviewsTagLabel": "{label} · {count}",
+  "@reviewsTagLabel": {
+    "description": "Etiket ve kaç değerlendirmede geçtiği. Sayılar toplamı değerlendirme sayısını aşar; bir değerlendirme birden çok etiket taşır.",
+    "placeholders": {
+      "label": {"type": "String", "example": "Dakik"},
+      "count": {"type": "String", "example": "41"}
+    }
+  },
+  "reviewsContextRegularRoute": "Düzenli rota",
+  "@reviewsContextRegularRoute": {
+    "description": "Değerlendirme kartındaki bağlam metni. Bir rota değil, yolculuğun düzenliliğidir."
+  },
+  "reviewsMockBodyFirst": "Çok güvenli ve dakik bir yolculuktu. Selin gerçekten güler yüzlü, kesinlikle tekrar tercih ederim.",
+  "@reviewsMockBodyFirst": {
+    "description": "Tasarımdaki örnek değerlendirme metni, olduğu gibi. Mock sunum verisidir."
+  },
+  "reviewsMockBodySecond": "Her sabah aynı saatte, tertemiz araç. Trafikte sohbet etmek güzel.",
+  "@reviewsMockBodySecond": {
+    "description": "Tasarımdaki örnek değerlendirme metni, olduğu gibi. Mock sunum verisidir."
+  },
+  "reviewsRatingSemanticLabel": "5 üzerinden {rating}",
+  "@reviewsRatingSemanticLabel": {
+    "description": "Yıldız sırasının ekran okuyucu metni. Beş yıldız beş kez okunmasın diye tek düğümde toplanır.",
+    "placeholders": {
+      "rating": {"type": "String", "example": "4,9"}
+    }
+  },
+  "reviewsDistributionSemanticLabel": "{stars} yıldız: değerlendirmelerin {share} kadarı",
+  "@reviewsDistributionSemanticLabel": {
+    "description": "Histogram satırının ekran okuyucu metni. Oran olduğu açıkça söylenir; yoksa çubuğun kendi sayısı değerlendirme adedi sanılır.",
+    "placeholders": {
+      "stars": {"type": "String", "example": "5"},
+      "share": {"type": "String", "example": "%92"}
+    }
+  },
+  "reviewsEntrySemanticLabel": "{author}, {age}, {context}. {rating}. {body}",
+  "@reviewsEntrySemanticLabel": {
+    "description": "Değerlendirme kartının ekran okuyucu metni; yoksa baş harfler harf harf okunur ve puan bağlamsız kalır.",
+    "placeholders": {
+      "author": {"type": "String", "example": "Mert A."},
+      "age": {"type": "String", "example": "2 gün önce"},
+      "context": {"type": "String", "example": "Kadıköy → Levent"},
+      "rating": {"type": "String", "example": "5 üzerinden 5,0"},
+      "body": {"type": "String", "example": "Çok güvenli…"}
+    }
+  },
   "dateToday": "Bugün",
   "@dateToday": {
     "description": "Göreli tarih: bugün."

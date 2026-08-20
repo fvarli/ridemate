@@ -36,6 +36,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_radius.dart';
+import '../../../../core/theme/tokens/rm_shadows.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
 import '../../../../core/widgets/rm_card.dart';
@@ -62,6 +63,9 @@ class SosCard extends StatelessWidget {
     return RmCard(
       variant: RmCardVariant.gradient,
       gradient: c.heroDanger,
+      // The design tints the glow to the card: `rgba(229,72,77,.3)`, not the
+      // brand blue the gradient variant otherwise assumes.
+      boxShadow: context.rmShadows.danger,
       onTap: onPressed,
       padding: const EdgeInsets.all(RmSpacing.xl),
       // Announced exactly as drawn, so a screen-reader user meets the same
@@ -92,7 +96,8 @@ class SosCard extends StatelessWidget {
                   ),
                   child: Text(
                     l10n.sosLabel,
-                    style: RmTypography.micro.copyWith(
+                    // Design 14px at RmScale.factor is 20.
+                    style: RmTypography.bodyLg.copyWith(
                       color: c.danger,
                       fontWeight: FontWeight.w800,
                     ),

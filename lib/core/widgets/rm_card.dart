@@ -49,6 +49,7 @@ class RmCard extends StatelessWidget {
     this.radius = RmRadius.lg,
     this.onTap,
     this.gradient,
+    this.boxShadow,
     this.semanticLabel,
   });
 
@@ -64,6 +65,13 @@ class RmCard extends StatelessWidget {
   /// Overrides the gradient for [RmCardVariant.gradient]. Defaults to the
   /// brand hero gradient.
   final Gradient? gradient;
+
+  /// Overrides the variant's shadow.
+  ///
+  /// The gradient variant assumes the brand hero, so its glow is brand blue.
+  /// The design tints the glow to match whatever gradient it draws — the
+  /// Safety Center's red SOS card gets a red one.
+  final List<BoxShadow>? boxShadow;
 
   final String? semanticLabel;
 
@@ -105,7 +113,7 @@ class RmCard extends StatelessWidget {
       RmCardVariant.gradient => BoxDecoration(
         gradient: gradient ?? c.heroPrimary,
         borderRadius: borderRadius,
-        boxShadow: s.primary,
+        boxShadow: boxShadow ?? s.primary,
       ),
     };
 

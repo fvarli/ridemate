@@ -102,14 +102,27 @@ class ProfileStats extends StatelessWidget {
   ) {
     final TextScaler scaler = MediaQuery.textScalerOf(context);
     final TextDirection direction = Directionality.of(context);
+    // See trust_factor_row.dart: measure the style Text resolves, not the
+    // bare token.
+    final TextStyle inherited = DefaultTextStyle.of(context).style;
 
     double widest = 0;
     for (final (String, String, Color) tile in tiles) {
       widest = math.max(
         widest,
         math.max(
-          _measure(tile.$1, RmTypography.numericMd, scaler, direction),
-          _measure(tile.$2, RmTypography.micro, scaler, direction),
+          _measure(
+            tile.$1,
+            inherited.merge(RmTypography.numericMd),
+            scaler,
+            direction,
+          ),
+          _measure(
+            tile.$2,
+            inherited.merge(RmTypography.micro),
+            scaler,
+            direction,
+          ),
         ),
       );
     }

@@ -55,15 +55,20 @@ class TrustBreakdown extends StatelessWidget {
         .map((TrustFactor factor) => f.count(factor.value))
         .toList(growable: false);
 
+    // Measured against the style Text will actually resolve. A bare token
+    // misses whatever the ambient DefaultTextStyle contributes — letter
+    // spacing above all — and the column then comes out narrower than the
+    // label it was sized for, which ellipsises `Güvenilirlik`.
+    final TextStyle inherited = DefaultTextStyle.of(context).style;
     final double labelWidth = _widest(
       labels,
-      RmTypography.micro,
+      inherited.merge(RmTypography.micro),
       scaler,
       direction,
     );
     final double valueWidth = _widest(
       values,
-      RmTypography.numericMicro,
+      inherited.merge(RmTypography.numericMicro),
       scaler,
       direction,
     );

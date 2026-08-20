@@ -95,6 +95,13 @@ copy (`D-chat-2`).
 | **D-chat-2** | Message emoji render through an **isolated fallback span** | 👍 🙌 📍 are in neither bundled family, but they are approved copy and `Görüşürüz 🙌` is not `Görüşürüz`. They keep their place and are rendered in their own span naming the platform emoji families, rather than smuggled through Manrope and left to whatever the engine picks. `D-icon-4` remains about icon-like glyphs where a real icon exists; it is not a ban on emoji. |
 | **D-chat-3** | The Chat safety banner's **payment sentence is replaced** | The approved copy tells the member to pay only inside the app. RideMate has no payments, and Chat is the one Phase 5 screen a real member can reach, so shipping it would claim a capability that does not exist — the same failure as a button claiming a request was sent. The wording keeps the banner's safety purpose and drops the false claim. The approved sentence is untouched in `docs/claude-designs/` and returns when payment does. |
 | **D-create-4** | The stepper's `−` gets a muted **disabled** treatment at 1 seat | The source draws only the enabled control, and the disabled state is extrapolated from the token language. A control that looks tappable and silently does nothing is the worst of the available options. The `+` never disables — there is no ceiling to hit. |
+| **D-profile-1** | Profile **keeps the bottom navigation bar**, which its comp omits | `Profil` is one of the four designed tab destinations, so Profile *is* a tab. Same reasoning as `D-search-1`; the comp omits the bar on almost every screen. |
+| **D-profile-2** | The tier badge's `★` is an **icon**, never text | `Üst %8 · Güvenilir` opens with U+2605, which is absent from both bundled families. `D-icon-4` applies verbatim. |
+| **D-profile-3** | Profile's **three stat tiles stack** at large text scales instead of sharing a row | `₺2.1k` is five mono glyphs and is the entire content of its tile. Three of them across a 360dp screen at 1.6 would have to shrink the figure until it is unreadable, and the figure is the tile. Same trade as `D-trip-3`. |
+| **D-profile-4** | The breakdown's label and value columns are **measured**, not fixed at the comp's 74px and 30px | Those are artboard measurements of one Turkish string set at one size; `Güvenilirlik` outgrows 74px before the maximum text scale. One shared width is measured across the four rows so the bars still start on a common axis, and the rows stack once the bar can no longer hold a readable width. |
+| **D-reviews-1** | The five-star row is **five icons under one semantics node** | The comp prints `★★★★★` literally. Beyond `D-icon-4`, five separate announcements say nothing the rating does not, so the row announces once as `5 üzerinden 4,9`. |
+| **D-safety-1** | The Safety Center has **no back control**, and its route is **absent from release builds** | Its comp has no back control, and `D-trip-1`'s reasoning applies: it is pushed from Active Trip in debug builds and there is nothing beneath a cold deep link. Withholding the route is separate and stronger — see §8. |
+| **D-safety-2** | Dark **keeps the block/report row and the full SOS promise** that the dark comp drops | The dark artboard omits `Kullanıcı engelle / bildir` entirely and shortens the SOS sentence. `D-home-1` already settled this class: dark re-palettes a screen, it never removes information from it — and a safety affordance that disappears at night is a regression. One ARB message also cannot be theme-dependent, so the light superset ships in both. |
 
 ## 3. Color tokens
 
@@ -214,8 +221,15 @@ membership, trust-level, review attribute tag, quick-reply, date divider.
 
 **Trust visualization — three deliberate forms:** progress ring (white-on-blue while
 in progress, **green when complete**), numeric stat tile, and 4-factor breakdown bars
-(`Kimlik` / `Topluluk` / `Güvenilirlik` / `Aktiflik`, where a below-threshold factor
-turns **amber**).
+(`Kimlik` / `Topluluk` / `Güvenilirlik` / `Aktiflik`, drawn green, blue and **amber**).
+
+**Corrected in Phase 6:** this section used to say a *below-threshold* factor turns
+amber. **There is no threshold.** The comp shows 82 amber beside 90 blue, which puts a
+cut-off anywhere in 83–89, and nothing defines one because no scoring policy exists to
+define it. The colour language is non-monotonic too — 100 green against a green ring at
+92 implies "green means complete", which the ring then contradicts. Each factor's tone is
+therefore a **declared field**, never derived from its value, and a test pins that. See
+the Trust Score section of `architecture.md`.
 
 **Verified badge** — green circle overlapping the avatar's bottom-right, bordered in the
 *underlying surface color* (a cut-out effect), sizes 14–22 scaling with the avatar.
@@ -265,8 +279,14 @@ Layout notes worth keeping:
 The toggle and the stepper each appear **exactly once** across all fifteen approved
 screens, both on Create Route. That is not the concrete reuse the promotion rule asks
 for, so `RecurrenceSwitch` and `SeatsStepper` live in the feature. When a second approved
-screen genuinely needs either — Phase 6's Profile/Safety settings are the likely
-candidate — they get promoted then; the move is cheap.
+screen genuinely needs either, they get promoted then; the move is cheap.
+
+**Phase 6 falsified the prediction that stood here.** This section used to name Profile
+and Safety settings as the likely trigger. Neither screen has a switch or a stepper —
+Profile has no settings section and the Safety Center has no toggles — so both controls
+still have exactly one consumer each, and the approved design contains no second one.
+This is not an outstanding to-do; there is nothing left in the fifteen screens to promote
+them for.
 
 Two consequences accepted on purpose:
 
@@ -320,6 +340,43 @@ particular, animating `RmMapScene.travelledFraction` or moving the vehicle marke
 time is forbidden: a progress bar creeping over a fixture is a route-progress calculation
 wearing a different hat.
 
+### 2.8 Core primitives added in Phase 6
+
+| Primitive | Consumers |
+|---|---|
+| `RmHalo` | The source's `rm-ring`: a shape that grows out of its element and fades. Active Trip's SOS button draws it as a rounded rectangle and the Safety Center's SOS disc draws it as a circle — the second consumer, and the promotion rule's threshold. It also puts the reduced-motion handling in one tested place rather than copied into a safety screen. |
+
+`RmListRow` gained an optional `semanticLabel`, and `RmCard` gained an optional shadow
+override. Neither is a new abstraction; both are defects. See §2.9.
+
+**`RmHalo` carries no meaning.** It is decoration, it is excluded from the accessibility
+tree, and it says nothing about whether anything is happening — the same rule
+`RmMotion`'s own header already records for the ring token.
+
+Phase 6 added **no other core widget**. Every element of its three screens maps onto
+something Phase 1 built, and two of those — `RmTrustRing`'s second consumer and
+`RmStatTile`'s `elevated: false` branch — were designed for these screens and had been
+waiting since.
+
+### 2.9 Semantics defects found in Phase 6
+
+Both were found by asking what a screen reader hears, not by a failing test.
+
+* **`RmCard` labelled its untappable branch without excluding its children.** The label
+  and the children merged, so every labelled non-tappable card announced its own contents
+  a second time — a row read its title, then read it again. The tappable branch already
+  excluded them for exactly this reason.
+* **A trailing widget is invisible to the accessibility tree.** `RmListRow` composes its
+  announcement from `title` and `subtitle`, and `RmBadge` emits no semantics, so
+  Profile's `4 / 5` — the entire point of that row — was dropped. Rows that carry meaning
+  in `trailing` now spell the announcement out.
+
+A third case is a call-site pattern rather than a defect: `RmTrustRing` and
+`RmLinearMeter` publish their fill as a bare number. On a trust ring that number *is* the
+score; on Reviews' histogram a 92% bar beside a `5` announced "5, 92" and read as
+ninety-two reviews. Any meter whose fill is not self-evidently the thing being announced
+is wrapped and relabelled at the call site.
+
 ## 8. Missing states — must be designed as we build
 
 The source contains **none** of: disabled button, loading/spinner, toggle-off state,
@@ -371,6 +428,59 @@ trusted-contacts editor, QR scanner, block/report form, settings, notifications.
   (`2019'dan`) — deferred cleanup.
 * The **vehicle marker sits behind the bottom sheet** at phone proportions. So does the
   comp's, once its sheet is scaled, so this is reproduced rather than corrected.
+
+**Gaps found in Phase 6.** The safety ones are listed in dependency order — each needs
+the ones above it.
+
+*Safety, and why the whole screen is withheld:*
+
+* **The SOS control has one designed state out of eleven.** `idle` is drawn; `pressed`,
+  `confirming`, `countdown`, `armed`, `activated`, `cancelled`, `permission-denied`,
+  `no-contacts`, `failed` and `expired` are not — and the two most likely real outcomes,
+  *permission denied* and *no contacts added*, are among the missing ten. The written
+  specification and the capabilities that must exist first are in `architecture.md`. No
+  `SosState` enum exists, because a one-member enum is where the other ten get written
+  from intuition.
+* **The SOS promise is false.** `Bas, konumun ve yolculuk bilgin acil kişilere +
+  ekibimize gider.` — no location is sent, no contact is reached, and there is no team.
+  It ships verbatim only because the screen is withheld and because pressing it says so
+  immediately; a leak test pins the string out of every release-reachable surface.
+* **`2 kişi eklendi` is untrue.** Nothing stores a trusted contact. It is the first
+  string that has to change if the screen ever becomes reachable.
+* **`112'yi ara` cannot place a call.** There is no telephony anywhere in the app. Two
+  open questions behind it: whether an app should dial at all or hand the member to their
+  own dialler, and which number to offer — 112 is EU and Turkey, and English ships today
+  with Arabic declared.
+* **Three chevrons point at screens that were never drawn**: the trusted-contacts editor,
+  the QR scanner, and the block/report form. Each row says which capability is missing
+  rather than sharing one apology, and none of them navigates or stores anything.
+* **`Kullanıcı engelle / bildir` is undefined as a behaviour.** One action or two? What
+  does blocking do to existing matches and conversations? Is a report anonymous? What
+  does `Gizli inceleme` mean operationally, and what are retention and appeal? The domain
+  is kept exactly as narrow as the row, and none of these is answered here.
+
+*Profile and Reviews:*
+
+* **The Reviews subject is incoherent in the comp.** Profile reaches the screen through
+  `Değerlendirmelerim` — Elif's own — yet the first review praises Selin, and both
+  authors are drivers in the discovery fixtures. Reproduced as approved; the snapshot
+  models a `subject` so the question is visible rather than silently resolved.
+* **`73 değerlendirme` with two cards and no way to see more.** Reproduced.
+* **`Doğrulama rozetleri` counts the five steps `/verification` models but does not link
+  to them** — probably an oversight. Rendered inert, as drawn.
+* **`Üst %8` is a percentile claim about a member population that does not exist.**
+  Presentation data, like `%94 uyum` before it.
+* **`₺2.1k` is pre-formatted**, because abbreviating a figure needs a rounding and unit
+  policy nobody has set. Same treatment as `sharedDistance: '3.4k'`.
+* **`100'e ulaşmak için 1 yolculuk daha` asserts eight points per journey.** It ships as
+  one opaque ARB message with no placeholder so it cannot become a rate.
+* **`Doğrulanmış üye · 2024'ten beri` cannot be parameterised**, the same Turkish suffix
+  trap as `Levent'e varış`. The latent `routeDetailsMemberSince` bug noted above is worse
+  than first recorded — the template is wrong for 2019, 2020 and 2021, not just for rare
+  years — and cannot be collapsed the same way, because Route Details renders two
+  different years. Fixing it properly needs number-to-words plus vowel harmony; a
+  two-case `if` would hide the bug rather than remove it. Deferred, with the trap written
+  into the ARB description where a translator will meet it.
 
 ## 9. Turkish formatting rules (Phase 1 → `lib/core/format/`)
 

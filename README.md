@@ -9,10 +9,11 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 5 — in-journey communication.** The design system (Phase 1) is complete, and
-Onboarding, Verification, Home, Search, Match Results, Route Details, Create route and
-Chat are implemented. Active Trip is built and tested but reachable **only in debug
-builds** — see below. Messages and Profile are still placeholders.
+**Phase 6 — the approved screens are complete.** The design system (Phase 1) is done, and
+Onboarding, Verification, Home, Search, Match Results, Route Details, Create route, Chat,
+Profile and Reviews are implemented. Active Trip and the Safety Center are built and
+tested but reachable **only in debug builds** — see below. Messages is the one remaining
+placeholder, because the design has no conversation list.
 
 There is no backend, no authentication, no identity-verification provider, no
 payments, no location and no maps vendor. Everything those screens display is
@@ -32,17 +33,36 @@ nothing to the conversation. Its safety banner also differs from the comp on pur
 approved wording tells you to pay inside the app, and there is no payment feature, so it
 keeps the safety advice without the false claim.
 
-**Active Trip is debug-only.** Reaching a trip in progress honestly needs a request, an
-acceptance and a departure, none of which exist — and rather than fake that lifecycle to
-unlock a screen, the route is left out of release builds entirely. It also carries an SOS
-control with no emergency behaviour and a footer saying your live location is shared with
-two emergency contacts, which is not true of anything.
+Profile shows a Trust Score, a four-factor breakdown of it and a reputation summary.
+**None of it is calculated.** There is no scoring service, so every figure is copied from
+the design — including the ones that nearly reconcile: the four factors mean 91.5 against
+a displayed 92, and Reviews' histogram, its two visible cards and its headline rating all
+come to 4.9 by coincidence. Tests pin each of those as a coincidence, because turning one
+into a formula would be authoring the scoring policy rather than fixing a rounding error.
 
-Create route delivers the **approved design surface**, not a production-complete
-publishing workflow: the design contains no departure date or time control, so a one-off
-journey cannot yet say when it leaves. That and the other gaps found while building are
-listed in [`docs/design-system.md`](docs/design-system.md) §8, to be taken up in a
-dedicated product-gaps phase once the designed screens are built.
+**Active Trip and the Safety Center are debug-only.** Reaching a trip in progress
+honestly needs a request, an acceptance and a departure, none of which exist — and rather
+than fake that lifecycle to unlock a screen, the route is left out of release builds
+entirely. It carries an SOS control with no emergency behaviour and a footer saying your
+live location is shared with two emergency contacts, which is not true of anything.
+
+The Safety Center is withheld for the same reason and more sharply. Its SOS card promises
+that pressing it sends your location and journey to your emergency contacts and to our
+team; a tile offers to call 112; a row says two trusted contacts have been added. There
+is no backend, no telephony, no location and no contact store, so none of that is true.
+Softening the approved safety copy would leave a surface that still reads as real, so the
+copy ships as approved and the route stays out of release builds instead. The design
+draws **one** of the eleven states an SOS control would need, and the two most likely
+real outcomes — permission denied, no contacts added — are among the ten it does not.
+[`docs/architecture.md`](docs/architecture.md) records the state model and the five
+things that must exist before the screen can be reached at all.
+
+Every screen delivers the **approved design surface**, not a production-complete
+feature. Create route still has no departure date or time control, so a one-off journey
+cannot say when it leaves; the Safety Center's three tool rows point at a trusted-contacts
+editor, a QR scanner and a block/report form that were never drawn. All of it is listed in
+[`docs/design-system.md`](docs/design-system.md) §8. With the designed screens now built,
+that list is the input to the dedicated product-gaps phase.
 
 ## Requirements
 
@@ -105,6 +125,7 @@ iOS requires macOS with Xcode.
 
 `docs/claude-designs/RideMate App.dc.html` is the authoritative visual reference:
 15 screens (12 unique + 3 dark-mode variants). It is treated as read-only.
+All twelve are now implemented.
 
 All values visible in it — amounts, Trust Scores, names, routes — are **mock data**.
 No backend or business rule is inferred from them.

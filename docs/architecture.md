@@ -44,7 +44,10 @@ lib/
 │   ├── discovery/                  # domain + application + presentation
 │   ├── create_route/               # domain + application + presentation
 │   ├── chat/                       # domain + presentation
-│   └── trip/                       # domain + application + presentation
+│   ├── trip/                       # domain + application + presentation
+│   ├── profile/                    # domain + application + presentation
+│   ├── reviews/                    # domain + presentation
+│   └── safety/                     # domain + application + presentation (debug-only)
 └── l10n/                           # ARBs + committed generated localizations
 ```
 
@@ -61,6 +64,14 @@ concrete consumer, never in anticipation of one — and a test asserts no file u
 
 `core/` is therefore two things: the design system, and shared product vocabulary that
 belongs to no single feature (`format/`, `places/`).
+
+Phase 6 kept three features apart rather than merging them into one profile slice, and
+built **no shared `User` model**. Profile, Reviews and Safety each hold their own
+snapshot: a single user object would invite every screen to read fields it has no source
+for, and the three surfaces make genuinely different claims — verification, reputation,
+and emergency capability. Where they must agree, a test enforces it instead: Profile's
+`4 / 5` badge is asserted against `VerificationStepId.values.length`, and Profile does
+not import the verification feature to get there.
 
 Each feature has **only the layers it earns**: onboarding needs persistence so it has
 `data/`; verification and home carry domain models; none has a layer it does not use.
@@ -148,6 +159,21 @@ safety-sensitive concept drawing on identity verification, account age, trip his
 cancellations, ratings, reports, fraud signals and device risk. Nothing in the client
 pre-empts it.
 
+**Phase 6 added the breakdown, which is where a policy could have slipped in.** Profile
+draws four factors — 100 / 90 / 94 / 82 — under a score of 92. Their mean is 91.5: close
+enough that turning it into a formula looks like fixing a rounding error rather than
+authoring a scoring rule. A test asserts the two stay unequal. Each factor's colour is a
+**declared field**, never derived from its value, because 82 amber beside 90 blue would
+otherwise define a cut-off nobody has decided. And the line `100'e ulaşmak için 1
+yolculuk daha` asserts eight points per journey — it ships as one opaque ARB message with
+no placeholder so it cannot be parameterised into a rate, with a test on the ARB itself
+because no test of the code would catch it.
+
+**Reputation is the same rule.** Reviews' histogram weighted out is 4.90, its two visible
+cards average 4.9, and both equal the headline rating. All three are independent declared
+fixtures; the tests assert the agreements are coincidences rather than sources. There is
+no `aggregateRatings`, no `ratingFromDistribution` and no bucket-count derivation.
+
 ### Matching, ranking and cost sharing are never computed here
 
 The same rule as the Trust Score, applied to discovery. There is no
@@ -221,6 +247,26 @@ behaviour, and a footer claiming their live location is shared with two emergenc
 when nothing is shared with anyone. That copy is presentation only — no location, no
 contact, no background tracking, no emergency state — and a test asserts it never appears
 on a release-reachable surface.
+
+Its SOS button now opens the Safety Center, which is withheld for the same reason and
+more sharply, so the two make one flow to review. The test that pins the route behind
+`kDebugMode` was generalised in Phase 6 to check **every** guarded route rather than this
+one, so a third cannot be added in a way that weakens the check.
+
+### Nothing on the Safety Center is real either
+
+No emergency dispatch, telephony, trusted-contact store, location sharing, QR
+verification, moderation pipeline or notification channel — and none of them stubbed. The
+snapshot holds exactly one field, a display count, which is itself untrue.
+
+So there is no `EmergencyService`, `DispatchService`, `ContactsService`, `QrService`,
+`BlockService`, `ReportService` or `ModerationService`, no `sosTriggered`,
+`emergencyActive`, `blockedUsers` or `reportSubmitted` field, no `tel:` URI,
+`url_launcher`, `MethodChannel` or permission request anywhere, and no `Notifier` — the
+snapshot is a plain `Provider` returning a constant. A test scans for every name above.
+
+See the safety-critical constraint below for the SOS state model and the five things that
+must exist before the screen can be reached at all.
 
 ### Chat sends nothing
 
@@ -318,19 +364,60 @@ enterprise architecture is built inside Flutter.**
 
 ## Safety-critical constraint
 
-The design contains no armed / countdown / triggered / cancelled SOS states. SOS
-behaviour is **not** invented ad hoc. Before any implementation, Phase 6 delivers a
-written SOS state-machine specification covering at minimum:
+**Phase 6 implements `idle` and nothing else.** The Safety Center is built, and the SOS
+control on it does exactly one thing: it says that nobody was notified.
 
-```
-idle → confirmation/armed → countdown → triggered → acknowledged/escalated
-                                     ↘ cancelled / error
-```
+### One of eleven states is designed
 
-for review and approval.
+| State | Approved visual | What it needs before it can exist |
+|---|---|---|
+| `idle` | **yes** — the red card with the halo, and Active Trip's red button | shipped |
+| `pressed` | no | the source declares exactly one hover, on an unrelated button; there is no pressed state anywhere in it |
+| `confirming` | no | a dialog or sheet, plus a decision on whether confirmation is even right for an emergency control |
+| `countdown` | no | a duration, a cancel affordance, the cancel window, haptics or audio |
+| `armed` | no | a persistent indicator that survives across screens |
+| `activated` / `triggered` | no | who was contacted, over what channel, and when |
+| `cancelled` | no | the path back to idle, and whether a cancelled alert is retained |
+| `permission-denied` | no | **the most likely real outcome**, and entirely undesigned |
+| `no-contacts` | no | the other likely one: the member never added anyone |
+| `failed` / offline | no | retry, queueing, and what "failed" means for a safety alert |
+| `expired` / `resolved` | no | the post-incident state, and data retention |
 
-`RmPulseRing`-style animation tokens exist in `RmMotion` as generic visual primitives
-with no SOS semantics attached.
+Writing the other ten from intuition is exactly what this section exists to prevent. **No
+`SosState` enum exists in the codebase**, and a test asserts it: a one-member enum is
+where the missing ten get invented.
+
+### Capabilities that must exist first
+
+This is not primarily a UI state machine. It crosses into telephony, background location,
+push delivery and a server that receives an alert and escalates it:
+
+1. a backend that accepts an alert, acknowledges it, and can be **observed** to have done so;
+2. trusted-contact storage plus a delivery channel — push? SMS? call? — with delivery evidence;
+3. location semantics: precision, duration, who can see it, and how it stops;
+4. the permission model — foreground and background location, notifications — and every denial path;
+5. emergency-call behaviour **per jurisdiction** (112 is EU and Turkey; English ships today and Arabic is declared);
+6. cancellation semantics, and whether a cancelled alert is retained;
+7. incident data retention and access.
+
+### Release criteria for the Safety Center
+
+The screen is registered **only under `kDebugMode`** — absent from the release route
+table, not merely unlinked — and nothing in any product surface navigates to it. Tests
+assert both, and assert that its untrue claims appear on no release-reachable surface.
+
+It becomes reachable when **all five** of these exist, and not before: an approved SOS
+state machine · trusted-contact semantics · location-sharing semantics · emergency-call
+behaviour · the permission and failure states. Until then the honest move is to withhold
+the screen rather than soften the approved safety copy, which would leave a surface that
+still reads as real.
+
+Debug-only is about the **entry point, not the code**. The screen is localized,
+accessible, RTL-safe, themed, tested and captured in goldens like anything else. What is
+withheld is reachability.
+
+`RmMotion`'s ring tokens and `RmHalo` are generic visual primitives with **no SOS
+semantics attached**. The halo says nothing about whether anything is happening.
 
 ## Cost-sharing constraint
 
@@ -394,6 +481,18 @@ no location sharing and **no emergency number** — none appears in the approved
 hard-coding one country's would invent safety guidance for every market. The real SOS state
 machine stays gated behind the written specification above.
 
+Phase 6 added four more, and deliberately gave each its **own** sentence rather than one
+shared apology. `112'yi ara` says the app cannot start phone calls **at all** — a
+different failure from a call that did not connect, and the useful one for a reviewer to
+read. The three tool rows name their three missing capabilities: trusted contacts, QR
+verification, blocking. None of them navigates, stores anything or requests a permission,
+and in particular **no block is remembered**: a member believing they are protected from
+someone when nothing happened is the most dangerous state this app could hold.
+
+The Safety Center's SOS card reuses Active Trip's string rather than restating it. One
+concept, one sentence — the keys are named `sos*` rather than `activeTripSos*` for that
+reason.
+
 `Rotayı yayınla` on Create Route is the same pattern with sharper copy, because
 *yayınla* implies other members can now see the journey. The message states that the
 route has **not** been published rather than merely that publishing is coming, and the
@@ -429,3 +528,8 @@ both locales, RTL, and at the maximum supported text scale.
 
 `test/support/fakes.dart` holds the test doubles. Production ships **no** fake
 implementations.
+
+A green suite is not the same as a correct screen. Every changed golden is **looked at**
+before its baseline is accepted: Phase 6's pass caught an ellipsised breakdown label, the
+brand-blue glow under a red emergency card, and an SOS glyph left at its raw unscaled
+size — none of which any assertion would have failed on.

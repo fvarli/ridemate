@@ -506,7 +506,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeTripShare => 'Share trip';
 
   @override
-  String get activeTripSos => 'SOS';
+  String get sosLabel => 'SOS';
 
   @override
   String activeTripLocationSharing(int count) {
@@ -528,7 +528,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Calling is not active yet. No call was started.';
 
   @override
-  String get activeTripSosUnavailable =>
+  String get sosUnavailable =>
       'Emergency features are not active yet. Nobody was notified.';
 
   @override
@@ -714,6 +714,77 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$author, $age, $context. $rating. $body';
   }
+
+  @override
+  String get safetyTitle => 'Safety Center';
+
+  @override
+  String get safetySubtitle => 'With you on every journey';
+
+  @override
+  String get safetySosTitle => 'Emergency help';
+
+  @override
+  String get safetySosPromise =>
+      'Press, and your location and journey details go to your emergency contacts + our team.';
+
+  @override
+  String get safetyCallEmergencyTitle => 'Call 112';
+
+  @override
+  String get safetyCallEmergencyCaption => 'Emergency services';
+
+  @override
+  String get safetyShareTripTitle => 'Share trip';
+
+  @override
+  String get safetyShareTripCaption => 'Live location';
+
+  @override
+  String safetyQuickActionSemanticLabel(String title, String caption) {
+    return '$title. $caption';
+  }
+
+  @override
+  String get safetyTrustedContactsTitle => 'Trusted contacts';
+
+  @override
+  String safetyTrustedContactsSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people added',
+      one: '1 person added',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get safetyVerifyPartnerTitle => 'Verify your travel partner';
+
+  @override
+  String get safetyVerifyPartnerSubtitle => 'Match identity by QR';
+
+  @override
+  String get safetyBlockReportTitle => 'Block / report a member';
+
+  @override
+  String get safetyBlockReportSubtitle => 'Confidential review';
+
+  @override
+  String get safetyCallUnavailable => 'The app cannot start phone calls yet.';
+
+  @override
+  String get safetyTrustedContactsUnavailable =>
+      'Trusted contacts are not available yet.';
+
+  @override
+  String get safetyVerifyPartnerUnavailable =>
+      'QR verification is not available yet.';
+
+  @override
+  String get safetyBlockReportUnavailable =>
+      'Blocking a member is not available yet.';
 
   @override
   String get dateToday => 'Today';

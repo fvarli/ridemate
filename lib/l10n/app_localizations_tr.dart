@@ -507,7 +507,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get activeTripShare => 'Yolculuğu paylaş';
 
   @override
-  String get activeTripSos => 'SOS';
+  String get sosLabel => 'SOS';
 
   @override
   String activeTripLocationSharing(int count) {
@@ -529,7 +529,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Arama özelliği henüz aktif değil. Hiçbir arama başlatılmadı.';
 
   @override
-  String get activeTripSosUnavailable =>
+  String get sosUnavailable =>
       'Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.';
 
   @override
@@ -715,6 +715,77 @@ class AppLocalizationsTr extends AppLocalizations {
   ) {
     return '$author, $age, $context. $rating. $body';
   }
+
+  @override
+  String get safetyTitle => 'Güvenlik Merkezi';
+
+  @override
+  String get safetySubtitle => 'Her yolculukta yanındayız';
+
+  @override
+  String get safetySosTitle => 'Acil yardım';
+
+  @override
+  String get safetySosPromise =>
+      'Bas, konumun ve yolculuk bilgin acil kişilere + ekibimize gider.';
+
+  @override
+  String get safetyCallEmergencyTitle => '112\'yi ara';
+
+  @override
+  String get safetyCallEmergencyCaption => 'Acil servis';
+
+  @override
+  String get safetyShareTripTitle => 'Yolculuğu paylaş';
+
+  @override
+  String get safetyShareTripCaption => 'Canlı konum';
+
+  @override
+  String safetyQuickActionSemanticLabel(String title, String caption) {
+    return '$title. $caption';
+  }
+
+  @override
+  String get safetyTrustedContactsTitle => 'Güvenilir kişiler';
+
+  @override
+  String safetyTrustedContactsSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kişi eklendi',
+      one: '1 kişi eklendi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get safetyVerifyPartnerTitle => 'Yol arkadaşını doğrula';
+
+  @override
+  String get safetyVerifyPartnerSubtitle => 'QR ile kimlik eşleştir';
+
+  @override
+  String get safetyBlockReportTitle => 'Kullanıcı engelle / bildir';
+
+  @override
+  String get safetyBlockReportSubtitle => 'Gizli inceleme';
+
+  @override
+  String get safetyCallUnavailable => 'Uygulama henüz arama başlatamıyor.';
+
+  @override
+  String get safetyTrustedContactsUnavailable =>
+      'Güvenilir kişiler özelliği henüz eklenmedi.';
+
+  @override
+  String get safetyVerifyPartnerUnavailable =>
+      'QR ile doğrulama özelliği henüz eklenmedi.';
+
+  @override
+  String get safetyBlockReportUnavailable =>
+      'Kullanıcı engelleme özelliği henüz eklenmedi.';
 
   @override
   String get dateToday => 'Bugün';

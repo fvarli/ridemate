@@ -136,20 +136,18 @@ void main() {
       expect(find.text(message), findsOneWidget);
     }
 
-    testWidgets('SOS notifies nobody and creates no state', (
+    testWidgets('SOS is drawn with no emergency state around it', (
       WidgetTester tester,
     ) async {
       await pump(tester);
 
-      await tapAndExpect(
-        tester,
-        find.text('SOS'),
-        'Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.',
-      );
-
-      // No countdown, no confirmation, no armed state, no success copy.
+      // Pressing it opens the Safety Center, which is covered in
+      // safety_flow_test.dart because it needs the router. What matters here
+      // is that the screen carries no emergency state of its own: no
+      // countdown, no confirmation, no armed or triggered copy, and nothing
+      // suggesting help was summoned.
+      expect(find.text('SOS'), findsOneWidget);
       expect(find.byType(AlertDialog), findsNothing);
-      expect(find.byType(ActiveTripScreen), findsOneWidget);
       for (final String forbidden in <String>[
         'gönderildi',
         'İptal',
@@ -158,8 +156,6 @@ void main() {
       ]) {
         expect(find.textContaining(forbidden), findsNothing, reason: forbidden);
       }
-      // And the button is unchanged.
-      expect(find.text('SOS'), findsOneWidget);
     });
 
     testWidgets('sharing shares nothing', (WidgetTester tester) async {

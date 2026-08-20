@@ -30,16 +30,16 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/icons/rm_icons.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
-import '../../../../core/theme/tokens/rm_motion.dart';
 import '../../../../core/theme/tokens/rm_radius.dart';
 import '../../../../core/theme/tokens/rm_sizing.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
+import '../../../../core/widgets/rm_halo.dart';
 import '../../../../core/widgets/rm_icon.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// The designed emergency affordance, with no emergency behaviour.
-class SosButton extends StatefulWidget {
+class SosButton extends StatelessWidget {
   const SosButton({required this.onPressed, super.key, this.expanded = false});
 
   final VoidCallback onPressed;
@@ -51,54 +51,25 @@ class SosButton extends StatefulWidget {
   final bool expanded;
 
   @override
-  State<SosButton> createState() => _SosButtonState();
-}
-
-class _SosButtonState extends State<SosButton>
-    with SingleTickerProviderStateMixin {
-  AnimationController? _halo;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // The halo repeats indefinitely, so a member who has asked for reduced
-    // motion gets a still button (WCAG 2.2.2).
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _halo?.dispose();
-      _halo = null;
-    } else {
-      _halo ??= AnimationController(vsync: this, duration: RmMotion.ring)
-        ..repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _halo?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final RmColors c = context.rmColors;
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final AnimationController? halo = _halo;
 
     final Widget button = Semantics(
       container: true,
       button: true,
-      label: l10n.activeTripSos,
+      label: l10n.sosLabel,
       excludeSemantics: true,
       child: Material(
         color: c.danger,
         borderRadius: RmRadius.brMd,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: widget.onPressed,
+          onTap: onPressed,
           child: Container(
             height: RmSizing.ctaMd,
-            width: widget.expanded ? null : _designWidth,
-            constraints: widget.expanded
+            width: expanded ? null : _designWidth,
+            constraints: expanded
                 ? null
                 : const BoxConstraints(minWidth: _designWidth),
             padding: const EdgeInsetsDirectional.symmetric(
@@ -117,7 +88,7 @@ class _SosButtonState extends State<SosButton>
                 // Never ellipsised: a truncated safety label is worse than a
                 // wrapped row.
                 Text(
-                  l10n.activeTripSos,
+                  l10n.sosLabel,
                   style: RmTypography.label.copyWith(
                     color: c.onPrimary,
                     fontWeight: FontWeight.w800,
@@ -132,54 +103,11 @@ class _SosButtonState extends State<SosButton>
       ),
     );
 
-    if (halo == null) return button;
-
-    return AnimatedBuilder(
-      animation: halo,
-      builder: (BuildContext context, Widget? child) => CustomPaint(
-        painter: _HaloPainter(
-          progress: halo.value,
-          color: c.danger,
-          radius: RmRadius.md,
-        ),
-        child: child,
-      ),
-      child: button,
-    );
+    // The halo is the source's `rm-ring`. It is decoration and carries no
+    // emergency meaning; see rm_halo.dart.
+    return RmHalo(color: c.danger, borderRadius: RmRadius.md, child: button);
   }
 
   /// The design's fixed SOS width (104px scaled).
   static const double _designWidth = 148;
-}
-
-/// The source's `rm-ring`: a halo that expands out of the button and fades.
-class _HaloPainter extends CustomPainter {
-  const _HaloPainter({
-    required this.progress,
-    required this.color,
-    required this.radius,
-  });
-
-  final double progress;
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double spread = RmMotion.ringMaxSpread * progress;
-    final double alpha = RmMotion.ringStartOpacity * (1 - progress);
-    if (alpha <= 0) return;
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        (Offset.zero & size).inflate(spread),
-        Radius.circular(radius + spread),
-      ),
-      Paint()..color = color.withValues(alpha: alpha),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_HaloPainter old) =>
-      old.progress != progress || old.color != color || old.radius != radius;
 }

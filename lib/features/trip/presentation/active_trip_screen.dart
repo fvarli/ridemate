@@ -62,7 +62,7 @@ class ActiveTripScreen extends ConsumerWidget {
               onCall: () => _notify(context, l10n.activeTripCallUnavailable),
               onMessage: () => context.pushNamed(AppRoutes.chat),
               onShare: () => _notify(context, l10n.activeTripShareUnavailable),
-              onSos: () => _onSosRequested(context, l10n),
+              onSos: () => _onSosRequested(context),
             ),
           ),
         ],
@@ -70,14 +70,14 @@ class ActiveTripScreen extends ConsumerWidget {
     );
   }
 
-  /// Temporary Phase 5 behaviour for the SOS control.
+  /// Opens the Safety Center.
   ///
-  /// Shows one message and nothing else. It does NOT arm, count down, trigger,
-  /// confirm, call, notify a contact, share a location or set any state — see
-  /// sos_button.dart. The real emergency flow is Phase 6, behind a written
-  /// state-machine specification.
-  void _onSosRequested(BuildContext context, AppLocalizations l10n) =>
-      _notify(context, l10n.activeTripSosUnavailable);
+  /// It does NOT arm, count down, trigger, confirm, call, notify a contact,
+  /// share a location or set any state — see sos_button.dart. Both screens are
+  /// debug-only, so this is a review path rather than a product one, and the
+  /// SOS card it lands on says plainly that nobody was notified.
+  void _onSosRequested(BuildContext context) =>
+      context.pushNamed(AppRoutes.safety);
 
   static void _notify(BuildContext context, String message) {
     ScaffoldMessenger.of(context)

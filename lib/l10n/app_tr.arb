@@ -603,9 +603,9 @@
   "@activeTripShare": {
     "description": "Yolculuğu paylaşma düğmesi. Paylaşım özelliği henüz yoktur."
   },
-  "activeTripSos": "SOS",
-  "@activeTripSos": {
-    "description": "Acil durum düğmesi. Tasarımdaki kırmızı düğme; arkasında hiçbir acil durum akışı yoktur."
+  "sosLabel": "SOS",
+  "@sosLabel": {
+    "description": "Acil durum işareti. Hem Aktif Yolculuk düğmesinde hem Güvenlik Merkezi kartında kullanılır; arkasında hiçbir acil durum akışı yoktur."
   },
   "activeTripLocationSharing": "{count, plural, =1{Canlı konumun 1 acil kişiyle paylaşılıyor} other{Canlı konumun {count} acil kişiyle paylaşılıyor}}",
   "@activeTripLocationSharing": {
@@ -624,9 +624,9 @@
   "@activeTripCallUnavailable": {
     "description": "Arama düğmesine basıldığında gösterilen geçici bilgi."
   },
-  "activeTripSosUnavailable": "Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.",
-  "@activeTripSosUnavailable": {
-    "description": "SOS düğmesine basıldığında gösterilen geçici bilgi. Kimseye ulaşılmadığını açıkça söylemelidir. Acil durum numarası veya başka bir yönlendirme eklenmez; gerçek acil durum akışı ayrı bir aşamada tasarlanacaktır."
+  "sosUnavailable": "Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.",
+  "@sosUnavailable": {
+    "description": "SOS öğesine basıldığında gösterilen geçici bilgi. Kimseye ulaşılmadığını açıkça söylemelidir. Aktif Yolculuk ve Güvenlik Merkezi aynı kavramı paylaştığı için ikisi de bu tek metni kullanır. Acil durum numarası veya başka bir yönlendirme eklenmez; gerçek acil durum akışı ayrı bir aşamada tasarlanacaktır."
   },
 
   "chatOnline": "Çevrimiçi",
@@ -877,6 +877,89 @@
       "rating": {"type": "String", "example": "5 üzerinden 5,0"},
       "body": {"type": "String", "example": "Çok güvenli…"}
     }
+  },
+  "safetyTitle": "Güvenlik Merkezi",
+  "@safetyTitle": {
+    "description": "Güvenlik Merkezi ekranının başlığı."
+  },
+  "safetySubtitle": "Her yolculukta yanındayız",
+  "@safetySubtitle": {
+    "description": "Başlık altındaki tanıtım satırı."
+  },
+  "safetySosTitle": "Acil yardım",
+  "@safetySosTitle": {
+    "description": "SOS kartının başlığı."
+  },
+  "safetySosPromise": "Bas, konumun ve yolculuk bilgin acil kişilere + ekibimize gider.",
+  "@safetySosPromise": {
+    "description": "SUNUM METNİ — GERÇEK DEĞİL. Tasarımdaki söz, olduğu gibi. Basıldığında hiçbir konum gönderilmez, hiçbir kişiye ulaşılmaz, bir ekip yoktur. Bu yüzden ekran yalnızca hata ayıklama derlemesinde açılabilir ve bu metin yayına çıkan hiçbir ekranda kullanılamaz. Koyu tema kopyası bu cümleyi kısaltır; tek metin iki temaya da hizmet ettiği için kapsayıcı olan bu sürüm kullanılır (D-safety-2)."
+  },
+  "safetyCallEmergencyTitle": "112'yi ara",
+  "@safetyCallEmergencyTitle": {
+    "description": "Hızlı işlem kutusu. Uygulama telefon araması başlatamaz; basıldığında bunu söyleyen bir metin gösterilir. Numara tasarımdan gelir ve pazara göre değişmesi gereken bir üründür — design-system.md §8."
+  },
+  "safetyCallEmergencyCaption": "Acil servis",
+  "@safetyCallEmergencyCaption": {
+    "description": "Hızlı işlem kutusunun alt satırı."
+  },
+  "safetyShareTripTitle": "Yolculuğu paylaş",
+  "@safetyShareTripTitle": {
+    "description": "Hızlı işlem kutusu. Paylaşım özelliği yoktur."
+  },
+  "safetyShareTripCaption": "Canlı konum",
+  "@safetyShareTripCaption": {
+    "description": "SUNUM METNİ — GERÇEK DEĞİL. Canlı konum diye bir özellik yoktur."
+  },
+  "safetyQuickActionSemanticLabel": "{title}. {caption}",
+  "@safetyQuickActionSemanticLabel": {
+    "description": "Hızlı işlem kutusunun ekran okuyucu metni; ekranda yazanla aynı olmalıdır.",
+    "placeholders": {
+      "title": {"type": "String", "example": "112'yi ara"},
+      "caption": {"type": "String", "example": "Acil servis"}
+    }
+  },
+  "safetyTrustedContactsTitle": "Güvenilir kişiler",
+  "@safetyTrustedContactsTitle": {
+    "description": "Liste satırı. Arkasındaki düzenleme ekranı tasarlanmamıştır."
+  },
+  "safetyTrustedContactsSubtitle": "{count, plural, =1{1 kişi eklendi} other{{count} kişi eklendi}}",
+  "@safetyTrustedContactsSubtitle": {
+    "description": "SUNUM METNİ — GERÇEK DEĞİL. Hiçbir kişi saklanmıyor; ortada bir kişi listesi yoktur. Güvenlik Merkezi yayına açılırsa değişmesi gereken ilk metin budur.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "safetyVerifyPartnerTitle": "Yol arkadaşını doğrula",
+  "@safetyVerifyPartnerTitle": {
+    "description": "Liste satırı. Arkasındaki tarayıcı tasarlanmamıştır."
+  },
+  "safetyVerifyPartnerSubtitle": "QR ile kimlik eşleştir",
+  "@safetyVerifyPartnerSubtitle": {
+    "description": "Liste satırının alt metni. Kamera izni, tarayıcı veya kimlik doğrulama sağlayıcısı yoktur."
+  },
+  "safetyBlockReportTitle": "Kullanıcı engelle / bildir",
+  "@safetyBlockReportTitle": {
+    "description": "Liste satırı. Tek bir işlem mi iki işlem mi olduğu, engellemenin mevcut eşleşme ve sohbetlere ne yaptığı ürün ve hukuk sorusudur; burada varsayılmaz. Koyu tema kopyası bu satırı hiç çizmez; güvenlik seçeneğinin gece kaybolması bir gerileme olduğu için satır iki temada da durur (D-safety-2)."
+  },
+  "safetyBlockReportSubtitle": "Gizli inceleme",
+  "@safetyBlockReportSubtitle": {
+    "description": "Liste satırının alt metni. Tasarımdan alınmıştır; işletme karşılığı tanımlı değildir."
+  },
+  "safetyCallUnavailable": "Uygulama henüz arama başlatamıyor.",
+  "@safetyCallUnavailable": {
+    "description": "112 kutusuna basıldığında gösterilen geçici bilgi. Eksik olan yetenek açıkça söylenir. tel: bağlantısı, url_launcher, platform kanalı, izin veya çevirici tümleştirmesi YOKTUR."
+  },
+  "safetyTrustedContactsUnavailable": "Güvenilir kişiler özelliği henüz eklenmedi.",
+  "@safetyTrustedContactsUnavailable": {
+    "description": "Geçici bilgi. Kişi eklenmez, izin istenmez, kimseye bildirim gitmez."
+  },
+  "safetyVerifyPartnerUnavailable": "QR ile doğrulama özelliği henüz eklenmedi.",
+  "@safetyVerifyPartnerUnavailable": {
+    "description": "Geçici bilgi. Kamera açılmaz, izin istenmez, QR üretilmez veya okunmaz."
+  },
+  "safetyBlockReportUnavailable": "Kullanıcı engelleme özelliği henüz eklenmedi.",
+  "@safetyBlockReportUnavailable": {
+    "description": "Geçici bilgi. Hiç kimse engellenmez ve hiçbir bildirim kaydedilmez. Sahte bir engelleme durumu saklamak, kişinin korunduğunu sanmasına yol açacağı için uygulamadaki en tehlikeli prototip durumu olurdu."
   },
   "dateToday": "Bugün",
   "@dateToday": {

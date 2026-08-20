@@ -28,6 +28,7 @@ import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/reviews/presentation/reviews_screen.dart';
+import '../../features/safety/presentation/safety_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import '../app_shell.dart';
@@ -199,6 +200,18 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
           name: AppRoutes.activeTrip,
           builder: (BuildContext context, GoRouterState state) =>
               const ActiveTripScreen(),
+        ),
+      // Debug only, for the same reason and more sharply. The Safety Center
+      // promises emergency behaviour that does not exist anywhere in this
+      // app, so the route is absent from the release table rather than merely
+      // unlinked. Reached from Active Trip's SOS button in debug builds, which
+      // gives the two withheld screens one coherent flow to review.
+      if (kDebugMode)
+        GoRoute(
+          path: AppRoutes.safetyPath,
+          name: AppRoutes.safety,
+          builder: (BuildContext context, GoRouterState state) =>
+              const SafetyScreen(),
         ),
     ],
   );

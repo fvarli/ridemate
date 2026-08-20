@@ -86,6 +86,15 @@ abstract final class AppRoutes {
   static const String activeTrip = 'activeTrip';
   static const String activeTripPath = '/trip/active';
 
+  /// Emergency help and safety tools. Registered only in debug builds, and
+  /// linked from no product surface: its SOS card promises that pressing it
+  /// sends your location to your emergency contacts, a tile offers to call
+  /// 112, and a row says two trusted contacts exist. None of that is backed
+  /// by anything. See safety_screen.dart for what must exist before it can
+  /// become reachable.
+  static const String safety = 'safety';
+  static const String safetyPath = '/safety';
+
   /// The branch destinations, in the order the design's tab bar shows them.
   static const List<String> shellPaths = <String>[
     homePath,

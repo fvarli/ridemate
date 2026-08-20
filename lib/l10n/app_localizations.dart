@@ -894,11 +894,11 @@ abstract class AppLocalizations {
   /// **'Yolculuğu paylaş'**
   String get activeTripShare;
 
-  /// Acil durum düğmesi. Tasarımdaki kırmızı düğme; arkasında hiçbir acil durum akışı yoktur.
+  /// Acil durum işareti. Hem Aktif Yolculuk düğmesinde hem Güvenlik Merkezi kartında kullanılır; arkasında hiçbir acil durum akışı yoktur.
   ///
   /// In tr, this message translates to:
   /// **'SOS'**
-  String get activeTripSos;
+  String get sosLabel;
 
   /// SUNUM METNİ — GERÇEK DEĞİL. Tasarımdaki alt bilgi satırı. Hiçbir konum paylaşılmıyor, hiçbir acil kişiye ulaşılmıyor, arka planda konum takibi yok. Bu yüzden ekran yalnızca hata ayıklama derlemesinde açılabilir ve bu metin yayına çıkan hiçbir ekranda kullanılamaz.
   ///
@@ -918,11 +918,11 @@ abstract class AppLocalizations {
   /// **'Arama özelliği henüz aktif değil. Hiçbir arama başlatılmadı.'**
   String get activeTripCallUnavailable;
 
-  /// SOS düğmesine basıldığında gösterilen geçici bilgi. Kimseye ulaşılmadığını açıkça söylemelidir. Acil durum numarası veya başka bir yönlendirme eklenmez; gerçek acil durum akışı ayrı bir aşamada tasarlanacaktır.
+  /// SOS öğesine basıldığında gösterilen geçici bilgi. Kimseye ulaşılmadığını açıkça söylemelidir. Aktif Yolculuk ve Güvenlik Merkezi aynı kavramı paylaştığı için ikisi de bu tek metni kullanır. Acil durum numarası veya başka bir yönlendirme eklenmez; gerçek acil durum akışı ayrı bir aşamada tasarlanacaktır.
   ///
   /// In tr, this message translates to:
   /// **'Acil durum özelliği henüz aktif değil. Kimseye bildirim gönderilmedi.'**
-  String get activeTripSosUnavailable;
+  String get sosUnavailable;
 
   /// Sohbet başlığındaki çevrimiçi bilgisi. Sunum verisidir; gerçek bir çevrimiçi durumu servisi yoktur. Kimlik doğrulamasından ayrı bir kavramdır.
   ///
@@ -1211,6 +1211,120 @@ abstract class AppLocalizations {
     String rating,
     String body,
   );
+
+  /// Güvenlik Merkezi ekranının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenlik Merkezi'**
+  String get safetyTitle;
+
+  /// Başlık altındaki tanıtım satırı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her yolculukta yanındayız'**
+  String get safetySubtitle;
+
+  /// SOS kartının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Acil yardım'**
+  String get safetySosTitle;
+
+  /// SUNUM METNİ — GERÇEK DEĞİL. Tasarımdaki söz, olduğu gibi. Basıldığında hiçbir konum gönderilmez, hiçbir kişiye ulaşılmaz, bir ekip yoktur. Bu yüzden ekran yalnızca hata ayıklama derlemesinde açılabilir ve bu metin yayına çıkan hiçbir ekranda kullanılamaz. Koyu tema kopyası bu cümleyi kısaltır; tek metin iki temaya da hizmet ettiği için kapsayıcı olan bu sürüm kullanılır (D-safety-2).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bas, konumun ve yolculuk bilgin acil kişilere + ekibimize gider.'**
+  String get safetySosPromise;
+
+  /// Hızlı işlem kutusu. Uygulama telefon araması başlatamaz; basıldığında bunu söyleyen bir metin gösterilir. Numara tasarımdan gelir ve pazara göre değişmesi gereken bir üründür — design-system.md §8.
+  ///
+  /// In tr, this message translates to:
+  /// **'112\'yi ara'**
+  String get safetyCallEmergencyTitle;
+
+  /// Hızlı işlem kutusunun alt satırı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Acil servis'**
+  String get safetyCallEmergencyCaption;
+
+  /// Hızlı işlem kutusu. Paylaşım özelliği yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuğu paylaş'**
+  String get safetyShareTripTitle;
+
+  /// SUNUM METNİ — GERÇEK DEĞİL. Canlı konum diye bir özellik yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı konum'**
+  String get safetyShareTripCaption;
+
+  /// Hızlı işlem kutusunun ekran okuyucu metni; ekranda yazanla aynı olmalıdır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{title}. {caption}'**
+  String safetyQuickActionSemanticLabel(String title, String caption);
+
+  /// Liste satırı. Arkasındaki düzenleme ekranı tasarlanmamıştır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenilir kişiler'**
+  String get safetyTrustedContactsTitle;
+
+  /// SUNUM METNİ — GERÇEK DEĞİL. Hiçbir kişi saklanmıyor; ortada bir kişi listesi yoktur. Güvenlik Merkezi yayına açılırsa değişmesi gereken ilk metin budur.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =1{1 kişi eklendi} other{{count} kişi eklendi}}'**
+  String safetyTrustedContactsSubtitle(int count);
+
+  /// Liste satırı. Arkasındaki tarayıcı tasarlanmamıştır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yol arkadaşını doğrula'**
+  String get safetyVerifyPartnerTitle;
+
+  /// Liste satırının alt metni. Kamera izni, tarayıcı veya kimlik doğrulama sağlayıcısı yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile kimlik eşleştir'**
+  String get safetyVerifyPartnerSubtitle;
+
+  /// Liste satırı. Tek bir işlem mi iki işlem mi olduğu, engellemenin mevcut eşleşme ve sohbetlere ne yaptığı ürün ve hukuk sorusudur; burada varsayılmaz. Koyu tema kopyası bu satırı hiç çizmez; güvenlik seçeneğinin gece kaybolması bir gerileme olduğu için satır iki temada da durur (D-safety-2).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı engelle / bildir'**
+  String get safetyBlockReportTitle;
+
+  /// Liste satırının alt metni. Tasarımdan alınmıştır; işletme karşılığı tanımlı değildir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli inceleme'**
+  String get safetyBlockReportSubtitle;
+
+  /// 112 kutusuna basıldığında gösterilen geçici bilgi. Eksik olan yetenek açıkça söylenir. tel: bağlantısı, url_launcher, platform kanalı, izin veya çevirici tümleştirmesi YOKTUR.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama henüz arama başlatamıyor.'**
+  String get safetyCallUnavailable;
+
+  /// Geçici bilgi. Kişi eklenmez, izin istenmez, kimseye bildirim gitmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenilir kişiler özelliği henüz eklenmedi.'**
+  String get safetyTrustedContactsUnavailable;
+
+  /// Geçici bilgi. Kamera açılmaz, izin istenmez, QR üretilmez veya okunmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile doğrulama özelliği henüz eklenmedi.'**
+  String get safetyVerifyPartnerUnavailable;
+
+  /// Geçici bilgi. Hiç kimse engellenmez ve hiçbir bildirim kaydedilmez. Sahte bir engelleme durumu saklamak, kişinin korunduğunu sanmasına yol açacağı için uygulamadaki en tehlikeli prototip durumu olurdu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı engelleme özelliği henüz eklenmedi.'**
+  String get safetyBlockReportUnavailable;
 
   /// Göreli tarih: bugün.
   ///

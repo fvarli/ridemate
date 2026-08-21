@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for the backend integration that begins in the next phase.
+         Debug and profile builds already declare this; without it here, a
+         release build would fail to reach the network in a way that never
+         reproduces in development.
+         No other permission is declared. Location, camera, contacts and
+         notifications arrive with the product behaviour that needs them. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="ridemate"
         android:name="${applicationName}"

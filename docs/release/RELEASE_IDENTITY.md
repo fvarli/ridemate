@@ -41,6 +41,49 @@ remains anywhere in the tree (a defect present in `lang_app`, avoided here).
 - Quietly — utility; first app on the unified `com.lunexa.*` root
 - **RideMate — service; second app on the unified root**
 
+## Release signing
+
+**There is no debug-key fallback, by construction.** `android/app/build.gradle.kts`
+creates a release signing config only when `android/key.properties` exists. If a release
+task is requested without it, the build stops at configuration time with a message naming
+the file and the keys it needs. The Flutter template line that signed release builds with
+the shared debug key is gone, and `test/app/android_release_config_test.dart` asserts it
+cannot come back.
+
+Debug builds need no private material and are unaffected.
+
+### Creating the upload key (owner action — not done by tooling)
+
+```bash
+keytool -genkey -v -keystore ~/keys/ridemate-upload.jks \
+        -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+```
+
+Then create `android/key.properties` — **git-ignored at the repository root and under
+`android/`; never committed, never pasted into CI in this phase**:
+
+```properties
+storeFile=/absolute/path/to/ridemate-upload.jks
+storePassword=…
+keyAlias=upload
+keyPassword=…
+```
+
+Keep the keystore and its passwords outside the repository and backed up. **The upload key
+cannot be replaced without Play's key-reset process**, so losing it is expensive.
+
+### Deliberately unsigned artifacts
+
+For structural verification only:
+
+```bash
+flutter build apk --release -Pridemate.allowUnsignedRelease=true
+```
+
+This is an explicitly named path so that "the release build succeeded" can never quietly
+mean "unsigned". The artifact cannot be installed as an update or uploaded to Play —
+verified with `apksigner verify`, which reports `DOES NOT VERIFY`.
+
 ## Open items before first publish
 
 - [ ] Store title (must fit 30 chars on Play, 30 on App Store)
@@ -48,4 +91,7 @@ remains anywhere in the tree (a defect present in `lang_app`, avoided here).
 - [ ] App icon (`flutter_launcher_icons` added at that point, not before)
 - [ ] Data-safety / privacy-nutrition declarations — significant, since the product
       handles identity verification, live location and emergency contacts
-- [ ] Signing keystore → `android/key.properties`, gitignored before it exists
+- [ ] **Signing keystore.** The *mechanism* is prepared and fail-closed (see above), and
+      the ignore rules are in place before any key exists. The item stays **open** until a
+      real private upload keystore exists and a signed release artifact has been built and
+      verified. Phase 7 could not and did not test real signing.

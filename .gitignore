@@ -46,3 +46,14 @@ app.*.map.json
 
 # Golden test failure artifacts. Regenerated on every failing run; never source.
 test/golden/failures/
+
+# Release signing material — NEVER commit. android/.gitignore covers these
+# under android/ only; these patterns catch a keystore left anywhere else.
+# Deliberately NOT ignored: *.pem, *.crt, *.cer — those are usually public
+# certificates, and hiding them would conceal real files rather than secrets.
+key.properties
+*.jks
+*.keystore
+*.p12
+*.p8
+*.mobileprovision

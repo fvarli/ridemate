@@ -1326,6 +1326,24 @@ abstract class AppLocalizations {
   /// **'Kullanıcı engelleme özelliği henüz eklenmedi.'**
   String get safetyBlockReportUnavailable;
 
+  /// Yönlendirme hatası ekranının başlığı. Tasarımda hata durumu çizilmemiştir; token dilinden türetilmiştir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir şeyler ters gitti'**
+  String get errorTitle;
+
+  /// Genel hata metni. Kullanıcıya teknik ayrıntı GÖSTERİLMEZ: istisna metni, yığın izi, denenen adres veya hata kodu buraya asla girmez. Ayrıntılar yalnızca hata raporlama noktasına gider.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sayfa açılamadı. Ana sayfaya dönüp tekrar deneyebilirsin.'**
+  String get errorBody;
+
+  /// Hata ekranındaki tek kurtarma eylemi. Ana sayfa her zaman vardır; çözülmeyebilecek bir eylem sunmak ikinci bir hata olurdu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana sayfaya dön'**
+  String get errorReturnHome;
+
   /// Göreli tarih: bugün.
   ///
   /// In tr, this message translates to:

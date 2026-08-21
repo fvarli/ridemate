@@ -788,6 +788,16 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kullanıcı engelleme özelliği henüz eklenmedi.';
 
   @override
+  String get errorTitle => 'Bir şeyler ters gitti';
+
+  @override
+  String get errorBody =>
+      'Bu sayfa açılamadı. Ana sayfaya dönüp tekrar deneyebilirsin.';
+
+  @override
+  String get errorReturnHome => 'Ana sayfaya dön';
+
+  @override
   String get dateToday => 'Bugün';
 
   @override

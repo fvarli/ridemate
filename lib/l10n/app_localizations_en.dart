@@ -787,6 +787,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Blocking a member is not available yet.';
 
   @override
+  String get errorTitle => 'Something went wrong';
+
+  @override
+  String get errorBody =>
+      'This page could not be opened. You can go back to the home screen and try again.';
+
+  @override
+  String get errorReturnHome => 'Back to home';
+
+  @override
   String get dateToday => 'Today';
 
   @override

@@ -961,6 +961,18 @@
   "@safetyBlockReportUnavailable": {
     "description": "Geçici bilgi. Hiç kimse engellenmez ve hiçbir bildirim kaydedilmez. Sahte bir engelleme durumu saklamak, kişinin korunduğunu sanmasına yol açacağı için uygulamadaki en tehlikeli prototip durumu olurdu."
   },
+  "errorTitle": "Bir şeyler ters gitti",
+  "@errorTitle": {
+    "description": "Yönlendirme hatası ekranının başlığı. Tasarımda hata durumu çizilmemiştir; token dilinden türetilmiştir."
+  },
+  "errorBody": "Bu sayfa açılamadı. Ana sayfaya dönüp tekrar deneyebilirsin.",
+  "@errorBody": {
+    "description": "Genel hata metni. Kullanıcıya teknik ayrıntı GÖSTERİLMEZ: istisna metni, yığın izi, denenen adres veya hata kodu buraya asla girmez. Ayrıntılar yalnızca hata raporlama noktasına gider."
+  },
+  "errorReturnHome": "Ana sayfaya dön",
+  "@errorReturnHome": {
+    "description": "Hata ekranındaki tek kurtarma eylemi. Ana sayfa her zaman vardır; çözülmeyebilecek bir eylem sunmak ikinci bir hata olurdu."
+  },
   "dateToday": "Bugün",
   "@dateToday": {
     "description": "Göreli tarih: bugün."

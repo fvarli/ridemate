@@ -32,6 +32,8 @@ import '../../features/safety/presentation/safety_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import '../app_shell.dart';
+import '../error/app_error_screen.dart';
+import '../error/rm_error_reporter.dart';
 import '../startup_screen.dart';
 import 'app_routes.dart';
 
@@ -50,6 +52,17 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
     initialLocation: AppRoutes.startupPath,
     debugLogDiagnostics: false,
     refreshListenable: refresh,
+    // go_router's default error page is unthemed, unlocalized, and prints the
+    // exception and the attempted path to the member. The failure is recorded
+    // instead, and the screen says only what a member can act on.
+    errorBuilder: (BuildContext context, GoRouterState state) {
+      reportError(
+        state.error ?? Exception('Unresolved route'),
+        StackTrace.current,
+        hint: 'router: ${state.matchedLocation}',
+      );
+      return const AppErrorScreen();
+    },
     redirect: (BuildContext context, GoRouterState state) {
       final AsyncValue<bool> onboarding = ref.read(
         onboardingControllerProvider,

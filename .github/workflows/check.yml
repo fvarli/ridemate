@@ -1,0 +1,93 @@
+# ─────────────────────────────────────────────────────────────
+# RideMate — continuous integration
+#
+# One job runs the repository's own gate, `tool/check.sh`, rather than
+# restating its steps here. That script stays the canonical definition of
+# "green" for both local development and CI, so the two cannot drift apart.
+#
+# WHY THE GOLDEN SUITE IS NOT RUN HERE
+#
+# Goldens are excluded for a specific, measurable reason rather than a general
+# verdict about CI. `test/support/fonts.dart` loads a colour emoji font on a
+# best-effort basis from three known host paths; the approved Chat copy
+# contains emoji, so a runner without one bakes tofu into the Chat baselines
+# and every Chat golden diffs. Font-stack and rasterizer differences between
+# the runner and the machine that generated the committed baselines compound
+# that. A permanently red required check teaches people to ignore it.
+#
+# REVISIT TRIGGER: a pinned Linux container image with a fixed font set and a
+# fixed Flutter revision. At that point the golden suite becomes a CI gate and
+# this exclusion is removed. Until then goldens remain the local Linux gate
+# that tool/goldens.sh already documents.
+#
+# Deliberately absent: deployment, release signing, secrets of any kind, and
+# any step that regenerates a golden baseline.
+# ─────────────────────────────────────────────────────────────
+
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same ref makes an in-flight run redundant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned deliberately. pubspec.yaml declares only a floor, because a caret
+  # range cannot express "the toolchain this repository was built against";
+  # this is where the exact version lives. See README.md.
+  FLUTTER_VERSION: 3.41.1
+
+jobs:
+  check:
+    name: format, analyze, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      # The repository's own gate: dart format --set-exit-if-changed,
+      # flutter analyze --fatal-infos --fatal-warnings, and the
+      # host-independent test suite.
+      - name: Quality gates
+        run: bash tool/check.sh
+
+  android-debug:
+    name: android debug build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Matches the compileOptions/kotlinOptions in android/app/build.gradle.kts.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      # Debug only. Release signing needs a private upload key that is not, and
+      # must never be, available to CI in this phase.
+      - name: Build debug APK
+        run: flutter build apk --debug

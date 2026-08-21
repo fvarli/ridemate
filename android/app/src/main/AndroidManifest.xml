@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="ridemate"
+        android:label="RideMate"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

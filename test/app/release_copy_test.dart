@@ -186,4 +186,45 @@ void main() {
       );
     });
   });
+
+  group('Brand casing', () {
+    test('every user-visible surface says RideMate', () {
+      // Three surfaces showed three different spellings: RideMate in the task
+      // switcher, `ridemate` under the Android launcher icon and `Ridemate` on
+      // the iOS home screen.
+      expect(
+        File('lib/app/ride_mate_app.dart').readAsStringSync(),
+        contains("appTitle = 'RideMate'"),
+      );
+      expect(
+        File('android/app/src/main/AndroidManifest.xml').readAsStringSync(),
+        contains('android:label="RideMate"'),
+      );
+      expect(
+        File('ios/Runner/Info.plist').readAsStringSync(),
+        contains('<key>CFBundleDisplayName</key>\n\t<string>RideMate</string>'),
+      );
+    });
+
+    test('technical identifiers stay lowercase and unchanged', () {
+      // Renaming any of these is either impossible after publish or a
+      // gratuitous churn of the project. They are not brand surfaces.
+      expect(
+        File('pubspec.yaml').readAsStringSync(),
+        contains('name: ridemate'),
+      );
+      expect(
+        File('android/app/build.gradle.kts').readAsStringSync(),
+        contains('applicationId = "com.lunexa.ridemate"'),
+      );
+      expect(
+        File('ios/Runner/Info.plist').readAsStringSync(),
+        contains('<key>CFBundleName</key>\n\t<string>ridemate</string>'),
+      );
+      expect(
+        File('ios/Runner.xcodeproj/project.pbxproj').readAsStringSync(),
+        contains('PRODUCT_BUNDLE_IDENTIFIER = com.lunexa.ridemate;'),
+      );
+    });
+  });
 }

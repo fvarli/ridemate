@@ -973,6 +973,14 @@
   "@errorReturnHome": {
     "description": "Hata ekranındaki tek kurtarma eylemi. Ana sayfa her zaman vardır; çözülmeyebilecek bir eylem sunmak ikinci bir hata olurdu."
   },
+  "messagesPlaceholderBody": "Sohbet listesi henüz eklenmedi.",
+  "@messagesPlaceholderBody": {
+    "description": "Mesajlar sekmesi. Tasarımda sohbet listesi ekranı hiç çizilmemiştir; tek örnek sohbeti burada göstermek, sabit bir konuşmayı kullanıcının tüm gelen kutusu gibi sunmak olurdu. Yayına ulaşan bir yüzey olduğu için metin çevrilebilir olmalıdır — design-system.md §8."
+  },
+  "homeShortcutUnavailable": "Kayıtlı adres özelliği henüz eklenmedi.",
+  "@homeShortcutUnavailable": {
+    "description": "Ana ekrandaki kayıtlı adres kısayollarına basıldığında gösterilen geçici bilgi. Kayıtlı adres diye bir kavram, saklama veya arka uç yoktur; hiçbir arama başlatılmaz ve hiçbir yere gidilmez."
+  },
   "dateToday": "Bugün",
   "@dateToday": {
     "description": "Göreli tarih: bugün."

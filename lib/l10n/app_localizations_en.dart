@@ -797,6 +797,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorReturnHome => 'Back to home';
 
   @override
+  String get messagesPlaceholderBody =>
+      'The conversation list is not available yet.';
+
+  @override
+  String get homeShortcutUnavailable =>
+      'Saved addresses are not available yet.';
+
+  @override
   String get dateToday => 'Today';
 
   @override

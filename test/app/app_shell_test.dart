@@ -225,7 +225,18 @@ void main() {
 
       container.read(routerProvider).go(AppRoutes.messagesPath);
       await tester.pumpAndSettle();
-      expect(find.text('Conversation list — not designed yet'), findsOneWidget);
+      // Localized like any other release-reachable surface. It used to be two
+      // hardcoded English strings in the route table of a Turkish-first
+      // product.
+      expect(
+        find.text('The conversation list is not available yet.'),
+        findsOneWidget,
+      );
+
+      container.read(localeProvider.notifier).set(const Locale('tr'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sohbet listesi henüz eklenmedi.'), findsOneWidget);
+      expect(find.text('Mesajlar'), findsWidgets);
     });
   });
 

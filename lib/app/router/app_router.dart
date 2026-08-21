@@ -31,6 +31,7 @@ import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/safety/presentation/safety_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
+import '../../l10n/app_localizations.dart';
 import '../app_shell.dart';
 import '../error/app_error_screen.dart';
 import '../error/rm_error_reporter.dart';
@@ -138,15 +139,27 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
               ),
             ],
           ),
-          _placeholderBranch(
-            path: AppRoutes.messagesPath,
-            name: AppRoutes.messages,
-            title: 'Messages',
-            // Chat itself shipped in Phase 5, reached from Route Details. What
-            // is missing is the inbox: the design has no conversation-list
-            // screen, and wiring this tab to the one fixture thread would fake
-            // one. Recorded in design-system.md §8.
-            phase: 'Conversation list — not designed yet',
+          // Chat itself shipped in Phase 5, reached from Route Details. What
+          // is missing is the inbox: the design has no conversation-list
+          // screen, and wiring this tab to the one fixture thread would fake
+          // one. Recorded in design-system.md §8.
+          //
+          // This is a release-reachable tab, so its copy is localized like any
+          // other product surface.
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.messagesPath,
+                name: AppRoutes.messages,
+                builder: (BuildContext context, GoRouterState state) {
+                  final AppLocalizations l10n = AppLocalizations.of(context);
+                  return PlaceholderScreen(
+                    routeName: l10n.navMessages,
+                    phase: l10n.messagesPlaceholderBody,
+                  );
+                },
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: <RouteBase>[
@@ -229,21 +242,3 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
     ],
   );
 });
-
-StatefulShellBranch _placeholderBranch({
-  required String path,
-  required String name,
-  required String title,
-  required String phase,
-}) {
-  return StatefulShellBranch(
-    routes: <RouteBase>[
-      GoRoute(
-        path: path,
-        name: name,
-        builder: (BuildContext context, GoRouterState state) =>
-            PlaceholderScreen(routeName: title, phase: phase),
-      ),
-    ],
-  );
-}

@@ -245,8 +245,26 @@ class _SearchField extends StatelessWidget {
 ///
 /// Icons are kept in both themes: the dark comp omits them, but an icon is
 /// information, and dark must never show less than light.
+/// NONE OF THEM GOES ANYWHERE. A saved address needs somewhere to be saved,
+/// and RideMate has no such concept — no store, no editor, no backend. Two of
+/// the three labels happen to match a fixture place, but `Ev` matches none, so
+/// wiring those two and apologising for the third would be worse than three
+/// honest chips; inventing a home place would be inventing the saved-address
+/// model itself.
+///
+/// So each says what is missing, using the same message pattern as every other
+/// unavailable action. They were previously `onTap: () {}` — a control that
+/// looks live and silently is not, which is the one thing this codebase does
+/// not do anywhere else.
 class _ShortcutRow extends StatelessWidget {
   const _ShortcutRow();
+
+  static void _showUnavailable(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.homeShortcutUnavailable)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -265,20 +283,20 @@ class _ShortcutRow extends StatelessWidget {
             label: l10n.homeShortcutHome,
             icon: RmIcons.home,
             compact: true,
-            onTap: () {},
+            onTap: () => _showUnavailable(context),
           ),
           const SizedBox(width: RmSpacing.sm),
           RmChip(
             label: l10n.homeShortcutWork,
             icon: RmIcons.briefcase,
             compact: true,
-            onTap: () {},
+            onTap: () => _showUnavailable(context),
           ),
           const SizedBox(width: RmSpacing.sm),
           RmChip(
             label: l10n.homeShortcutUniversity,
             compact: true,
-            onTap: () {},
+            onTap: () => _showUnavailable(context),
           ),
         ],
       ),

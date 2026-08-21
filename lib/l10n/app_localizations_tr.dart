@@ -798,6 +798,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get errorReturnHome => 'Ana sayfaya dön';
 
   @override
+  String get messagesPlaceholderBody => 'Sohbet listesi henüz eklenmedi.';
+
+  @override
+  String get homeShortcutUnavailable =>
+      'Kayıtlı adres özelliği henüz eklenmedi.';
+
+  @override
   String get dateToday => 'Bugün';
 
   @override

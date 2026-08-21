@@ -215,6 +215,8 @@
   "errorTitle": "Something went wrong",
   "errorBody": "This page could not be opened. You can go back to the home screen and try again.",
   "errorReturnHome": "Back to home",
+  "messagesPlaceholderBody": "The conversation list is not available yet.",
+  "homeShortcutUnavailable": "Saved addresses are not available yet.",
   "dateToday": "Today",
   "dateYesterday": "Yesterday",
   "dateTomorrow": "Tomorrow",

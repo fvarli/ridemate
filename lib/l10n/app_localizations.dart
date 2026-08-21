@@ -1344,6 +1344,18 @@ abstract class AppLocalizations {
   /// **'Ana sayfaya dön'**
   String get errorReturnHome;
 
+  /// Mesajlar sekmesi. Tasarımda sohbet listesi ekranı hiç çizilmemiştir; tek örnek sohbeti burada göstermek, sabit bir konuşmayı kullanıcının tüm gelen kutusu gibi sunmak olurdu. Yayına ulaşan bir yüzey olduğu için metin çevrilebilir olmalıdır — design-system.md §8.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet listesi henüz eklenmedi.'**
+  String get messagesPlaceholderBody;
+
+  /// Ana ekrandaki kayıtlı adres kısayollarına basıldığında gösterilen geçici bilgi. Kayıtlı adres diye bir kavram, saklama veya arka uç yoktur; hiçbir arama başlatılmaz ve hiçbir yere gidilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı adres özelliği henüz eklenmedi.'**
+  String get homeShortcutUnavailable;
+
   /// Göreli tarih: bugün.
   ///
   /// In tr, this message translates to:

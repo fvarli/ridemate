@@ -3,9 +3,10 @@
 //
 // Hosts the four bottom-navigation branches and the centre action button.
 //
-// PHASE 1 SCOPE: the branches render bare placeholders. No product screen,
-// no mock data, no product layout. Phases 2-6 replace each placeholder with
-// the real screen; nothing else about the shell needs to change.
+// Three of the four branches are real screens. Messages is still a
+// PlaceholderScreen, and stays one until a conversation list is designed:
+// wiring the tab to the single fixture thread would present a hard-coded
+// conversation as the member's whole inbox. See docs/design-system.md §8.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';

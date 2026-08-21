@@ -1,8 +1,10 @@
 # RideMate — Architecture
 
-> **Status:** Phase 5 complete — Onboarding, Verification, Home, Search, Match Results,
-> Route Details, Create Route and Chat. Active Trip is built but reachable only in debug
-> builds. Messages and Profile remain placeholders.
+> **Status:** Phase 7 complete — every approved screen is built, and the repository has a
+> production floor: CI, fail-closed release signing, application error handling and
+> persisted preferences. Active Trip and the Safety Center are reachable only in debug
+> builds. Messages remains the one placeholder, because the design has no conversation
+> list.
 
 ## Product framing
 
@@ -350,6 +352,95 @@ widget tests cover RTL today, before any Arabic strings exist.
 RideMate has an in-app language override, and ambient locale state would silently desync
 from it. A formatter constructed without localizations throws rather than quietly
 emitting wrong units.
+
+## Production floor
+
+Phase 7 added no product behaviour. It made the repository safe to connect a backend to.
+
+### Release signing fails closed
+
+The Flutter template signs release builds with the shared debug key. That line is gone and
+there is no fallback: a release signing config exists only when `android/key.properties`
+does, and a release task requested without it stops at configuration time with a message
+naming the file and the keys. An unsigned artifact is still obtainable for structural
+checks, but only behind an explicitly named property, so "the release build succeeded" can
+never quietly mean "unsigned". See `docs/release/RELEASE_IDENTITY.md`;
+`test/app/android_release_config_test.dart` asserts the debug config cannot return.
+
+### Errors are observed, never suppressed
+
+`installRmErrorHandlers` installs two hooks that are disjoint by construction:
+`FlutterError.onError` for framework errors and `PlatformDispatcher.instance.onError` for
+uncaught asynchronous ones. **`runZonedGuarded` is deliberately not used** — it would catch
+the same async errors the platform hook already delivers and report each one twice.
+
+`PlatformDispatcher.instance.onError` **returns `false`**. That means "not handled": the
+error still reaches the default handler and platform behaviour is unchanged. Returning
+`true` would silence a crash while nothing records it, which is worse than the crash.
+
+`reportError` is one function, not an interface. There is exactly one implementation and a
+hierarchy for it would be the ceremony this document forbids elsewhere; a crash reporter
+attaches inside it, and nothing else in the app moves. No vendor ships in this phase.
+
+The router's error surface shows a member a localized sentence and one recovery action
+that genuinely resolves. **No exception text, stack frame, attempted route or error code
+reaches the screen** — those go to the report. The framework's red error box is replaced
+only under `kReleaseMode`, because in debug and under test that box is how a broken build
+announces itself.
+
+### Preferences are persisted, and cannot lose a race
+
+Theme mode and locale are device-local UI preferences, stored under `ridemate.prefs.*`
+through their own repository. They are not onboarding state and not session state; the
+three concepts stay separate, and share a platform store only because that is one store,
+not one concept.
+
+The store is resolved in `main()` and injected into the root scope, so provider `build()`
+reads it synchronously. **This is why `main()` is async**, reversing the Phase 1 decision
+to keep it synchronous — that decision predated there being anything to load, and became
+the reason preferences reset on every restart.
+
+The ordering is the design, not an implementation detail: because nothing arrives after
+the first frame, **no late read can overwrite a newer choice**. A notifier that returned a
+default and then hydrated would lose that race on a fast toggle, and guarding against it
+would mean defending a hazard that need not exist. Writes are fire-and-forget with their
+own error handler; a failed write is reported and the member keeps their choice. A store
+that cannot be opened degrades to a session-only one, so a broken preference store cannot
+stop the app from starting.
+
+### Orientation is deliberately not locked
+
+The approved design is a portrait phone comp. That is a reason to design for portrait and
+not a reason to forbid landscape: a phone in a car mount is landscape, and members who
+cannot comfortably rotate a device rely on the system honouring what they chose. Neither
+platform restricts orientation and nothing calls `setPreferredOrientations`;
+`test/app/orientation_test.dart` smoke-tests every screen at two landscape surfaces and
+asserts the decision has not been reversed. **A screen that breaks in landscape is a
+responsive defect, not an argument for a lock** — Onboarding was one, and was fixed.
+
+### Two kinds of version decision
+
+They are not the same thing and the repository keeps them apart:
+
+* **Inherited from the Flutter SDK on purpose** — `minSdk`, `targetSdk`, `compileSdk`,
+  `ndkVersion`. `RELEASE_IDENTITY.md` locks that; overriding would fight generated config.
+* **Pinned for reproducibility** — every direct dependency, plus a committed `pubspec.lock`.
+  `intl` is the deliberate exception: `flutter_localizations` pins it to an exact version,
+  so `any` is what lets the SDK own it and a caret range would break `pub get` the day
+  Flutter bumps that pin.
+
+The toolchain itself cannot be pinned from a pubspec. `environment.flutter` declares a
+floor, the exact version lives in `.github/workflows/check.yml`, and neither pretends to be
+the other. No version manager is introduced.
+
+### CI
+
+`.github/workflows/check.yml` runs `tool/check.sh` rather than restating its steps, so the
+script stays the single definition of green and local and CI cannot drift. A second job
+builds the debug APK. **Goldens are excluded for a specific reason, not a verdict**: the
+emoji font `test/support/fonts.dart` loads is best-effort, so a runner without one bakes
+tofu into the Chat baselines. The revisit trigger is a pinned container image with a fixed
+font set and Flutter revision.
 
 ## Backend boundary
 

@@ -1,9 +1,9 @@
 # RideMate — Design System
 
-> **Status:** Phase 5 — the token layer and primitives are in production use by every
-> built screen: Onboarding, Verification, Home, Search, Match Results, Route Details,
-> Create Route, Chat, and Active Trip (debug-only). Token code lives in
-> `lib/core/theme/tokens/`, primitives in `lib/core/widgets/`.
+> **Status:** Phase 7 — the token layer and primitives are in production use by every one
+> of the twelve approved screens, Active Trip and the Safety Center included (both
+> debug-only). Token code lives in `lib/core/theme/tokens/`, primitives in
+> `lib/core/widgets/`.
 > Every value below is pinned by `test/core/theme/tokens_test.dart`.
 >
 > **Source of truth:** `docs/claude-designs/RideMate App.dc.html` — immutable.

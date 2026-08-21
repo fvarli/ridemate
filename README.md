@@ -9,11 +9,17 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 6 — the approved screens are complete.** The design system (Phase 1) is done, and
-Onboarding, Verification, Home, Search, Match Results, Route Details, Create route, Chat,
-Profile and Reviews are implemented. Active Trip and the Safety Center are built and
-tested but reachable **only in debug builds** — see below. Messages is the one remaining
-placeholder, because the design has no conversation list.
+**Phase 7 — the approved screens are complete and the repository has a production floor.**
+The design system (Phase 1) is done, and Onboarding, Verification, Home, Search, Match
+Results, Route Details, Create route, Chat, Profile and Reviews are implemented. Active
+Trip and the Safety Center are built and tested but reachable **only in debug builds** —
+see below. Messages is the one remaining placeholder, because the design has no
+conversation list.
+
+Phase 7 added no product behaviour. It added CI, fail-closed release signing, application
+error handling, persisted preferences and landscape coverage — the things that have to be
+right before a backend is connected in the next phase. See
+[`docs/architecture.md`](docs/architecture.md) under *Production floor*.
 
 There is no backend, no authentication, no identity-verification provider, no
 payments, no location and no maps vendor. Everything those screens display is
@@ -100,6 +106,30 @@ flutter test
 
 Analyzer infos are fatal on purpose — a lint that is only a suggestion is a lint that
 accumulates.
+
+CI runs that same script rather than a copy of its steps, so the two cannot drift.
+Goldens stay out of CI deliberately — they are host-dependent, and the workflow header
+records both the reason and what would change it.
+
+**Expected toolchain: Flutter 3.41.1 (stable).** `pubspec.yaml` declares a floor, since a
+pubspec cannot pin the SDK itself; the exact version is pinned in
+`.github/workflows/check.yml`. No version manager is used.
+
+## Release builds
+
+Release signing **fails closed**. There is no debug-key fallback:
+
+```bash
+flutter build apk --release          # fails unless android/key.properties exists
+```
+
+`android/key.properties` is git-ignored and must never be committed. See
+[`docs/release/RELEASE_IDENTITY.md`](docs/release/RELEASE_IDENTITY.md) for how the upload
+key is created. For structural checks only, an explicitly unsigned artifact:
+
+```bash
+flutter build apk --release -Pridemate.allowUnsignedRelease=true
+```
 
 ## Running
 

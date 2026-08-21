@@ -145,33 +145,43 @@ class _IntroSheet extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            _Headline(l10n: l10n),
-            const SizedBox(height: RmSpacing.md),
-            Text(
-              l10n.onboardingSubtitle,
-              style: RmTypography.caption.copyWith(color: c.sub, height: 1.45),
-            ),
-            const SizedBox(height: RmSpacing.xxl),
-            _SocialProof(l10n: l10n),
-            const SizedBox(height: RmSpacing.xxl),
-            RmButton(
-              label: l10n.onboardingCreateAccount,
-              onPressed: onCreateAccountRequested,
-            ),
-            const SizedBox(height: RmSpacing.sm),
-            RmButton(
-              label: l10n.onboardingSignIn,
-              variant: RmButtonVariant.ghost,
-              size: RmButtonSize.md,
-              onPressed: onSignInRequested,
-            ),
-            const SizedBox(height: RmSpacing.xl),
-            const _PageDots(count: 3, activeIndex: 0),
-          ],
+        // The sheet is bottom-anchored in a Stack, so it takes its natural
+        // height and nothing clips it in portrait. On a short landscape
+        // surface that natural height exceeds the screen, so it scrolls
+        // instead of overflowing. Sizing to the content means portrait
+        // rendering is byte-identical; only the too-short case changes.
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _Headline(l10n: l10n),
+              const SizedBox(height: RmSpacing.md),
+              Text(
+                l10n.onboardingSubtitle,
+                style: RmTypography.caption.copyWith(
+                  color: c.sub,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: RmSpacing.xxl),
+              _SocialProof(l10n: l10n),
+              const SizedBox(height: RmSpacing.xxl),
+              RmButton(
+                label: l10n.onboardingCreateAccount,
+                onPressed: onCreateAccountRequested,
+              ),
+              const SizedBox(height: RmSpacing.sm),
+              RmButton(
+                label: l10n.onboardingSignIn,
+                variant: RmButtonVariant.ghost,
+                size: RmButtonSize.md,
+                onPressed: onSignInRequested,
+              ),
+              const SizedBox(height: RmSpacing.xl),
+              const _PageDots(count: 3, activeIndex: 0),
+            ],
+          ),
         ),
       ),
     );

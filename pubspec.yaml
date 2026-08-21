@@ -3,8 +3,22 @@ description: "RideMate — trust-first community ride sharing for Istanbul."
 publish_to: 'none'
 version: 0.1.0+1
 
+# Two different kinds of version decision live in this file, and they are not
+# the same thing:
+#
+#   * values INHERITED from the Flutter SDK on purpose — minSdk, targetSdk and
+#     compileSdk in android/app/build.gradle.kts. The generated values are the
+#     intended baseline; see docs/release/RELEASE_IDENTITY.md.
+#   * values pinned here for REPRODUCIBILITY — every direct dependency below,
+#     plus pubspec.lock, which is committed.
+#
+# The Flutter toolchain itself cannot be pinned from a pubspec: `flutter` here
+# is a floor, not an exact version. The exact version is pinned in
+# .github/workflows/check.yml and recorded in README.md. No version manager is
+# introduced for it.
 environment:
   sdk: ^3.11.0
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:
@@ -14,6 +28,10 @@ dependencies:
   flutter_riverpod: ^3.3.2
   flutter_svg: ^2.3.0
   go_router: ^17.5.0
+  # DELIBERATELY UNPINNED. flutter_localizations pins intl to an exact version
+  # (0.20.2 as of Flutter 3.41.1), so `any` is what lets the SDK own it. A
+  # caret range resolves identically today and breaks `pub get` the day
+  # Flutter bumps that pin.
   intl: any
   shared_preferences: ^2.5.5
 

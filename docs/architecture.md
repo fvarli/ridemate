@@ -115,34 +115,59 @@ Material's own animated `ColorScheme` during a theme change.
 
 ### Riverpod boundary
 
-`ProviderScope` is the outermost widget; `main()` is synchronous, so nothing blocks the
-first frame. A neutral launch surface (`StartupScreen`) covers the moment the stored
-onboarding flag is read, so neither the intro nor Home can flash before it resolves.
+`ProviderScope` is the outermost widget. `main()` is async: it resolves preferences and
+opens the credential store before the first frame, then starts session restoration
+**without awaiting it**. Blocking on a network round trip would stall launch for as long as
+a bad connection takes, on a device that may have nothing to restore.
 
-Providers: `themeModeProvider`, `localeProvider`, `routerProvider`,
-`onboardingRepositoryProvider`, `onboardingControllerProvider`,
-`verificationControllerProvider`, `homeSnapshotProvider`.
+`StartupScreen` covers the moment either dimension is still resolving, so nothing flashes.
 
-The only persisted state is the onboarding flag. Theme and locale remain in-memory.
-Verification state is in-memory and **never** persisted — showing a fake verification
-level that survived a restart would be misleading in a trust product.
+Providers include `themeModeProvider`, `localeProvider`, `routerProvider`,
+`onboardingRepositoryProvider`, `onboardingControllerProvider`, `credentialStoreProvider`,
+`rmSessionProvider`, `verificationControllerProvider`, `homeSnapshotProvider`.
+
+`rmSessionProvider` deliberately has **no default**, unlike the others. A default would need
+an HTTP client and a base URL, and the only honest values for those reach the network — so a
+test that forgets to override it fails clearly instead of making a request.
+
+Persisted state, and only this:
+
+| What | Where | Why there |
+|---|---|---|
+| `hasSeenOnboarding` | `SharedPreferences` | device-local UI state |
+| install marker | `SharedPreferences` | must NOT survive an uninstall — that is the point |
+| refresh token + session id | platform secure storage | credentials |
+| **access token** | **memory only** | 15-minute life; a cold start re-mints it from the refresh token before the first authenticated call, so persisting it would buy milliseconds and widen a device dump |
+| passcodes | **nowhere, ever** | single-use, five-minute life |
+
+Theme and locale remain in memory. Verification state is in-memory and **never** persisted —
+a fake verification level surviving a restart would be misleading in a trust product.
 
 ### Three concepts that must never be coupled
 
 ```
-OnboardingState   → hasSeenOnboarding   persisted; means the intro was completed
-AuthState         → DOES NOT EXIST      no accounts, no sessions, no sign-in
-VerificationState → in-memory mock      identity checks, unrelated to the above
+OnboardingState   → hasSeenOnboarding   device-local flag; the intro was completed
+SessionState      → unresolved / signed out / signed in   a credential the server accepts
+VerificationState → in-memory fixture   identity checks; unrelated to both
 ```
 
-The stored key is namespaced and narrowly named (`ridemate.onboarding.hasSeenOnboarding`)
-and a test asserts it never reads as an account, session or identity claim, so a future
-auth integration cannot inherit the wrong assumption.
+Onboarding and session are **independent dimensions**, and the combinations are why: a member
+who reinstalls has a session and no flag; one who signed out has the flag and no session.
+Collapsing them into a single boolean gets both wrong. Keys are namespaced per store —
+`ridemate.onboarding.`, `ridemate.prefs.`, `ridemate.install.`, `ridemate.credential.` — so
+the three cannot grow into each other, and tests assert no credential key appears in
+`SharedPreferences`.
 
-`Hesap oluştur` continues the new-user flow. It is **not** account creation and **not**
-authentication. `Zaten üyeyim` means sign in to an existing account; since sign-in does
-not exist, it shows a temporary message and deliberately neither marks the intro complete
-nor navigates. Both are covered by regression tests.
+Both onboarding CTAs now **mark the intro seen and enter the same phone/passcode flow**.
+Marking it is not incidental: onboarding takes precedence over authentication in the router,
+so a CTA that navigated to sign-in with the flag still false would be redirected straight back
+and the member would tap and watch nothing happen.
+
+They still mean different things to the member — one expects an account to exist and the other
+does not — but that is not a difference the CLIENT can act on. A verified number either
+belongs to an account or does not, and the server decides on one endpoint precisely so that
+asking cannot reveal who is already a member. Two client journeys would have to know the
+answer before asking.
 
 **Temporary Phase 2 limitation:** there is no sign-in. `onSignInRequested` is named for
 what it means, so a real auth route replaces the handler without changing the component's
@@ -160,6 +185,32 @@ carrying the score to **display**. The real Trust Score is a backend-owned,
 safety-sensitive concept drawing on identity verification, account age, trip history,
 cancellations, ratings, reports, fraud signals and device risk. Nothing in the client
 pre-empts it.
+
+### The Verification screen left the release build in Phase 9
+
+Once account identity became real, three of its statements became false claims about a
+member's actual account: its email step reads `Doğrulandı` from a fixture, its progression is
+a scripted demo no backend drives, and its Trust Score has no engine behind it. Harmless while
+every account was imaginary; not harmless now.
+
+Its route is therefore registered under `if (kDebugMode)`, beside Active Trip and Safety, and
+a test asserts the guard is there. **The screen, its fixtures, its tests and its 34-baseline
+goldens all remain** as the approved design reference — only the release entry point is gone,
+and its former entry point now leads to sign-in.
+
+It returns to release when **all** of these hold, and a test asserts these conditions stay
+recorded beside the guard:
+
+1. verification presentation state is served by the backend;
+2. the Trust Score is a value the server computes and owns;
+3. at least one non-phone step has a real submission path;
+4. every displayed status is traceable to backend state;
+5. it migrates as one coherent change, never as a hybrid of real and fixture data.
+
+Phone verification is the one part that became real, and it is a column
+(`accounts.phone_verified_at`) rather than a table — an account exists only after a passcode
+is verified, so a verifications table would hold one row per account, of one kind, in one
+state. Email, identity, selfie and licence verification exist on neither side.
 
 **Phase 6 added the breakdown, which is where a policy could have slipped in.** Profile
 draws four factors — 100 / 90 / 94 / 82 — under a score of 92. Their mean is 91.5: close
@@ -305,10 +356,34 @@ maps architecture, which does not start in that file.
 `app_routes.dart` pairs a name and a path per route; navigation always goes by name. The
 router is a provider rather than a global so it can read state and be overridden in tests.
 
-The one redirect gates on whether the intro presentation has been completed. It is **not**
-an auth guard; a future auth guard is a separate condition and must not be folded into
-this one. The `ValueNotifier` bridging state to `refreshListenable` is disposed with the
-provider, and the preferences instance is created once.
+The redirect answers two independent questions, in this order:
+
+1. **either dimension unresolved** → `StartupScreen`. The session resolves over the network,
+   so it is the slower of the two and the one that would otherwise flash a sign-in form at
+   somebody already signed in.
+2. **intro unseen** → `/onboarding`. It wins whatever the credential says: someone who has
+   never seen the intro should not meet a sign-in form first.
+3. **signed in** → the shell, with `/startup`, `/onboarding` and the auth routes as dead
+   ends. This is what stops stale navigation history returning a valid session to a sign-in
+   screen.
+4. **signed out** → `/auth`, unless already on an auth route. That exception is what stops
+   `/auth/passcode` being redirected back to `/auth` while the member is typing.
+
+A test walks all six combinations of the two dimensions and asserts each settles rather than
+looping. There is **no verification gate and no profile-completion gate**; a test scans the
+redirect body and fails if either word appears in it.
+
+`refreshListenable` merges the onboarding `ValueNotifier` with the session's own
+`ValueListenable`, so neither dimension is derived from the other. The notifier is disposed
+with the provider and the preferences instance is created once.
+
+**Session-ended notice.** A member returned to sign-in because their session stopped working
+is told so, once. It is transient and in memory — a stored "your session ended" would
+reappear after an unrelated restart weeks later with no session to explain it — and it is
+consumed on read, because the redirect re-evaluates on every navigation. It never appears on a
+first launch (nothing was refreshed), after an explicit sign-out (the app would be explaining
+an event the member caused), or after a reinstall purge. A suspended account gets its own
+distinct copy, because "sign in again" is precisely the advice that cannot work for one.
 
 The shell hosts the four destinations from the design's tab bar plus a centre action that
 pushes above the shell. Branches build lazily and then stay mounted, which preserves
@@ -444,14 +519,38 @@ font set and Flutter revision.
 
 ## Backend boundary
 
-A real backend, database, auth, realtime, maps infrastructure, notifications, trust
-engine, matching engine and safety infrastructure will come later and may live in a
-separate repository.
+The backend lives in a separate repository (`ridemate-backend`, Laravel + PostgreSQL). As of
+Phase 9 **authentication is real**; everything else is still fixture-backed.
 
-The client's job today is to make that integration clean, not to simulate it. UI will
-read from repository interfaces under `lib/services/`, bound to in-memory
-implementations, with the backend phase swapping the binding in one place. **No fake
-enterprise architecture is built inside Flutter.**
+`lib/core/api/` is the only place that speaks HTTP. `package:http` is imported by exactly one
+file and a test enforces it, so replacing the transport is a change inside that directory
+rather than a search across the app. `RmFailure` carries a status, a typed `RmErrorCode` and
+`request_id` — and deliberately **not** the backend's `message`, which is developer-facing
+English the contract says clients must never display. Making it unavailable is a stronger
+guarantee than asking nobody to reach for it.
+
+Requests are bounded by a single timeout in `RmApiClient`. Without one, a backend that accepts
+a connection and never answers leaves restoration pending forever and the launch surface up
+indefinitely — the app looks broken rather than offline.
+
+`lib/core/session/` owns the session: single-flight refresh so concurrent 401s share one
+`/auth/refresh` call, retry-once after it succeeds, and fail-closed persistence — a rotated
+credential that cannot be written signs the member out rather than leaving a session that
+works until the process ends. `flutter_secure_storage` is confined to one implementation file
+by test.
+
+**Still fixtures, and honestly so:** Profile including Trust Score, tier and factors; Home;
+Search and route offers; Create Route; Active Trip; Reviews; Safety. Email, identity, selfie
+and licence verification do not exist on either side.
+
+The base URL is **build-time configuration** — `--dart-define=RIDEMATE_API_BASE_URL` — with no
+default and no production URL in the repository. An absent or unusable value fails at startup
+with the exact command to run, rather than silently choosing an endpoint. Cleartext HTTP is
+permitted for `10.0.2.2`, `127.0.0.1` and `localhost` **in debug builds only**, through a
+network security config under `android/app/src/debug/`; release keeps Android's default and
+denies it everywhere.
+
+**No fake enterprise architecture is built inside Flutter.**
 
 ## Safety-critical constraint
 

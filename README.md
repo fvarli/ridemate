@@ -9,21 +9,32 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 7 — the approved screens are complete and the repository has a production floor.**
-The design system (Phase 1) is done, and Onboarding, Verification, Home, Search, Match
-Results, Route Details, Create route, Chat, Profile and Reviews are implemented. Active
-Trip and the Safety Center are built and tested but reachable **only in debug builds** —
-see below. Messages is the one remaining placeholder, because the design has no
-conversation list.
+**Phase 9 — members can sign in.**
+The design system (Phase 1) is done, and Onboarding, Home, Search, Match Results, Route
+Details, Create route, Chat, Profile and Reviews are implemented. Phase 9 adds the two
+screens the design implies and never draws: phone entry and passcode entry.
 
-Phase 7 added no product behaviour. It added CI, fail-closed release signing, application
-error handling, persisted preferences and landscape coverage — the things that have to be
-right before a backend is connected in the next phase. See
-[`docs/architecture.md`](docs/architecture.md) under *Production floor*.
+**Signing in is real.** Phone number → one-time passcode → a session that survives a restart,
+rotates its credential, detects a stolen refresh token, and can be revoked. Registration and
+sign-in are one flow, because a verified number either belongs to an account or does not and
+the server decides which — so asking cannot reveal who is already a member.
 
-There is no backend, no authentication, no identity-verification provider, no
-payments, no location and no maps vendor. Everything those screens display is
-mock presentation data.
+Active Trip, the Safety Center and now **Verification** are built and tested but reachable
+**only in debug builds**. Verification joined them because its email step reads `Doğrulandı`
+from a fixture, its progression is scripted and its Trust Score has no engine — statements
+that were harmless while every account was imaginary and are false claims about a real
+member's account now. The screen, its fixtures, its tests and its goldens all remain; only
+the release entry point is gone. `docs/architecture.md` records the five conditions for its
+return.
+
+Messages is the one remaining placeholder, because the design has no conversation list.
+
+**Everything except authentication is still mock presentation data** — Profile including
+Trust Score, Home, Search, route offers, Create Route, Active Trip, Reviews and Safety. There
+is no identity-verification provider, no payments, no location and no maps vendor, and no
+matching, ranking or scoring logic anywhere in the client.
+
+**Production sign-in is not operational until an SMS adapter is configured.**
 
 Nothing is computed from that data either: there is no matching, ranking, pricing or
 Trust Score logic anywhere in the client. The search filters change no results, and

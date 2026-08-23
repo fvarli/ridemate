@@ -79,8 +79,16 @@ class RmSession {
   final AuthApi _api;
   final CredentialStore _store;
 
+  /// Starts UNRESOLVED, and that initial value is load-bearing.
+  ///
+  /// Signed-out would be a lie at launch: nothing has looked at the stored
+  /// credential yet. The router reads this to decide between holding the
+  /// startup surface and sending the member to sign in, so beginning
+  /// signed-out makes it redirect to the sign-in screen for as long as
+  /// restoration takes — a form that appears and vanishes on every cold start
+  /// for anyone who is already signed in.
   final ValueNotifier<RmSessionState> _state = ValueNotifier<RmSessionState>(
-    const RmSignedOut(),
+    const RmSessionUnresolved(),
   );
 
   /// The access token, in memory and nowhere else.

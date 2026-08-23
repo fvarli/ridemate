@@ -181,7 +181,10 @@ void main() {
           ),
         ),
       );
-      expect(session.state.value, isA<RmSignedOut>());
+      // Not signed in, which is the property that matters. The exact
+      // non-signed-in state depends on whether restore() ran first, and a
+      // refusal from the server does not change it either way.
+      expect(session.state.value, isNot(isA<RmSignedIn>()));
     });
 
     test('a wrong passcode leaves nothing behind', () async {
@@ -724,6 +727,43 @@ void main() {
         isTrue,
       );
       expect((await store.read())?.refreshToken, 'rmr_X');
+    });
+  });
+
+  group('The initial state', () {
+    /// REGRESSION. The session used to start signed-out, which is a claim
+    /// nothing had checked yet. The router reads this state to choose between
+    /// holding the startup surface and showing a sign-in form, so a session
+    /// that began signed-out made the form appear and vanish on every cold
+    /// start for anyone who was already signed in — the exact flicker the
+    /// unresolved state exists to prevent.
+    test('a fresh session has not looked yet', () {
+      expect(
+        sessionWith((_) => pair()).state.value,
+        isA<RmSessionUnresolved>(),
+      );
+    });
+
+    test('restoring with nothing stored resolves it to signed out', () async {
+      final RmSession session = sessionWith((_) => pair());
+
+      await session.restore();
+
+      expect(session.state.value, isA<RmSignedOut>());
+    });
+
+    test('restoring a valid credential resolves it to signed in', () async {
+      final InMemoryCredentialStore store = InMemoryCredentialStore();
+      await store.write(
+        const RmCredentials(refreshToken: 'rmr_OLD', sessionId: 'SESSION_1'),
+      );
+
+      final RmSession session = sessionWith((_) => pair(), store: store);
+      expect(session.state.value, isA<RmSessionUnresolved>());
+
+      await session.restore();
+
+      expect(session.state.value, isA<RmSignedIn>());
     });
   });
 }

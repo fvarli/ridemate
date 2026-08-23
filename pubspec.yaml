@@ -26,6 +26,10 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^3.3.2
+  # The refresh credential and session id, and nothing else. Confined to
+  # lib/core/session/credential_store.dart by a test: its types never cross the
+  # CredentialStore interface, so the platform plugin stays replaceable.
+  flutter_secure_storage: ^9.2.4
   flutter_svg: ^2.3.0
   go_router: ^17.5.0
   # The transport for lib/core/api, and an implementation detail of it: no

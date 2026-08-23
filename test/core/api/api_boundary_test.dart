@@ -130,15 +130,21 @@ void main() {
       }
     });
 
-    /// Credential storage belongs to a later commit and would be easy to add
-    /// here "while we are in the pubspec".
-    test('storage packages are still absent', () {
+    /// flutter_secure_storage arrived deliberately, in the commit that needed
+    /// it, and this assertion failing was how that arrival got noticed. What
+    /// must stay absent is a general-purpose local database: those invite
+    /// "just put the token in there for now", and none of them encrypt by
+    /// default. The credential boundary test enforces where the secure store
+    /// itself may be used.
+    test('no general-purpose local database has appeared', () {
       final String pubspec = File('pubspec.yaml').readAsStringSync();
 
       for (final String absent in <String>[
-        'flutter_secure_storage',
         'hive',
         'sqflite',
+        'isar',
+        'objectbox',
+        'get_storage',
       ]) {
         expect(pubspec, isNot(contains(absent)), reason: absent);
       }

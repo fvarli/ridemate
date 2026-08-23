@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/misc.dart';
 import 'app/data/app_preferences_repository.dart';
 import 'app/error/rm_error_reporter.dart';
 import 'app/providers/app_preferences_provider.dart';
+import 'app/providers/credential_store_provider.dart';
 import 'app/ride_mate_app.dart';
 import 'core/config/rm_api_config.dart';
+import 'core/session/credential_store.dart';
 
 Future<void> main() async {
   // Binding first, then the error hooks, then anything that can fail. An
@@ -38,10 +40,21 @@ Future<void> main() async {
   final AppPreferencesRepository preferences =
       await loadAppPreferencesRepository();
 
+  // Opening the store also purges anything left behind by a previous
+  // installation — on iOS the Keychain outlives app deletion, so a reinstall
+  // would otherwise inherit the last install's session. The purge happens
+  // inside loadCredentialStore, before the store is handed to anyone, so no
+  // read can observe a stale credential.
+  //
+  // Nothing acts on the stored credential yet. Deciding what "signed in"
+  // means is a later commit; this one only settles where the secret lives.
+  final CredentialStore credentials = await loadCredentialStore();
+
   runApp(
     ProviderScope(
       overrides: <Override>[
         appPreferencesRepositoryProvider.overrideWithValue(preferences),
+        credentialStoreProvider.overrideWithValue(credentials),
       ],
       child: const RideMateApp(),
     ),

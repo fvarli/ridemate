@@ -33,9 +33,13 @@ final class RmApiClient {
   /// cannot vary. Taking a [Uri] means the whole client is testable without
   /// every test needing a define, and it keeps validation in exactly one place
   /// — [RmApiConfig] — instead of being repeated here.
-  RmApiClient({required http.Client transport, required Uri baseUrl})
-    : _transport = transport,
-      _baseUrl = baseUrl;
+  RmApiClient({
+    required http.Client transport,
+    required Uri baseUrl,
+    Duration timeout = defaultTimeout,
+  }) : _transport = transport,
+       _baseUrl = baseUrl,
+       _timeout = timeout;
 
   /// The composition seam. The only place configuration and transport meet.
   ///
@@ -43,13 +47,46 @@ final class RmApiClient {
   /// which is what keeps `package:http` imported by this file alone. Tests
   /// pass their own, or use the unnamed constructor and skip configuration
   /// entirely.
-  factory RmApiClient.fromConfig({http.Client? transport}) => RmApiClient(
+  factory RmApiClient.fromConfig({
+    http.Client? transport,
+    Duration timeout = defaultTimeout,
+  }) => RmApiClient(
     transport: transport ?? http.Client(),
     baseUrl: Uri.parse(RmApiConfig.baseUrl),
+    timeout: timeout,
   );
+
+  /// How long any single request may take before it is abandoned.
+  ///
+  /// WHY THIS HAS TO EXIST AT ALL
+  ///
+  /// package:http imposes none, and neither does the HttpClient beneath it —
+  /// `connectionTimeout` is null by default and there is no response timeout.
+  /// A backend that accepts the connection and then never answers leaves the
+  /// request pending forever. That is not hypothetical: it is what a captive
+  /// portal, a black-holing firewall or a hung server all look like.
+  ///
+  /// Without a bound, session restoration never completes, the session stays
+  /// unresolved, and the router holds the startup surface — so the app shows a
+  /// blank launch screen indefinitely and looks broken rather than offline.
+  ///
+  /// WHY TWENTY SECONDS
+  ///
+  /// A compromise, and worth naming as one. Shorter would fail real requests
+  /// on a slow mobile connection, where a cold TLS handshake and a round trip
+  /// can take a while. Longer would leave someone staring at a launch surface
+  /// with nothing to act on. Twenty is long enough that a working network
+  /// finishes and short enough that a broken one resolves before the member
+  /// gives up.
+  ///
+  /// It bounds the response, not the socket: package:http has no per-request
+  /// cancellation, so the underlying connection is abandoned rather than torn
+  /// down. That leaks nothing a caller can observe.
+  static const Duration defaultTimeout = Duration(seconds: 20);
 
   final http.Client _transport;
   final Uri _baseUrl;
+  final Duration _timeout;
 
   /// Applied last, so a caller cannot remove them by accident.
   ///
@@ -119,12 +156,17 @@ final class RmApiClient {
     final http.Response response;
 
     try {
-      response = await request();
+      // The bound lives here, once, below every caller. Auth and session code
+      // says nothing about timeouts, and a timed-out request is simply a
+      // transport failure — the representation that already exists — rather
+      // than a new error code the backend never sends.
+      response = await request().timeout(_timeout);
     } on Object {
       // Every transport error, deliberately caught as one: ClientException,
-      // SocketException, HandshakeException, TimeoutException. Naming them
-      // individually would let an unnamed one escape as itself, and the
-      // caller's response to all of them is identical.
+      // SocketException, HandshakeException, and the TimeoutException the
+      // bound above produces. Naming them individually would let an unnamed
+      // one escape as itself, and the caller's response to all of them is
+      // identical.
       throw const RmFailure.transport();
     }
 

@@ -28,6 +28,11 @@ dependencies:
   flutter_riverpod: ^3.3.2
   flutter_svg: ^2.3.0
   go_router: ^17.5.0
+  # The transport for lib/core/api, and an implementation detail of it: no
+  # feature directory imports this, and a test enforces that. Already present
+  # transitively through flutter_svg, so this promotes it to a direct
+  # dependency rather than pulling anything new in.
+  http: ^1.6.0
   # DELIBERATELY UNPINNED. flutter_localizations pins intl to an exact version
   # (0.20.2 as of Flutter 3.41.1), so `any` is what lets the SDK own it. A
   # caret range resolves identically today and breaks `pub get` the day

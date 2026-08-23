@@ -221,5 +221,25 @@
   "dateYesterday": "Yesterday",
   "dateTomorrow": "Tomorrow",
   "dateDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
-  "dateWeeksAgo": "{count, plural, =1{1 week ago} other{{count} weeks ago}}"
+  "dateWeeksAgo": "{count, plural, =1{1 week ago} other{{count} weeks ago}}",
+
+  "errorNetwork": "Couldn't connect. Check your internet connection.",
+  "errorUnexpected": "Something went wrong. Please try again.",
+  "errorValidation": "Check the details you entered.",
+  "errorUnauthenticated": "Your session has ended. Sign in again.",
+  "errorForbidden": "Your account has been suspended.",
+  "errorRateLimited": "Too many attempts. Try again shortly.",
+  "authPhoneTitle": "Your phone number",
+  "authPhoneBody": "We'll send you a six-digit verification code.",
+  "authPhoneFieldLabel": "Phone number",
+  "authPhoneFieldHint": "0532 123 45 67",
+  "authPhoneInvalid": "Enter a valid phone number.",
+  "authPhoneSubmit": "Send code",
+  "authCodeTitle": "Verification code",
+  "authCodeBody": "Enter the code sent to {phone}.",
+  "authCodeFieldLabel": "Six-digit code",
+  "authCodeInvalid": "That code isn't right. Try again.",
+  "authCodeSubmit": "Verify",
+  "authCodeResend": "Send a new code",
+  "authCodeResent": "A new code has been sent."
 }

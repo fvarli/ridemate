@@ -17,6 +17,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/passcode_entry_screen.dart';
+import '../../features/auth/presentation/phone_entry_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/create_route/presentation/create_route_screen.dart';
 import '../../features/discovery/presentation/match_results_screen.dart';
@@ -107,6 +109,31 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.verification,
         builder: (BuildContext context, GoRouterState state) =>
             const VerificationScreen(),
+      ),
+      // Sign-in. Registered in every build — these screens do what they say —
+      // but linked from nowhere yet: the redirect below still gates on the
+      // onboarding flag alone, and giving a completed sign-in somewhere to go
+      // is the router change that comes with session state.
+      GoRoute(
+        path: AppRoutes.authPhonePath,
+        name: AppRoutes.authPhone,
+        builder: (BuildContext context, GoRouterState state) =>
+            const PhoneEntryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authPasscodePath,
+        name: AppRoutes.authPasscode,
+        builder: (BuildContext context, GoRouterState state) {
+          final Object? phone = state.extra;
+
+          // Reached without the number it is supposed to confirm — a deep link
+          // or a restored stack. Asking for it again is the only honest
+          // option; a passcode screen that does not know the number cannot
+          // verify anything.
+          return phone is String && phone.isNotEmpty
+              ? PasscodeEntryScreen(phone: phone)
+              : const PhoneEntryScreen();
+        },
       ),
       StatefulShellRoute.indexedStack(
         // indexedStack keeps each branch alive, so switching tabs preserves

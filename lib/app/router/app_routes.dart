@@ -24,6 +24,22 @@ abstract final class AppRoutes {
   static const String verification = 'verification';
   static const String verificationPath = '/verification';
 
+  // ── Sign-in ────────────────────────────────────────────────
+  //
+  // Registered and reachable, but linked from nowhere yet: onboarding still
+  // offers its own CTAs and the router still gates on the onboarding flag
+  // alone. Wiring the entry point needs the session-aware redirect, because
+  // otherwise a successful sign-in has nowhere honest to go — see the router.
+  //
+  // NOT behind kDebugMode. That guard is for screens promising a capability
+  // that does not exist; these promise sign-in and deliver it.
+
+  static const String authPhone = 'authPhone';
+  static const String authPhonePath = '/auth';
+
+  static const String authPasscode = 'authPasscode';
+  static const String authPasscodePath = '/auth/passcode';
+
   // ── Shell branches ─────────────────────────────────────────
   // The four bottom-navigation destinations from the design's tab bar.
 

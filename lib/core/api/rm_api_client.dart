@@ -38,11 +38,15 @@ final class RmApiClient {
       _baseUrl = baseUrl;
 
   /// The composition seam. The only place configuration and transport meet.
-  factory RmApiClient.fromConfig({required http.Client transport}) =>
-      RmApiClient(
-        transport: transport,
-        baseUrl: Uri.parse(RmApiConfig.baseUrl),
-      );
+  ///
+  /// [transport] defaults to a real client so `main()` never has to name one —
+  /// which is what keeps `package:http` imported by this file alone. Tests
+  /// pass their own, or use the unnamed constructor and skip configuration
+  /// entirely.
+  factory RmApiClient.fromConfig({http.Client? transport}) => RmApiClient(
+    transport: transport ?? http.Client(),
+    baseUrl: Uri.parse(RmApiConfig.baseUrl),
+  );
 
   final http.Client _transport;
   final Uri _baseUrl;

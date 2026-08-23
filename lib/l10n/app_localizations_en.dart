@@ -834,4 +834,64 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get errorNetwork =>
+      'Couldn\'t connect. Check your internet connection.';
+
+  @override
+  String get errorUnexpected => 'Something went wrong. Please try again.';
+
+  @override
+  String get errorValidation => 'Check the details you entered.';
+
+  @override
+  String get errorUnauthenticated => 'Your session has ended. Sign in again.';
+
+  @override
+  String get errorForbidden => 'Your account has been suspended.';
+
+  @override
+  String get errorRateLimited => 'Too many attempts. Try again shortly.';
+
+  @override
+  String get authPhoneTitle => 'Your phone number';
+
+  @override
+  String get authPhoneBody => 'We\'ll send you a six-digit verification code.';
+
+  @override
+  String get authPhoneFieldLabel => 'Phone number';
+
+  @override
+  String get authPhoneFieldHint => '0532 123 45 67';
+
+  @override
+  String get authPhoneInvalid => 'Enter a valid phone number.';
+
+  @override
+  String get authPhoneSubmit => 'Send code';
+
+  @override
+  String get authCodeTitle => 'Verification code';
+
+  @override
+  String authCodeBody(String phone) {
+    return 'Enter the code sent to $phone.';
+  }
+
+  @override
+  String get authCodeFieldLabel => 'Six-digit code';
+
+  @override
+  String get authCodeInvalid => 'That code isn\'t right. Try again.';
+
+  @override
+  String get authCodeSubmit => 'Verify';
+
+  @override
+  String get authCodeResend => 'Send a new code';
+
+  @override
+  String get authCodeResent => 'A new code has been sent.';
 }

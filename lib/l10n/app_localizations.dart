@@ -1385,6 +1385,120 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{count, plural, =1{1 hafta önce} other{{count} hafta önce}}'**
   String dateWeeksAgo(int count);
+
+  /// Ağ hatası. Sunucuya hiç ulaşılamadığında gösterilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı kurulamadı. İnternet bağlantını kontrol et.'**
+  String get errorNetwork;
+
+  /// Tanınmayan veya beklenmeyen sunucu hatası için güvenli varsayılan metin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beklenmeyen bir sorun oluştu. Lütfen tekrar dene.'**
+  String get errorUnexpected;
+
+  /// Sunucu gönderilen veriyi reddettiğinde.
+  ///
+  /// In tr, this message translates to:
+  /// **'Girdiğin bilgileri kontrol et.'**
+  String get errorValidation;
+
+  /// Kimlik doğrulama geçersiz veya süresi dolmuş.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturumun sona erdi. Tekrar giriş yap.'**
+  String get errorUnauthenticated;
+
+  /// Kimlik bilgisi geçerli ama hesap kullanılamıyor. Tekrar giriş yapmak çözmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın askıya alındı.'**
+  String get errorForbidden;
+
+  /// Hız sınırına takıldı. Sunucu ne kadar beklenmesi gerektiğini bildirmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok fazla deneme yapıldı. Biraz sonra tekrar dene.'**
+  String get errorRateLimited;
+
+  /// Telefon giriş ekranı başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefon numaran'**
+  String get authPhoneTitle;
+
+  /// Telefon giriş ekranı açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sana altı haneli bir doğrulama kodu göndereceğiz.'**
+  String get authPhoneBody;
+
+  /// Telefon alanının kalıcı etiketi. İpucu odakta kaybolduğu için erişilebilir ad budur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefon numarası'**
+  String get authPhoneFieldLabel;
+
+  /// Telefon alanı ipucu. Örnek biçim; başka bir biçim de kabul edilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'0532 123 45 67'**
+  String get authPhoneFieldHint;
+
+  /// Numara gönderilmeden önce cihazda geçersiz bulundu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geçerli bir telefon numarası gir.'**
+  String get authPhoneInvalid;
+
+  /// Telefon ekranındaki birincil eylem.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod gönder'**
+  String get authPhoneSubmit;
+
+  /// Kod giriş ekranı başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama kodu'**
+  String get authCodeTitle;
+
+  /// Kod giriş ekranı açıklaması. Numara üyenin yazdığı biçimde gösterilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{phone} numarasına gönderilen kodu gir.'**
+  String authCodeBody(String phone);
+
+  /// Kod alanının kalıcı etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Altı haneli kod'**
+  String get authCodeFieldLabel;
+
+  /// Sunucu kodu reddetti. Kaç deneme kaldığı bildirilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod doğru değil. Tekrar dene.'**
+  String get authCodeInvalid;
+
+  /// Kod ekranındaki birincil eylem.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrula'**
+  String get authCodeSubmit;
+
+  /// Yeni bir kod ister. Geri sayım yoktur: sunucu ne zaman izin vereceğini bildirmez, uydurulmuş bir sayaç yanlış olurdu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu tekrar gönder'**
+  String get authCodeResend;
+
+  /// Tekrar gönderme isteği kabul edildi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni bir kod gönderildi.'**
+  String get authCodeResent;
 }
 
 class _AppLocalizationsDelegate

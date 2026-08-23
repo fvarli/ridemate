@@ -834,4 +834,67 @@ class AppLocalizationsTr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get errorNetwork =>
+      'Bağlantı kurulamadı. İnternet bağlantını kontrol et.';
+
+  @override
+  String get errorUnexpected =>
+      'Beklenmeyen bir sorun oluştu. Lütfen tekrar dene.';
+
+  @override
+  String get errorValidation => 'Girdiğin bilgileri kontrol et.';
+
+  @override
+  String get errorUnauthenticated => 'Oturumun sona erdi. Tekrar giriş yap.';
+
+  @override
+  String get errorForbidden => 'Hesabın askıya alındı.';
+
+  @override
+  String get errorRateLimited =>
+      'Çok fazla deneme yapıldı. Biraz sonra tekrar dene.';
+
+  @override
+  String get authPhoneTitle => 'Telefon numaran';
+
+  @override
+  String get authPhoneBody =>
+      'Sana altı haneli bir doğrulama kodu göndereceğiz.';
+
+  @override
+  String get authPhoneFieldLabel => 'Telefon numarası';
+
+  @override
+  String get authPhoneFieldHint => '0532 123 45 67';
+
+  @override
+  String get authPhoneInvalid => 'Geçerli bir telefon numarası gir.';
+
+  @override
+  String get authPhoneSubmit => 'Kod gönder';
+
+  @override
+  String get authCodeTitle => 'Doğrulama kodu';
+
+  @override
+  String authCodeBody(String phone) {
+    return '$phone numarasına gönderilen kodu gir.';
+  }
+
+  @override
+  String get authCodeFieldLabel => 'Altı haneli kod';
+
+  @override
+  String get authCodeInvalid => 'Kod doğru değil. Tekrar dene.';
+
+  @override
+  String get authCodeSubmit => 'Doğrula';
+
+  @override
+  String get authCodeResend => 'Kodu tekrar gönder';
+
+  @override
+  String get authCodeResent => 'Yeni bir kod gönderildi.';
 }

@@ -39,7 +39,15 @@ abstract interface class CredentialStore {
   /// The stored credential, or null when there is none or it is unusable.
   Future<RmCredentials?> read();
 
-  Future<void> write(RmCredentials credentials);
+  /// Returns whether the credential is now durable.
+  ///
+  /// `false` means the write failed and was reported. Callers that have just
+  /// rotated a credential MUST treat that as fatal to the session: continuing
+  /// with an in-memory token that cannot survive a restart would leave the
+  /// member signed in until they close the app and silently signed out
+  /// afterwards, having spent a refresh generation the server already
+  /// invalidated.
+  Future<bool> write(RmCredentials credentials);
 
   /// Removes both halves. Safe to call when nothing is stored.
   Future<void> clear();
@@ -91,7 +99,7 @@ class SecureCredentialStore implements CredentialStore {
   );
 
   @override
-  Future<void> write(RmCredentials credentials) => reportingFailures<void>(
+  Future<bool> write(RmCredentials credentials) => reportingFailures<bool>(
     () async {
       await _storage.write(
         key: RmCredentialKeys.refreshToken,
@@ -101,8 +109,10 @@ class SecureCredentialStore implements CredentialStore {
         key: RmCredentialKeys.sessionId,
         value: credentials.sessionId,
       );
+
+      return true;
     },
-    orElse: () {},
+    orElse: () => false,
     hint: 'storing the credential',
   );
 
@@ -135,8 +145,11 @@ class InMemoryCredentialStore implements CredentialStore {
   Future<RmCredentials?> read() async => _credentials;
 
   @override
-  Future<void> write(RmCredentials credentials) async =>
-      _credentials = credentials;
+  Future<bool> write(RmCredentials credentials) async {
+    _credentials = credentials;
+
+    return true;
+  }
 
   @override
   Future<void> clear() async => _credentials = null;

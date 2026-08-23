@@ -6,9 +6,13 @@ import 'app/data/app_preferences_repository.dart';
 import 'app/error/rm_error_reporter.dart';
 import 'app/providers/app_preferences_provider.dart';
 import 'app/providers/credential_store_provider.dart';
+import 'app/providers/session_provider.dart';
 import 'app/ride_mate_app.dart';
+import 'core/api/rm_api_client.dart';
 import 'core/config/rm_api_config.dart';
+import 'core/session/auth_api.dart';
 import 'core/session/credential_store.dart';
+import 'core/session/rm_session.dart';
 
 Future<void> main() async {
   // Binding first, then the error hooks, then anything that can fail. An
@@ -50,11 +54,25 @@ Future<void> main() async {
   // means is a later commit; this one only settles where the secret lives.
   final CredentialStore credentials = await loadCredentialStore();
 
+  // The composition seam: transport, client, endpoints, session. Assembled
+  // once, here, so nothing downstream has to know how any of it is built.
+  //
+  // restore() is deliberately NOT called yet. It exchanges the stored refresh
+  // token over the network, and whoever waits for that is deciding what the
+  // app shows meanwhile — which is router policy, and the next commit's.
+  // Starting it here without a waiter would fire a request at launch that
+  // nothing observes.
+  final RmSession session = RmSession(
+    api: AuthApi(RmApiClient.fromConfig()),
+    store: credentials,
+  );
+
   runApp(
     ProviderScope(
       overrides: <Override>[
         appPreferencesRepositoryProvider.overrideWithValue(preferences),
         credentialStoreProvider.overrideWithValue(credentials),
+        rmSessionProvider.overrideWithValue(session),
       ],
       child: const RideMateApp(),
     ),

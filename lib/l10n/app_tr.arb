@@ -1010,5 +1010,88 @@
         "type": "int"
       }
     }
+  },
+
+  "errorNetwork": "Bağlantı kurulamadı. İnternet bağlantını kontrol et.",
+  "@errorNetwork": {
+    "description": "Ağ hatası. Sunucuya hiç ulaşılamadığında gösterilir."
+  },
+  "errorUnexpected": "Beklenmeyen bir sorun oluştu. Lütfen tekrar dene.",
+  "@errorUnexpected": {
+    "description": "Tanınmayan veya beklenmeyen sunucu hatası için güvenli varsayılan metin."
+  },
+  "errorValidation": "Girdiğin bilgileri kontrol et.",
+  "@errorValidation": {
+    "description": "Sunucu gönderilen veriyi reddettiğinde."
+  },
+  "errorUnauthenticated": "Oturumun sona erdi. Tekrar giriş yap.",
+  "@errorUnauthenticated": {
+    "description": "Kimlik doğrulama geçersiz veya süresi dolmuş."
+  },
+  "errorForbidden": "Hesabın askıya alındı.",
+  "@errorForbidden": {
+    "description": "Kimlik bilgisi geçerli ama hesap kullanılamıyor. Tekrar giriş yapmak çözmez."
+  },
+  "errorRateLimited": "Çok fazla deneme yapıldı. Biraz sonra tekrar dene.",
+  "@errorRateLimited": {
+    "description": "Hız sınırına takıldı. Sunucu ne kadar beklenmesi gerektiğini bildirmez."
+  },
+  "authPhoneTitle": "Telefon numaran",
+  "@authPhoneTitle": {
+    "description": "Telefon giriş ekranı başlığı."
+  },
+  "authPhoneBody": "Sana altı haneli bir doğrulama kodu göndereceğiz.",
+  "@authPhoneBody": {
+    "description": "Telefon giriş ekranı açıklaması."
+  },
+  "authPhoneFieldLabel": "Telefon numarası",
+  "@authPhoneFieldLabel": {
+    "description": "Telefon alanının kalıcı etiketi. İpucu odakta kaybolduğu için erişilebilir ad budur."
+  },
+  "authPhoneFieldHint": "0532 123 45 67",
+  "@authPhoneFieldHint": {
+    "description": "Telefon alanı ipucu. Örnek biçim; başka bir biçim de kabul edilir."
+  },
+  "authPhoneInvalid": "Geçerli bir telefon numarası gir.",
+  "@authPhoneInvalid": {
+    "description": "Numara gönderilmeden önce cihazda geçersiz bulundu."
+  },
+  "authPhoneSubmit": "Kod gönder",
+  "@authPhoneSubmit": {
+    "description": "Telefon ekranındaki birincil eylem."
+  },
+  "authCodeTitle": "Doğrulama kodu",
+  "@authCodeTitle": {
+    "description": "Kod giriş ekranı başlığı."
+  },
+  "authCodeBody": "{phone} numarasına gönderilen kodu gir.",
+  "@authCodeBody": {
+    "description": "Kod giriş ekranı açıklaması. Numara üyenin yazdığı biçimde gösterilir.",
+    "placeholders": {
+      "phone": {
+        "type": "String",
+        "example": "0532 123 45 67"
+      }
+    }
+  },
+  "authCodeFieldLabel": "Altı haneli kod",
+  "@authCodeFieldLabel": {
+    "description": "Kod alanının kalıcı etiketi."
+  },
+  "authCodeInvalid": "Kod doğru değil. Tekrar dene.",
+  "@authCodeInvalid": {
+    "description": "Sunucu kodu reddetti. Kaç deneme kaldığı bildirilmez."
+  },
+  "authCodeSubmit": "Doğrula",
+  "@authCodeSubmit": {
+    "description": "Kod ekranındaki birincil eylem."
+  },
+  "authCodeResend": "Kodu tekrar gönder",
+  "@authCodeResend": {
+    "description": "Yeni bir kod ister. Geri sayım yoktur: sunucu ne zaman izin vereceğini bildirmez, uydurulmuş bir sayaç yanlış olurdu."
+  },
+  "authCodeResent": "Yeni bir kod gönderildi.",
+  "@authCodeResent": {
+    "description": "Tekrar gönderme isteği kabul edildi."
   }
 }

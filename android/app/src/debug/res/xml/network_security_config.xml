@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Cleartext HTTP, for three local hosts, in DEBUG BUILDS ONLY.
+
+    This file lives under src/debug and is referenced only from the debug
+    manifest, so it is not merged into release or profile builds. A release
+    build therefore keeps Android's default: cleartext denied everywhere, on
+    every API level from 28 onwards.
+
+    WHY IT IS NEEDED AT ALL
+
+    The Laravel backend runs on the developer's machine over plain HTTP. An
+    emulator reaches it at 10.0.2.2, and a physical device reaches it at
+    127.0.0.1 through `adb reverse tcp:8000 tcp:8000`. Without an exception
+    both fail with a cleartext-not-permitted error that names no cause.
+
+    WHAT IS DELIBERATELY NOT HERE
+
+    No <base-config cleartextTrafficPermitted="true">. That is the one-line
+    version of this file and it permits cleartext to EVERY host, including
+    whatever a misconfigured build might point at. The exception is granted per
+    domain instead, so a typo in RIDEMATE_API_BASE_URL fails loudly rather than
+    silently sending a passcode over an unencrypted connection to somewhere
+    unintended.
+
+    No LAN address or range. Reaching a device over the local network is
+    possible but needs a host that changes with the network, and baking one in
+    would mean permitting a range that belongs to whatever café the laptop is
+    sitting in. `adb reverse` needs no such permission and works anywhere.
+
+    includeSubdomains is false on all three: these are exact hosts, and
+    nothing about them has subdomains worth trusting.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- The host machine, as seen from the Android emulator. -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- A physical device, forwarded by `adb reverse`. -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

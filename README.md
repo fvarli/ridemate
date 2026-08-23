@@ -133,9 +133,27 @@ flutter build apk --release -Pridemate.allowUnsignedRelease=true
 
 ## Running
 
+The backend URL is supplied at build time and has no default. A build without
+it refuses to start, with a message naming the variable — rather than silently
+choosing an endpoint.
+
 ```bash
-flutter run -d <android-device-id>
+# Android emulator — 10.0.2.2 is the host machine as the emulator sees it
+flutter run --dart-define=RIDEMATE_API_BASE_URL=http://10.0.2.2:8000
+
+# Physical Android device — forward the port, then use loopback
+adb reverse tcp:8000 tcp:8000
+flutter run --dart-define=RIDEMATE_API_BASE_URL=http://127.0.0.1:8000
 ```
+
+`adb reverse` is preferred over the machine's LAN address: it needs no
+`--host=0.0.0.0` on `php artisan serve`, works on any network, and survives a
+DHCP lease change.
+
+Only `http` and `https` are accepted. Cleartext is permitted for `10.0.2.2`,
+`127.0.0.1` and `localhost` **in debug builds only**, through
+`android/app/src/debug/res/xml/network_security_config.xml`. Release builds keep
+Android's default and deny cleartext everywhere.
 
 The design-system gallery is available in debug builds at `/gallery`.
 

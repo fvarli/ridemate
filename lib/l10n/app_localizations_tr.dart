@@ -75,9 +75,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get onboardingSignIn => 'Zaten üyeyim';
 
   @override
-  String get onboardingSignInUnavailable => 'Giriş özelliği yakında eklenecek.';
-
-  @override
   String get verificationTitle => 'Kimlik doğrulama';
 
   @override

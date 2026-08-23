@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
+import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
@@ -51,6 +52,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
         onboardingRepositoryProvider.overrideWithValue(
           InMemoryOnboardingRepository(seen: true),
         ),
+        rmSessionProvider.overrideWithValue(FakeSession()),
       ],
       child: const RideMateApp(),
     ),

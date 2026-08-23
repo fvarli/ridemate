@@ -12,16 +12,24 @@
 // and deliberately overlaps — and clips — the lower part of the trust
 // constellation behind it. Building it as a Column would lose that.
 //
-// SEMANTICS OF THE TWO ACTIONS — deliberately not interchangeable:
+// SEMANTICS OF THE TWO ACTIONS
 //
-//   onCreateAccountRequested  continues the new-user flow. It is NOT account
-//                             creation and NOT authentication; the app has no
-//                             account concept. It records only that the intro
-//                             presentation was completed.
-//   onSignInRequested         means "sign in to an existing account". Sign-in
-//                             does not exist yet, so this shows a temporary
-//                             message. It must never mark the intro complete
-//                             and must never navigate.
+//   onCreateAccountRequested  "I do not have an account."
+//   onSignInRequested         "I already have one."
+//
+// Both now lead to the same place, and that is a property of the product
+// rather than a shortcut. A verified phone number either belongs to an account
+// or does not, and the server decides which on a single endpoint — deliberately,
+// so that asking cannot reveal who is already a member. Two separate client
+// journeys would have to know the answer before asking, which is the leak the
+// backend design exists to prevent.
+//
+// Both also mark the intro seen. The router gives onboarding precedence over
+// authentication, so navigating to sign-in with that flag still false would be
+// redirected straight back here. Choosing either button is a deliberate exit
+// from the intro, which is exactly what the flag records.
+//
+// Neither creates an account. Nothing exists until a passcode is verified.
 // ─────────────────────────────────────────────────────────────
 
 import 'dart:math' as math;
@@ -77,10 +85,8 @@ class OnboardingScreen extends ConsumerWidget {
                 alignment: Alignment.bottomCenter,
                 child: _IntroSheet(
                   l10n: l10n,
-                  onCreateAccountRequested: () =>
-                      _continueNewUserFlow(context, ref),
-                  onSignInRequested: () =>
-                      _showSignInUnavailable(context, l10n),
+                  onCreateAccountRequested: () => _enterAuth(context, ref),
+                  onSignInRequested: () => _enterAuth(context, ref),
                 ),
               ),
             ],
@@ -90,25 +96,31 @@ class OnboardingScreen extends ConsumerWidget {
     );
   }
 
-  /// Records that the intro was completed and continues to verification.
+  /// Leaves the intro for the sign-in flow.
   ///
-  /// Explicitly NOT account creation or sign-in — see the file header.
-  Future<void> _continueNewUserFlow(BuildContext context, WidgetRef ref) async {
+  /// BOTH BUTTONS COME HERE, AND BOTH MARK THE INTRO SEEN.
+  ///
+  /// Marking it is not incidental. The router gives onboarding precedence over
+  /// authentication, so navigating to the auth route while the flag is still
+  /// false would be redirected straight back to this screen — the member would
+  /// tap "Zaten üyeyim" and watch nothing happen. Choosing either button is a
+  /// deliberate departure from the intro, which is exactly what the flag
+  /// records.
+  ///
+  /// The two buttons still mean different things to the member, and the
+  /// difference is real: one expects an account to exist and the other does
+  /// not. It simply is not a difference the CLIENT can act on. Whether a
+  /// verified number belongs to a new account or an existing one is decided
+  /// server-side, on the same endpoint, precisely so that asking cannot reveal
+  /// who is already a member. Sending them to different screens would put that
+  /// distinction back on the wire.
+  ///
+  /// Still NOT account creation: no account exists until a passcode has been
+  /// verified.
+  Future<void> _enterAuth(BuildContext context, WidgetRef ref) async {
     await ref.read(onboardingControllerProvider.notifier).markSeen();
     if (!context.mounted) return;
-    context.goNamed(AppRoutes.verification);
-  }
-
-  /// Temporary Phase 2 behaviour for "I'm already a member".
-  ///
-  /// Shows an informational message only. It does NOT mark the intro complete
-  /// and does NOT navigate, because signing in is a different thing from
-  /// having seen the intro. A real auth route replaces this handler without
-  /// changing the component's semantics.
-  void _showSignInUnavailable(BuildContext context, AppLocalizations l10n) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(l10n.onboardingSignInUnavailable)));
+    context.goNamed(AppRoutes.authPhone);
   }
 }
 

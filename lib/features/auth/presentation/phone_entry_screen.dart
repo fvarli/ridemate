@@ -23,7 +23,9 @@ import '../../../app/providers/session_provider.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/api/rm_error_copy.dart';
 import '../../../core/api/rm_failure.dart';
+import '../../../core/session/rm_session.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
+import '../../../core/theme/tokens/rm_radius.dart';
 import '../../../core/theme/tokens/rm_spacing.dart';
 import '../../../core/theme/tokens/rm_typography.dart';
 import '../../../core/widgets/rm_button.dart';
@@ -42,6 +44,24 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
 
   bool _sending = false;
   String? _error;
+
+  /// Why the member is back here, if there is a reason worth telling them.
+  ///
+  /// Read once, in initState, and cleared from the session as it is read. The
+  /// router re-evaluates its redirect on every navigation, so a reason left in
+  /// place would put the same notice back on screen each time they moved
+  /// between the two auth screens.
+  ///
+  /// Never shown for an ordinary arrival: a first launch, a deliberate sign
+  /// out, or a reinstall all leave it null, because none of those is something
+  /// that happened TO the member.
+  RmSignedOutReason? _signedOutReason;
+
+  @override
+  void initState() {
+    super.initState();
+    _signedOutReason = ref.read(rmSessionProvider).consumeSignedOutReason();
+  }
 
   @override
   void dispose() {
@@ -114,6 +134,10 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
                 l10n.authPhoneBody,
                 style: RmTypography.bodyRegular.copyWith(color: c.sub),
               ),
+              if (_signedOutReason != null) ...<Widget>[
+                const SizedBox(height: RmSpacing.lg),
+                _SignedOutNotice(reason: _signedOutReason!),
+              ],
               const SizedBox(height: RmSpacing.xxl),
               RmTextField(
                 label: l10n.authPhoneFieldLabel,
@@ -143,6 +167,40 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Explains an involuntary sign-out, once.
+///
+/// Suspension is kept apart from an expired session on purpose: "sign in
+/// again" is exactly the advice that will not work for a suspended account,
+/// and repeating it would send the member round a loop the app already knows
+/// is closed.
+class _SignedOutNotice extends StatelessWidget {
+  const _SignedOutNotice({required this.reason});
+
+  final RmSignedOutReason reason;
+
+  @override
+  Widget build(BuildContext context) {
+    final RmColors c = context.rmColors;
+    final AppLocalizations l10n = AppLocalizations.of(context);
+
+    final bool suspended = reason == RmSignedOutReason.accountSuspended;
+
+    return Container(
+      padding: const EdgeInsets.all(RmSpacing.lg),
+      decoration: BoxDecoration(
+        color: suspended ? c.dangerSoft : c.surfaceMuted,
+        borderRadius: RmRadius.brLg,
+      ),
+      child: Text(
+        suspended ? l10n.errorForbidden : l10n.errorUnauthenticated,
+        style: RmTypography.bodySm.copyWith(
+          color: suspended ? c.danger : c.sub,
         ),
       ),
     );

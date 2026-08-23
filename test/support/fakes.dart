@@ -6,8 +6,11 @@
 // complete".
 // ─────────────────────────────────────────────────────────────
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ridemate/app/data/app_preferences_repository.dart';
+import 'package:ridemate/core/api/rm_response.dart';
+import 'package:ridemate/core/session/rm_session.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 
 /// In-memory [OnboardingRepository].
@@ -76,4 +79,80 @@ class RecordingAppPreferencesRepository implements AppPreferencesRepository {
     if (failWrites) throw StateError('preference store unavailable');
     _locale = locale;
   }
+}
+
+/// A session in a fixed state, for tests about everything except signing in.
+///
+/// The router now gates on session state, so every flow test that pumps the
+/// application needs one — otherwise the redirect sends it to the sign-in
+/// screen and the test asserts against a form. Signed in is the default,
+/// because that is the state the rest of the product is designed for.
+///
+/// Implements [RmSession] rather than extending it: the real class talks to a
+/// backend, and a fake that inherited any of that could reach one.
+class FakeSession implements RmSession {
+  FakeSession([RmSessionState initial = const RmSignedIn('SESSION_TEST')])
+    : _state = ValueNotifier<RmSessionState>(initial);
+
+  /// A signed-out session, optionally carrying why.
+  factory FakeSession.signedOut([RmSignedOutReason? reason]) =>
+      FakeSession(const RmSignedOut())..signedOutReason = reason;
+
+  /// Startup, before restoration has resolved.
+  factory FakeSession.unresolved() => FakeSession(const RmSessionUnresolved());
+
+  final ValueNotifier<RmSessionState> _state;
+
+  /// Mirrors the real session: a plain field, not part of the routed state.
+  RmSignedOutReason? signedOutReason;
+
+  /// Lets a test move the session mid-flight, which is how a revocation is
+  /// simulated without a server.
+  void become(RmSessionState next) => _state.value = next;
+
+  @override
+  ValueListenable<RmSessionState> get state => _state;
+
+  @override
+  bool get isSignedIn => _state.value is RmSignedIn;
+
+  @override
+  String? get accessTokenForTest => isSignedIn ? 'rma_FAKE' : null;
+
+  @override
+  RmSignedOutReason? consumeSignedOutReason() {
+    final RmSignedOutReason? reason = signedOutReason;
+    signedOutReason = null;
+
+    return reason;
+  }
+
+  /// Ends the session the way a server revocation would.
+  void endSession(RmSignedOutReason reason) {
+    signedOutReason = reason;
+    become(const RmSignedOut());
+  }
+
+  @override
+  Future<void> restore() async {}
+
+  @override
+  Future<void> requestPasscode(String phone) async {}
+
+  @override
+  Future<void> verifyPasscode({
+    required String phone,
+    required String code,
+  }) async => become(const RmSignedIn('SESSION_TEST'));
+
+  @override
+  Future<void> signOut() async {
+    signedOutReason = null;
+    become(const RmSignedOut());
+  }
+
+  @override
+  Future<RmResponse> send(
+    Future<RmResponse> Function(Map<String, String> headers) request,
+  ) => request(<String, String>{'Authorization': 'Bearer rma_FAKE'});
 }

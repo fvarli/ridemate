@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -57,15 +59,21 @@ Future<void> main() async {
   // The composition seam: transport, client, endpoints, session. Assembled
   // once, here, so nothing downstream has to know how any of it is built.
   //
-  // restore() is deliberately NOT called yet. It exchanges the stored refresh
-  // token over the network, and whoever waits for that is deciding what the
-  // app shows meanwhile — which is router policy, and the next commit's.
-  // Starting it here without a waiter would fire a request at launch that
-  // nothing observes.
+  // Restoration starts here and is deliberately NOT awaited.
+  //
+  // It exchanges the stored refresh token over the network, and blocking the
+  // first frame on that would stall launch for as long as a bad connection
+  // takes — on a device that may have no session to restore at all. The
+  // session begins unresolved instead, which the router holds on the startup
+  // surface until this settles, so nothing signed-out flashes on the way.
+  //
+  // It never throws: every outcome ends signed in or signed out.
   final RmSession session = RmSession(
     api: AuthApi(RmApiClient.fromConfig()),
     store: credentials,
   );
+
+  unawaited(session.restore());
 
   runApp(
     ProviderScope(

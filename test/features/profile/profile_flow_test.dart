@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
+import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/app/router/app_router.dart';
 import 'package:ridemate/app/router/app_routes.dart';
@@ -33,6 +34,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
         onboardingRepositoryProvider.overrideWithValue(
           InMemoryOnboardingRepository(seen: true),
         ),
+        rmSessionProvider.overrideWithValue(FakeSession()),
       ],
       child: const RideMateApp(),
     ),

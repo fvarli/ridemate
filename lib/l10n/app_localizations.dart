@@ -212,12 +212,6 @@ abstract class AppLocalizations {
   /// **'Zaten üyeyim'**
   String get onboardingSignIn;
 
-  /// "Zaten üyeyim" dokunulduğunda gösterilen geçici bilgi mesajı. Kimlik doğrulama uygulanana kadar geçerlidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'Giriş özelliği yakında eklenecek.'**
-  String get onboardingSignInUnavailable;
-
   /// Kimlik doğrulama ekranının başlığı.
   ///
   /// In tr, this message translates to:

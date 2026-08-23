@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
+import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
@@ -44,6 +45,7 @@ void main() {
             onboardingRepositoryProvider.overrideWithValue(
               InMemoryOnboardingRepository(seen: true),
             ),
+            rmSessionProvider.overrideWithValue(FakeSession()),
           ],
           child: const RideMateApp(),
         ),

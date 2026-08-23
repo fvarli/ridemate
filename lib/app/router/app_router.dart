@@ -17,6 +17,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/session/rm_session.dart';
 import '../../features/auth/presentation/passcode_entry_screen.dart';
 import '../../features/auth/presentation/phone_entry_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
@@ -37,6 +38,7 @@ import '../../l10n/app_localizations.dart';
 import '../app_shell.dart';
 import '../error/app_error_screen.dart';
 import '../error/rm_error_reporter.dart';
+import '../providers/session_provider.dart';
 import '../startup_screen.dart';
 import 'app_routes.dart';
 
@@ -51,10 +53,15 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
   );
   ref.onDispose(refresh.dispose);
 
+  // The session is already a ValueListenable, so it needs no bridge of its own.
+  // Merging keeps the two dimensions separate all the way to the redirect:
+  // either can change without the other, and neither is derived from the other.
+  final RmSession session = ref.read(rmSessionProvider);
+
   return GoRouter(
     initialLocation: AppRoutes.startupPath,
     debugLogDiagnostics: false,
-    refreshListenable: refresh,
+    refreshListenable: Listenable.merge(<Listenable>[refresh, session.state]),
     // go_router's default error page is unthemed, unlocalized, and prints the
     // exception and the attempted path to the member. The failure is recorded
     // instead, and the screen says only what a member can act on.
@@ -66,30 +73,59 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
       );
       return const AppErrorScreen();
     },
+    // TWO DIMENSIONS, IN A FIXED ORDER, AND THEY ARE NOT THE SAME QUESTION.
+    //
+    //   "has this person seen the intro"   — a device-local flag
+    //   "is there a usable session"        — a credential the server accepts
+    //
+    // Neither is derived from the other. A member who reinstalls has a session
+    // and no flag; a member who signed out has the flag and no session. Folding
+    // them into one boolean would make both cases wrong, and it is the mistake
+    // this file has warned against since the flag was the only condition here.
     redirect: (BuildContext context, GoRouterState state) {
       final AsyncValue<bool> onboarding = ref.read(
         onboardingControllerProvider,
       );
+      final RmSessionState sessionState = session.state.value;
 
-      // Not resolved yet: decide nothing, so neither Onboarding nor Home can
-      // flash before the stored value is known.
-      if (!onboarding.hasValue) {
-        return state.matchedLocation == AppRoutes.startupPath
-            ? null
-            : AppRoutes.startupPath;
-      }
-
-      final bool hasSeenOnboarding = onboarding.requireValue;
       final String location = state.matchedLocation;
       final bool atLaunchSurface = location == AppRoutes.startupPath;
       final bool atOnboarding = location == AppRoutes.onboardingPath;
+      final bool atAuth =
+          location == AppRoutes.authPhonePath ||
+          location == AppRoutes.authPasscodePath;
 
-      if (!hasSeenOnboarding) {
+      // 1. Either dimension still resolving: decide nothing.
+      //
+      // The session matters as much as the flag here. A cold start with a
+      // perfectly good stored credential spends a network round trip finding
+      // that out, and without this the member would watch a sign-in screen
+      // appear and then vanish.
+      if (!onboarding.hasValue || sessionState is RmSessionUnresolved) {
+        return atLaunchSurface ? null : AppRoutes.startupPath;
+      }
+
+      // 2. The intro wins. Someone who has never seen it should not meet a
+      //    sign-in form first, whatever their credential says.
+      if (!onboarding.requireValue) {
         return atOnboarding ? null : AppRoutes.onboardingPath;
       }
-      // Intro already completed: the launch surface and the intro itself are
-      // both dead ends, so send them on. Everything else is left alone.
-      return atLaunchSurface || atOnboarding ? AppRoutes.homePath : null;
+
+      // 3. Signed in. The launch surface, the intro and the sign-in screens
+      //    are all dead ends now — this is what stops a restored session being
+      //    sent back to a sign-in form by stale navigation history.
+      if (sessionState is RmSignedIn) {
+        return atLaunchSurface || atOnboarding || atAuth
+            ? AppRoutes.homePath
+            : null;
+      }
+
+      // 4. Signed out, and somewhere that needs an account.
+      //
+      // Auth routes are excluded, so a signed-out member moves freely between
+      // the phone and passcode screens — the redirect that would otherwise send
+      // /auth/passcode back to /auth on every keystroke.
+      return atAuth ? null : AppRoutes.authPhonePath;
     },
     routes: <RouteBase>[
       GoRoute(
@@ -104,12 +140,30 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         builder: (BuildContext context, GoRouterState state) =>
             const OnboardingScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.verificationPath,
-        name: AppRoutes.verification,
-        builder: (BuildContext context, GoRouterState state) =>
-            const VerificationScreen(),
-      ),
+      // Debug only, and for the same reason as Active Trip and Safety: the
+      // screen states things that are not true once account identity is real.
+      // Its email step reads "verified" from a fixture, its progression is a
+      // scripted demo no backend drives, and its Trust Score has no engine
+      // behind it. Those were harmless while every account was imaginary; they
+      // are false claims about a real member's account now.
+      //
+      // The screen, its fixtures, its tests and its goldens are all kept as the
+      // approved design reference. Only the release entry point goes.
+      //
+      // IT RETURNS TO RELEASE WHEN ALL OF THESE HOLD:
+      //   * verification presentation state is served by the backend;
+      //   * the Trust Score is a value the server computes and owns;
+      //   * at least one non-phone step has a real submission path;
+      //   * every displayed status is traceable to backend state;
+      //   * and it migrates in one coherent change, never as a hybrid of real
+      //     and fixture data.
+      if (kDebugMode)
+        GoRoute(
+          path: AppRoutes.verificationPath,
+          name: AppRoutes.verification,
+          builder: (BuildContext context, GoRouterState state) =>
+              const VerificationScreen(),
+        ),
       // Sign-in. Registered in every build — these screens do what they say —
       // but linked from nowhere yet: the redirect below still gates on the
       // onboarding flag alone, and giving a completed sign-in somewhere to go

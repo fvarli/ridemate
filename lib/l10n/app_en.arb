@@ -24,7 +24,6 @@
   "onboardingSocialProof": "{count} verified members in Istanbul",
   "onboardingCreateAccount": "Create account",
   "onboardingSignIn": "I'm already a member",
-  "onboardingSignInUnavailable": "Sign-in is coming soon.",
 
   "verificationTitle": "Identity verification",
   "verificationScoreCaption": "SCORE",

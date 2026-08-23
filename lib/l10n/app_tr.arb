@@ -105,10 +105,6 @@
   "@onboardingSignIn": {
     "description": "İkincil eylem. Mevcut hesapla giriş yapmayı ifade eder. Giriş özelliği henüz yoktur."
   },
-  "onboardingSignInUnavailable": "Giriş özelliği yakında eklenecek.",
-  "@onboardingSignInUnavailable": {
-    "description": "\"Zaten üyeyim\" dokunulduğunda gösterilen geçici bilgi mesajı. Kimlik doğrulama uygulanana kadar geçerlidir."
-  },
 
   "verificationTitle": "Kimlik doğrulama",
   "@verificationTitle": {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
@@ -57,6 +58,7 @@ void main() {
           onboardingRepositoryProvider.overrideWithValue(
             InMemoryOnboardingRepository(seen: true),
           ),
+          rmSessionProvider.overrideWithValue(FakeSession()),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

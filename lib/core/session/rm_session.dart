@@ -24,15 +24,39 @@ import 'credential_store.dart';
 import 'rm_credentials.dart';
 import 'rm_token_pair.dart';
 
+/// Why a member is signed out.
+///
+/// Transient and in memory only. None of this is written anywhere: a stored
+/// "your session ended" would reappear after an unrelated restart, weeks later,
+/// with no session to explain it.
+enum RmSignedOutReason {
+  /// A session that existed stopped working — the server refused the refresh
+  /// token because it expired, was revoked, or was replayed.
+  sessionEnded,
+
+  /// The account is suspended. Kept apart from [sessionEnded] because signing
+  /// in again is exactly what will not help.
+  accountSuspended,
+}
+
 /// Whether there is a usable session.
 ///
-/// Two cases, and deliberately no third. "Refreshing" is not a state the rest
-/// of the app can act on differently — a request in flight during a refresh
-/// simply waits — and modelling it would invite UI that flickers between
-/// signed-in and something else on every token rotation.
+/// "Refreshing" is deliberately not a case. A request in flight during a
+/// rotation simply waits, and modelling it would invite UI that flickers
+/// between signed-in and something else on every refresh.
+///
+/// [RmSessionUnresolved] is a different matter and is load-bearing: without it
+/// the router cannot tell "not signed in" from "not looked yet", and a cold
+/// start with a perfectly good stored credential would show a sign-in screen
+/// for as long as the network took to answer.
 @immutable
 sealed class RmSessionState {
   const RmSessionState();
+}
+
+/// Startup, before the stored credential has been examined.
+final class RmSessionUnresolved extends RmSessionState {
+  const RmSessionUnresolved();
 }
 
 final class RmSignedOut extends RmSessionState {
@@ -76,6 +100,13 @@ class RmSession {
   /// by revoking the entire family. Concurrency on the client would look
   /// exactly like a stolen credential.
   Future<RmTokenPair>? _refreshing;
+
+  /// Why the last sign-out happened, if it is worth telling the member.
+  ///
+  /// Transient and in memory only. A stored "your session ended" would
+  /// reappear after an unrelated restart weeks later, with no session to
+  /// explain it.
+  RmSignedOutReason? _signedOutReason;
 
   /// Observed by the router in a later commit.
   ValueListenable<RmSessionState> get state => _state;
@@ -135,13 +166,20 @@ class RmSession {
     try {
       await _refresh();
     } on RmFailure catch (failure, stack) {
-      // Both outcomes end signed out. A suspended account keeps no usable
-      // session either, and holding its credential would only produce the
-      // same 403 on every later request.
-      if (failure.code != RmErrorCode.unauthenticated) {
+      // Every outcome ends signed out; a suspended account keeps no usable
+      // session either, and holding its credential would only produce the same
+      // 403 on every later request.
+      //
+      // _performRefresh has already recorded WHY for the two cases that have a
+      // reason, so this must not clear it by forgetting again. A transport
+      // failure has no reason: the credential may well be fine, and telling
+      // the member their session ended because a train went into a tunnel
+      // would be wrong.
+      if (failure.code != RmErrorCode.unauthenticated &&
+          failure.code != RmErrorCode.forbidden) {
         reportError(failure, stack, hint: 'restoring the session');
+        await _forgetLocally();
       }
-      await _forgetLocally();
     }
   }
 
@@ -202,6 +240,8 @@ class RmSession {
       }
     }
 
+    // No reason. The member asked for this, and being told their session
+    // ended would be the app explaining an event they caused.
     await _forgetLocally();
   }
 
@@ -235,8 +275,13 @@ class RmSession {
       // The server has refused the refresh token: it is spent, expired, or
       // its session was revoked. Keeping it would mean retrying a credential
       // that can only fail.
+      // A session that existed has stopped working, which is the one case
+      // worth telling the member about. A first launch never reaches here,
+      // because there is no credential to refresh.
       if (failure.code == RmErrorCode.unauthenticated) {
-        await _forgetLocally();
+        await _forgetLocally(RmSignedOutReason.sessionEnded);
+      } else if (failure.code == RmErrorCode.forbidden) {
+        await _forgetLocally(RmSignedOutReason.accountSuspended);
       }
 
       rethrow;
@@ -274,15 +319,37 @@ class RmSession {
 
     _credentials = credentials;
     _accessToken = pair.accessToken;
+    _signedOutReason = null;
     _state.value = RmSignedIn(pair.sessionId);
 
     return true;
   }
 
-  Future<void> _forgetLocally() async {
+  Future<void> _forgetLocally([RmSignedOutReason? reason]) async {
     _accessToken = null;
     _credentials = null;
+    _signedOutReason = reason;
     await _store.clear();
     _state.value = const RmSignedOut();
+  }
+
+  /// Reads the reason once and forgets it.
+  ///
+  /// Consumed rather than observed, and deliberately NOT part of
+  /// [RmSessionState]. Two reasons, and the second is not stylistic:
+  ///
+  /// The router only cares whether there is a session, so a reason on the
+  /// state would be a field it re-evaluates and ignores. More importantly the
+  /// screen consumes this from initState, and clearing an observed value there
+  /// notifies the router's refresh listener DURING a build — which throws
+  /// "setState() called during build" and takes the frame with it.
+  ///
+  /// A plain field has neither problem: reading it changes nothing anyone is
+  /// watching.
+  RmSignedOutReason? consumeSignedOutReason() {
+    final RmSignedOutReason? reason = _signedOutReason;
+    _signedOutReason = null;
+
+    return reason;
   }
 }

@@ -75,9 +75,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingSignIn => 'I\'m already a member';
 
   @override
-  String get onboardingSignInUnavailable => 'Sign-in is coming soon.';
-
-  @override
   String get verificationTitle => 'Identity verification';
 
   @override

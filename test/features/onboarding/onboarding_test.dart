@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ridemate/app/providers/session_provider.dart';
+import 'package:ridemate/app/router/app_routes.dart';
+import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/core/widgets/rm_button.dart';
+import 'package:ridemate/features/auth/presentation/phone_entry_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:ridemate/l10n/app_localizations.dart';
 
 import '../../support/fakes.dart';
 import '../../support/pump.dart';
@@ -33,6 +39,7 @@ void main() {
           onboardingRepositoryProvider.overrideWithValue(
             InMemoryOnboardingRepository(seen: true),
           ),
+          rmSessionProvider.overrideWithValue(FakeSession()),
         ],
       );
       addTearDown(container.dispose);
@@ -109,6 +116,51 @@ void main() {
       return repo;
     }
 
+    /// Both CTAs navigate now, so the tapping tests need a real router. Only
+    /// the two routes involved are registered: this is testing the screen, not
+    /// the application's route table.
+    Future<InMemoryOnboardingRepository> pumpInRouter(
+      WidgetTester tester,
+    ) async {
+      final InMemoryOnboardingRepository repo = InMemoryOnboardingRepository();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            onboardingRepositoryProvider.overrideWithValue(repo),
+            rmSessionProvider.overrideWithValue(FakeSession.signedOut()),
+          ],
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            theme: RmTheme.of(Brightness.light),
+            locale: kDefaultTestLocale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: GoRouter(
+              initialLocation: AppRoutes.onboardingPath,
+              routes: <RouteBase>[
+                GoRoute(
+                  path: AppRoutes.onboardingPath,
+                  name: AppRoutes.onboarding,
+                  builder: (BuildContext context, GoRouterState state) =>
+                      const OnboardingScreen(),
+                ),
+                GoRoute(
+                  path: AppRoutes.authPhonePath,
+                  name: AppRoutes.authPhone,
+                  builder: (BuildContext context, GoRouterState state) =>
+                      const PhoneEntryScreen(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      return repo;
+    }
+
     testBothThemes('renders the approved copy', (
       WidgetTester tester,
       Brightness brightness,
@@ -140,35 +192,40 @@ void main() {
       expect(find.text("I'm already a member"), findsOneWidget);
     });
 
-    testWidgets(
-      '"Zaten üyeyim" leaves onboarding persistence completely unchanged',
-      (WidgetTester tester) async {
-        // Signing in is a different thing from having seen the intro. Mapping
-        // one to the other would encode the wrong product behaviour and would
-        // have to be unpicked when real auth arrives.
-        final InMemoryOnboardingRepository repo = await pumpScreen(tester);
+    /// Both buttons now record the intro as seen.
+    ///
+    /// That is not "sign-in became onboarding". The flag records a deliberate
+    /// departure from the intro, and choosing either button is one. The router
+    /// gives onboarding precedence over authentication, so a CTA that left the
+    /// flag false would be redirected straight back here and the member would
+    /// tap and watch nothing happen.
+    for (final String cta in <String>['Hesap oluştur', 'Zaten üyeyim']) {
+      testWidgets('"$cta" records the intro as seen, exactly once', (
+        WidgetTester tester,
+      ) async {
+        final InMemoryOnboardingRepository repo = await pumpInRouter(tester);
 
-        await tester.tap(find.text('Zaten üyeyim'));
-        await tester.pump();
+        await tester.tap(find.text(cta));
+        await tester.pumpAndSettle();
 
-        expect(repo.markCallCount, 0, reason: 'must not mark the intro seen');
-        expect(repo.seen, isFalse);
-      },
-    );
+        expect(repo.markCallCount, 1);
+        expect(repo.seen, isTrue);
+        expect(find.byType(PhoneEntryScreen), findsOneWidget);
+      });
+    }
 
-    testWidgets(
-      '"Zaten üyeyim" shows a temporary message and does not navigate',
-      (WidgetTester tester) async {
-        await pumpScreen(tester);
+    /// The message that stood in for authentication is gone, along with its
+    /// copy. Sign-in exists now.
+    testWidgets('no "coming soon" message survives', (
+      WidgetTester tester,
+    ) async {
+      await pumpInRouter(tester);
 
-        await tester.tap(find.text('Zaten üyeyim'));
-        await tester.pump();
+      await tester.tap(find.text('Zaten üyeyim'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Giriş özelliği yakında eklenecek.'), findsOneWidget);
-        // Still on the intro: no sign-in screen was invented.
-        expect(find.byType(OnboardingScreen), findsOneWidget);
-      },
-    );
+      expect(find.textContaining('yakında'), findsNothing);
+    });
 
     testWidgets('both actions meet the touch target and expose semantics', (
       WidgetTester tester,

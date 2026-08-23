@@ -663,6 +663,69 @@ void main() {
       expect(pair.toString(), contains('SESSION_1'));
     });
   });
+
+  group('A store that cannot persist can never sign anyone in', () {
+    /// REGRESSION. InMemoryCredentialStore used to be the fallback when the
+    /// platform keystore could not be opened, and its write returned true — so
+    /// the session believed the credential was durable, signed in, and lost it
+    /// at the next launch. Signing in has already spent a refresh generation
+    /// server-side by then, so the member could not recover either.
+    ///
+    /// The degraded store is now the real production class, not a double.
+    test('verifying a passcode cannot reach signed in', () async {
+      final RmSession session = sessionWith(
+        (_) => pair(),
+        store: const UnavailableCredentialStore(),
+      );
+
+      await expectLater(
+        session.verifyPasscode(phone: '+905321234567', code: '123456'),
+        throwsA(isA<RmFailure>()),
+      );
+
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(session.accessTokenForTest, isNull);
+    });
+
+    test('a refresh cannot reach signed in either', () async {
+      final RmSession session = sessionWith(
+        (_) => pair(),
+        store: const UnavailableCredentialStore(),
+      );
+
+      // Nothing to restore from, because nothing could ever have been stored.
+      await session.restore();
+
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(sent, isEmpty);
+    });
+
+    test('the degraded store reports its writes as not durable', () async {
+      const UnavailableCredentialStore store = UnavailableCredentialStore();
+
+      expect(
+        await store.write(
+          const RmCredentials(refreshToken: 'rmr_X', sessionId: 'S'),
+        ),
+        isFalse,
+      );
+      expect(await store.read(), isNull);
+    });
+
+    /// The in-memory store keeps its `true`, because for its actual users —
+    /// tests and the provider default — the value really is retrievable.
+    test('the in-memory store is still honest about being durable', () async {
+      final InMemoryCredentialStore store = InMemoryCredentialStore();
+
+      expect(
+        await store.write(
+          const RmCredentials(refreshToken: 'rmr_X', sessionId: 'S'),
+        ),
+        isTrue,
+      );
+      expect((await store.read())?.refreshToken, 'rmr_X');
+    });
+  });
 }
 
 /// Accepts the first write and refuses every later one, so a session can be

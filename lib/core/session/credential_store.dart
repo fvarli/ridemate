@@ -39,7 +39,8 @@ abstract interface class CredentialStore {
   /// The stored credential, or null when there is none or it is unusable.
   Future<RmCredentials?> read();
 
-  /// Returns whether the credential is now durable.
+  /// Returns whether the credential is now durable — that is, whether it will
+  /// still be there after the process restarts.
   ///
   /// `false` means the write failed and was reported. Callers that have just
   /// rotated a credential MUST treat that as fatal to the session: continuing
@@ -133,11 +134,17 @@ class SecureCredentialStore implements CredentialStore {
   );
 }
 
-/// The degraded implementation, and what tests drive.
+/// A real store that happens to live in memory.
 ///
-/// Used when the platform store cannot be opened at all. The app then runs
-/// signed out and stays usable; writes will not survive a restart, which is
-/// worse than working storage and far better than refusing to start.
+/// Durable for the life of the process, and honest about it: `write` returns
+/// true because the value genuinely is retrievable afterwards. Used by tests
+/// and as the provider default, where process lifetime is the whole scope.
+///
+/// It is NOT the degraded production fallback — see [UnavailableCredentialStore].
+/// It was, and that was a defect: `true` from this class told the session a
+/// credential was durable when the platform store had failed to open, so the
+/// member signed in and was silently signed out at the next launch, having
+/// already spent a refresh generation the server had invalidated.
 class InMemoryCredentialStore implements CredentialStore {
   RmCredentials? _credentials;
 
@@ -153,6 +160,37 @@ class InMemoryCredentialStore implements CredentialStore {
 
   @override
   Future<void> clear() async => _credentials = null;
+}
+
+/// What stands in when the platform keystore cannot be opened at all.
+///
+/// FAILS CLOSED, DELIBERATELY.
+///
+/// `write` returns false, so a session can never be established on a device
+/// where the credential could not outlive the process. The alternative —
+/// keeping it in memory and reporting success — is worse than it sounds:
+/// signing in spends a refresh generation server-side, so the member would be
+/// signed in until they closed the app and then unable to recover, with
+/// nothing on screen having suggested anything was wrong.
+///
+/// Refusing means such a device cannot hold a session at all. That is a real
+/// cost, and it is the honest one: the app still runs, still shows everything
+/// that does not require an account, and says so at the point of signing in
+/// rather than an hour later.
+class UnavailableCredentialStore implements CredentialStore {
+  const UnavailableCredentialStore();
+
+  /// Nothing was ever stored, because nothing could be.
+  @override
+  Future<RmCredentials?> read() async => null;
+
+  @override
+  Future<bool> write(RmCredentials credentials) async => false;
+
+  /// A no-op that succeeds: callers clear on paths that end signed out, and
+  /// there is nothing here to remove.
+  @override
+  Future<void> clear() async {}
 }
 
 /// Clears secure storage if this is the first launch after an installation.
@@ -208,7 +246,10 @@ Future<CredentialStore> loadCredentialStore() {
 
       return store;
     },
-    orElse: InMemoryCredentialStore.new,
+    // NOT an in-memory store. See UnavailableCredentialStore: reporting a
+    // durable write from a store that is standing in for a broken keystore is
+    // what makes a session look established and vanish at restart.
+    orElse: UnavailableCredentialStore.new,
     hint: 'opening the credential store',
   );
 }

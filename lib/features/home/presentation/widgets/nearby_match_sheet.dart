@@ -117,7 +117,7 @@ class _MatchRow extends StatelessWidget {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final RmFormatters formatters = RmFormatters.of(context);
 
-    final String fare = formatters.money(match.fareShare);
+    final String costShare = formatters.money(match.costSharePerPerson);
     final String rating = formatters.rating(match.rating);
     final String compatibility = formatters.percent(match.compatibility);
     final String route = RmTextConventions.route(
@@ -133,7 +133,7 @@ class _MatchRow extends StatelessWidget {
         match.displayName,
         rating,
         route,
-        fare,
+        costShare,
         compatibility,
       ),
       child: InkWell(
@@ -222,7 +222,7 @@ class _MatchRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    fare,
+                    costShare,
                     style: RmTypography.numericMd.copyWith(color: c.ink),
                   ),
                   const SizedBox(height: RmSpacing.xs),

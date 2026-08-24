@@ -171,10 +171,10 @@ class AppLocalizationsTr extends AppLocalizations {
     String name,
     String rating,
     String route,
-    String fare,
+    String costShare,
     String compatibility,
   ) {
-    return '$name, $rating puan. $route. Kişi başı $fare. $compatibility rota uyumu.';
+    return '$name, $rating puan. $route. Kişi başı $costShare. $compatibility rota uyumu.';
   }
 
   @override
@@ -319,9 +319,9 @@ class AppLocalizationsTr extends AppLocalizations {
     String rating,
     String compatibility,
     String time,
-    String fare,
+    String costShare,
   ) {
-    return '$name, $rating puan. $compatibility rota uyumu. Kalkış $time. Kişi başı $fare.';
+    return '$name, $rating puan. $compatibility rota uyumu. Kalkış $time. Kişi başı $costShare.';
   }
 
   @override
@@ -355,7 +355,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get routeDetailsMutualTitle => 'Ortak bağlantı';
 
   @override
-  String get routeDetailsFareLabel => 'Senin payın';
+  String get routeDetailsCostShareLabel => 'Senin payın';
 
   @override
   String get routeDetailsMessageSemanticLabel => 'Sürücüye mesaj gönder';

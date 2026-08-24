@@ -31,7 +31,7 @@ final class NearbyMatch {
     required this.rating,
     required this.origin,
     required this.destination,
-    required this.fareShare,
+    required this.costSharePerPerson,
     required this.compatibility,
     required this.identity,
     required this.isVerified,
@@ -52,7 +52,7 @@ final class NearbyMatch {
   final String destination;
 
   /// Suggested cost share, in lira. Display data — nothing charges anyone.
-  final int fareShare;
+  final int costSharePerPerson;
 
   /// Route compatibility as a 0..1 ratio.
   final double compatibility;

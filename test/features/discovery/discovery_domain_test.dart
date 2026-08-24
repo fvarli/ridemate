@@ -71,7 +71,7 @@ void main() {
       expect(o.rating, 4.9);
       expect(o.tripCount, 128);
       expect(o.sharedRouteCount, 2);
-      expect(o.fareShare, 18);
+      expect(o.costSharePerPerson, 18);
       expect(o.compatibility, 0.94);
       expect(o.trustScore, 92);
       expect(o.approvalRate, 0.98);
@@ -84,7 +84,9 @@ void main() {
 
     test('the three cost shares and compatibilities match the design', () {
       expect(
-        MockRouteOffers.all.map((RouteOffer o) => o.fareShare).toList(),
+        MockRouteOffers.all
+            .map((RouteOffer o) => o.costSharePerPerson)
+            .toList(),
         <int>[18, 16, 14],
       );
       expect(

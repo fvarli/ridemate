@@ -65,7 +65,7 @@ class MatchCard extends StatelessWidget {
     final RmFormatters f = RmFormatters.of(context);
 
     final String rating = f.rating(offer.rating);
-    final String fare = f.money(offer.fareShare);
+    final String costShare = f.money(offer.costSharePerPerson);
     final String compatibility = f.percent(offer.compatibility);
     final String departure = f.hourMinute(
       offer.departureHour,
@@ -77,14 +77,14 @@ class MatchCard extends StatelessWidget {
       rating,
       compatibility,
       departure,
-      fare,
+      costShare,
     );
 
     return switch (tier) {
       MatchCardTier.condensed => _CondensedCard(
         offer: offer,
         rating: rating,
-        fare: fare,
+        costShare: costShare,
         compatibility: compatibility,
         departure: departure,
         semanticLabel: semanticLabel,
@@ -94,7 +94,7 @@ class MatchCard extends StatelessWidget {
         offer: offer,
         tier: tier,
         rating: rating,
-        fare: fare,
+        costShare: costShare,
         compatibility: compatibility,
         departure: departure,
         semanticLabel: semanticLabel,
@@ -109,7 +109,7 @@ class _FullCard extends StatelessWidget {
     required this.offer,
     required this.tier,
     required this.rating,
-    required this.fare,
+    required this.costShare,
     required this.compatibility,
     required this.departure,
     required this.semanticLabel,
@@ -119,7 +119,7 @@ class _FullCard extends StatelessWidget {
   final RouteOffer offer;
   final MatchCardTier tier;
   final String rating;
-  final String fare;
+  final String costShare;
   final String compatibility;
   final String departure;
   final String semanticLabel;
@@ -151,7 +151,7 @@ class _FullCard extends StatelessWidget {
                 _IdentityRow(
                   offer: offer,
                   rating: rating,
-                  fare: fare,
+                  costShare: costShare,
                   surfaceColor: c.surface,
                 ),
                 const SizedBox(height: RmSpacing.lg),
@@ -202,13 +202,13 @@ class _IdentityRow extends StatelessWidget {
   const _IdentityRow({
     required this.offer,
     required this.rating,
-    required this.fare,
+    required this.costShare,
     required this.surfaceColor,
   });
 
   final RouteOffer offer;
   final String rating;
-  final String fare;
+  final String costShare;
   final Color surfaceColor;
 
   @override
@@ -273,7 +273,7 @@ class _IdentityRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: RmSpacing.md),
-        Text(fare, style: RmTypography.numericMd.copyWith(color: c.ink)),
+        Text(costShare, style: RmTypography.numericMd.copyWith(color: c.ink)),
       ],
     );
   }
@@ -349,7 +349,7 @@ class _CondensedCard extends StatelessWidget {
   const _CondensedCard({
     required this.offer,
     required this.rating,
-    required this.fare,
+    required this.costShare,
     required this.compatibility,
     required this.departure,
     required this.semanticLabel,
@@ -358,7 +358,7 @@ class _CondensedCard extends StatelessWidget {
 
   final RouteOffer offer;
   final String rating;
-  final String fare;
+  final String costShare;
   final String compatibility;
   final String departure;
   final String semanticLabel;
@@ -422,7 +422,7 @@ class _CondensedCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: RmSpacing.md),
-          Text(fare, style: RmTypography.numericSm.copyWith(color: c.ink)),
+          Text(costShare, style: RmTypography.numericSm.copyWith(color: c.ink)),
         ],
       ),
     );

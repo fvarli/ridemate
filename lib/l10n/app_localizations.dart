@@ -383,12 +383,12 @@ abstract class AppLocalizations {
   /// Eşleşme kartı için ekran okuyucu etiketi.
   ///
   /// In tr, this message translates to:
-  /// **'{name}, {rating} puan. {route}. Kişi başı {fare}. {compatibility} rota uyumu.'**
+  /// **'{name}, {rating} puan. {route}. Kişi başı {costShare}. {compatibility} rota uyumu.'**
   String homeMatchSemanticLabel(
     String name,
     String rating,
     String route,
-    String fare,
+    String costShare,
     String compatibility,
   );
 
@@ -599,13 +599,13 @@ abstract class AppLocalizations {
   /// Eşleşme kartı için ekran okuyucu etiketi.
   ///
   /// In tr, this message translates to:
-  /// **'{name}, {rating} puan. {compatibility} rota uyumu. Kalkış {time}. Kişi başı {fare}.'**
+  /// **'{name}, {rating} puan. {compatibility} rota uyumu. Kalkış {time}. Kişi başı {costShare}.'**
   String matchesCardSemanticLabel(
     String name,
     String rating,
     String compatibility,
     String time,
-    String fare,
+    String costShare,
   );
 
   /// İstatistik başlığı: Güven Puanı. Değer backend'e aittir, istemcide hesaplanmaz.
@@ -660,7 +660,7 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'Senin payın'**
-  String get routeDetailsFareLabel;
+  String get routeDetailsCostShareLabel;
 
   /// Mesaj düğmesi için ekran okuyucu etiketi.
   ///

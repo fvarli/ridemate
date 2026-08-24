@@ -171,10 +171,10 @@ class AppLocalizationsEn extends AppLocalizations {
     String name,
     String rating,
     String route,
-    String fare,
+    String costShare,
     String compatibility,
   ) {
-    return '$name, rated $rating. $route. $fare per person. $compatibility route match.';
+    return '$name, rated $rating. $route. $costShare per person. $compatibility route match.';
   }
 
   @override
@@ -319,9 +319,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String rating,
     String compatibility,
     String time,
-    String fare,
+    String costShare,
   ) {
-    return '$name, rated $rating. $compatibility route match. Departs $time. $fare per person.';
+    return '$name, rated $rating. $compatibility route match. Departs $time. $costShare per person.';
   }
 
   @override
@@ -355,7 +355,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routeDetailsMutualTitle => 'Mutual connection';
 
   @override
-  String get routeDetailsFareLabel => 'Your share';
+  String get routeDetailsCostShareLabel => 'Your share';
 
   @override
   String get routeDetailsMessageSemanticLabel => 'Message the driver';

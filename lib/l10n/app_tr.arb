@@ -219,14 +219,14 @@
       }
     }
   },
-  "homeMatchSemanticLabel": "{name}, {rating} puan. {route}. Kişi başı {fare}. {compatibility} rota uyumu.",
+  "homeMatchSemanticLabel": "{name}, {rating} puan. {route}. Kişi başı {costShare}. {compatibility} rota uyumu.",
   "@homeMatchSemanticLabel": {
     "description": "Eşleşme kartı için ekran okuyucu etiketi.",
     "placeholders": {
       "name": {"type": "String"},
       "rating": {"type": "String"},
       "route": {"type": "String"},
-      "fare": {"type": "String"},
+      "costShare": {"type": "String"},
       "compatibility": {"type": "String"}
     }
   },
@@ -340,7 +340,7 @@
     "description": "Sıkıştırılmış kartta gösterilen kısa uyum ifadesi.",
     "placeholders": {"value": {"type": "String", "example": "%81"}}
   },
-  "matchesCardSemanticLabel": "{name}, {rating} puan. {compatibility} rota uyumu. Kalkış {time}. Kişi başı {fare}.",
+  "matchesCardSemanticLabel": "{name}, {rating} puan. {compatibility} rota uyumu. Kalkış {time}. Kişi başı {costShare}.",
   "@matchesCardSemanticLabel": {
     "description": "Eşleşme kartı için ekran okuyucu etiketi.",
     "placeholders": {
@@ -348,7 +348,7 @@
       "rating": {"type": "String"},
       "compatibility": {"type": "String"},
       "time": {"type": "String"},
-      "fare": {"type": "String"}
+      "costShare": {"type": "String"}
     }
   },
   "routeDetailsStatTrustScore": "Güven Puanı",
@@ -382,8 +382,8 @@
   },
   "routeDetailsMutualTitle": "Ortak bağlantı",
   "@routeDetailsMutualTitle": {"description": "Ortak bağlantı kartının başlığı."},
-  "routeDetailsFareLabel": "Senin payın",
-  "@routeDetailsFareLabel": {"description": "Maliyet paylaşımı etiketi. Bu bir ücret veya bilet değildir."},
+  "routeDetailsCostShareLabel": "Senin payın",
+  "@routeDetailsCostShareLabel": {"description": "Maliyet paylaşımı etiketi. Bu bir ücret veya bilet değildir."},
   "routeDetailsMessageSemanticLabel": "Sürücüye mesaj gönder",
   "@routeDetailsMessageSemanticLabel": {"description": "Mesaj düğmesi için ekran okuyucu etiketi."},
   "routeDetailsRequestSeat": "İstek gönder",

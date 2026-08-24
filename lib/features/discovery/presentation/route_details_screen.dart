@@ -401,11 +401,11 @@ class _ActionDock extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
-              l10n.routeDetailsFareLabel,
+              l10n.routeDetailsCostShareLabel,
               style: RmTypography.micro.copyWith(color: c.muted),
             ),
             Text(
-              f.money(offer.fareShare),
+              f.money(offer.costSharePerPerson),
               style: RmTypography.numericMd.copyWith(color: c.ink),
             ),
           ],

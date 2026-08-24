@@ -11,12 +11,13 @@
 // calculateCompatibility, no calculateFare, no calculateTrustScore and no
 // rankMatches. In particular:
 //
-//   compatibility  a percentage the design shows. Not a matching algorithm.
-//   fareShare      a suggested cost share. Not a price, not a fare, not
-//                  earnings, and nothing charges anyone.
-//   trustScore     a backend-owned, safety-sensitive concept. The client
-//                  displays it and never computes it.
-//   rating         a reputation figure produced elsewhere.
+//   compatibility       a percentage the design shows. Not a matching
+//                       algorithm.
+//   costSharePerPerson  a suggested cost share. Not a price, not a fare, not
+//                       earnings, and nothing charges anyone.
+//   trustScore          a backend-owned, safety-sensitive concept. The client
+//                       displays it and never computes it.
+//   rating              a reputation figure produced elsewhere.
 //
 // RideMate facilitates shared journeys and legitimate journey-cost sharing.
 // None of these fields carry commercial passenger-transport semantics.
@@ -46,7 +47,7 @@ final class RouteOffer {
     required this.tripMinutes,
     required this.seatsAvailable,
     required this.walkMinutes,
-    required this.fareShare,
+    required this.costSharePerPerson,
     required this.compatibility,
     required this.trustScore,
     required this.approvalRate,
@@ -100,7 +101,7 @@ final class RouteOffer {
   // ── Figures the design shows ───────────────────────────────
 
   /// Suggested cost share in lira. Presentation only; nothing charges anyone.
-  final int fareShare;
+  final int costSharePerPerson;
 
   /// Route compatibility, 0..1. Presentation only; not a matching rule.
   final double compatibility;

@@ -24,7 +24,7 @@ const HomeSnapshot _kMockHomeSnapshot = HomeSnapshot(
       rating: 4.9,
       origin: 'Kadıköy',
       destination: 'Levent',
-      fareShare: 18,
+      costSharePerPerson: 18,
       compatibility: 0.94,
       identity: RmIdentity.amber,
       isVerified: true,

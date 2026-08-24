@@ -73,7 +73,7 @@ class RmFormatters {
 
   // ── Money ──────────────────────────────────────────────────
 
-  /// A fare share, e.g. `₺18`.
+  /// A cost share, e.g. `₺18`.
   ///
   /// Whole lira only: the design never shows kuruş. Amounts are presentation
   /// data — RideMate implements no payment behaviour.

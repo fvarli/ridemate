@@ -539,6 +539,17 @@ credential that cannot be written signs the member out rather than leaving a ses
 works until the process ends. `flutter_secure_storage` is confined to one implementation file
 by test.
 
+**A refresh credential is deleted only when the server proves it unusable, the user
+explicitly signs out, or durable credential storage fails; indeterminate transport failures
+preserve it for a later restore attempt.**
+
+That distinction is easy to lose and expensive to get wrong. A timeout, a refused connection,
+a DNS failure, a 500 and a rate limit all mean the same thing — nothing was learned about the
+credential — so deleting it on that basis charges the member an SMS for opening the app in a
+tunnel, on evidence the app never had. Those outcomes sign the PROCESS out and leave storage
+alone, and the next launch tries again from the same credential. Only a 401 or a 403 removes
+it, because only the server can say it is unusable.
+
 **Still fixtures, and honestly so:** Profile including Trust Score, tier and factors; Home;
 Search and route offers; Create Route; Active Trip; Reviews; Safety. Email, identity, selfie
 and licence verification do not exist on either side.

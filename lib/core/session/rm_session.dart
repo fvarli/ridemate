@@ -158,8 +158,16 @@ class RmSession {
   /// Restores a stored session, if there is one that still works.
   ///
   /// Never throws: this runs during startup, where there is nobody to catch.
-  /// It ends either signed in or signed out, and a stored credential the
-  /// backend no longer accepts is cleared rather than kept hopefully.
+  /// It always ends signed in or signed out — never still unresolved, which
+  /// would leave the router holding the launch surface forever.
+  ///
+  /// THE CREDENTIAL IS DELETED ONLY WHEN THE SERVER PROVES IT UNUSABLE.
+  ///
+  /// A timeout, a refused connection, a DNS failure or a 500 all mean the same
+  /// thing: nothing was learned about the credential. Deleting it on that basis
+  /// costs the member an SMS for opening the app in a tunnel, and the app had
+  /// no evidence to justify it. Those outcomes sign this PROCESS out and leave
+  /// the stored credential alone, so the next launch tries again.
   Future<void> restore() async {
     final RmCredentials? stored = await _store.read();
 
@@ -174,19 +182,21 @@ class RmSession {
     try {
       await _refresh();
     } on RmFailure catch (failure, stack) {
-      // Every outcome ends signed out; a suspended account keeps no usable
-      // session either, and holding its credential would only produce the same
-      // 403 on every later request.
+      // Every outcome ends signed out. What differs is whether the credential
+      // survives it.
       //
-      // _performRefresh has already recorded WHY for the two cases that have a
-      // reason, so this must not clear it by forgetting again. A transport
-      // failure has no reason: the credential may well be fine, and telling
-      // the member their session ended because a train went into a tunnel
-      // would be wrong.
+      // 401 and 403 were already handled inside _performRefresh, which cleared
+      // the credential and recorded why. Reaching here for those means the
+      // work is done; forgetting again would erase the reason.
+      //
+      // Everything else is INDETERMINATE — a timeout, a refused connection, a
+      // 500, a rate limit. None of them says the credential is bad, and the
+      // earlier version of this branch deleted it anyway. That turned a tunnel
+      // into a re-authentication by SMS, on evidence the app never had.
       if (failure.code != RmErrorCode.unauthenticated &&
           failure.code != RmErrorCode.forbidden) {
         reportError(failure, stack, hint: 'restoring the session');
-        await _forgetLocally();
+        _standDown();
       }
     }
   }
@@ -333,6 +343,25 @@ class RmSession {
     return true;
   }
 
+  /// Ends the session for THIS PROCESS without destroying the stored
+  /// credential.
+  ///
+  /// The counterpart to [_forgetLocally], and the distinction is the whole
+  /// point of this pair: one is used when the credential has been proven
+  /// unusable or the member asked to leave, the other when the app simply
+  /// could not find out. Synchronous because it touches no storage.
+  void _standDown() {
+    _accessToken = null;
+    _credentials = null;
+    _signedOutReason = null;
+    _state.value = const RmSignedOut();
+  }
+
+  /// Ends the session AND deletes the stored credential.
+  ///
+  /// Reserved for the three cases that justify it: the server refused the
+  /// credential, the member signed out, or a rotated credential could not be
+  /// written durably.
   Future<void> _forgetLocally([RmSignedOutReason? reason]) async {
     _accessToken = null;
     _credentials = null;

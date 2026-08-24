@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -112,16 +113,13 @@ void main() {
     expect(session.state.value, isA<RmSignedOut>());
   });
 
-  /// Landed behaviour, recorded rather than asserted as ideal.
+  /// CARRIES WEIGHT. A timeout must not cost the member their credential.
   ///
-  /// restore() clears the stored credential on ANY failure, transport included
-  /// — so a launch inside a tunnel deletes a refresh token that was very
-  /// probably still valid, and the member must sign in by SMS again once they
-  /// surface. Nothing about a timeout suggests the credential is the problem.
-  ///
-  /// Changing that is a sign-out-semantics decision, not part of bounding a
-  /// request, so this commit records the behaviour instead of altering it.
-  testWidgets('a timed-out restore currently clears the stored credential', (
+  /// Nothing about a timeout says the refresh token is bad. Deleting it means
+  /// opening the app in a tunnel costs an SMS to get back in — a punishment
+  /// for a network, decided on evidence the app never had. This was the
+  /// behaviour until this commit, and the assertion is now inverted.
+  testWidgets('a timed-out restore keeps the stored credential', (
     WidgetTester tester,
   ) async {
     final InMemoryCredentialStore store = InMemoryCredentialStore();
@@ -139,10 +137,77 @@ void main() {
 
     expect(session.state.value, isA<RmSignedOut>());
     expect(
-      await store.read(),
-      isNull,
-      reason: 'documents today\'s behaviour; see the note above',
+      (await store.read())?.refreshToken,
+      'rmr_STORED',
+      reason: 'the credential was never proven unusable',
     );
+    // Signed out, not "your session ended" — nothing ended, the app just
+    // could not reach anyone.
+    expect(session.consumeSignedOutReason(), isNull);
+  });
+
+  /// The point of keeping it: the next launch works.
+  testWidgets('a later restore succeeds from the same stored credential', (
+    WidgetTester tester,
+  ) async {
+    bool reachable = false;
+    int refreshCalls = 0;
+
+    final InMemoryCredentialStore store = InMemoryCredentialStore();
+    await store.write(
+      const RmCredentials(refreshToken: 'rmr_STORED', sessionId: 'SESSION_1'),
+    );
+
+    RmSession sessionOver(http.Client transport) => RmSession(
+      api: AuthApi(
+        RmApiClient(
+          baseUrl: Uri.parse('https://api.example.test'),
+          transport: transport,
+          timeout: const Duration(seconds: 5),
+        ),
+      ),
+      store: store,
+    );
+
+    final http.Client flaky = MockClient((http.Request request) {
+      refreshCalls++;
+
+      if (!reachable) {
+        return Completer<http.Response>().future;
+      }
+
+      return Future<http.Response>.value(
+        http.Response(
+          jsonEncode(<String, Object?>{
+            'access_token': 'rma_NEW',
+            'refresh_token': 'rmr_ROTATED',
+            'token_type': 'Bearer',
+            'expires_in': 900,
+            'session_id': 'SESSION_1',
+          }),
+          200,
+          headers: <String, String>{'content-type': 'application/json'},
+        ),
+      );
+    });
+
+    // Launch one: the backend is unreachable.
+    unawaited(sessionOver(flaky).restore());
+    await tester.pump(const Duration(seconds: 6));
+    expect((await store.read())?.refreshToken, 'rmr_STORED');
+
+    // Launch two: it is back.
+    reachable = true;
+    final RmSession second = sessionOver(flaky);
+    await second.restore();
+
+    expect(second.state.value, isA<RmSignedIn>());
+    expect(
+      (await store.read())?.refreshToken,
+      'rmr_ROTATED',
+      reason: 'the recovered restore rotated normally',
+    );
+    expect(refreshCalls, 2, reason: 'one attempt per launch, never a retry');
   });
 
   testWidgets('the default bound is twenty seconds', (

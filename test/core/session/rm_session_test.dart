@@ -766,6 +766,140 @@ void main() {
       expect(session.state.value, isA<RmSignedIn>());
     });
   });
+
+  group('When a credential may be deleted, and when it may not', () {
+    /// The invariant, stated as a matrix. A refresh credential is deleted only
+    /// when the server proves it unusable, the member explicitly signs out, or
+    /// durable storage fails. Everything else preserves it, because nothing
+    /// else is evidence.
+    Future<InMemoryCredentialStore> stored() async {
+      final InMemoryCredentialStore store = InMemoryCredentialStore();
+      await store.write(
+        const RmCredentials(refreshToken: 'rmr_STORED', sessionId: 'SESSION_1'),
+      );
+
+      return store;
+    }
+
+    /// Server said no: the credential is spent, expired or revoked. Keeping it
+    /// would mean retrying something that can only fail.
+    test('401 deletes it and says the session ended', () async {
+      final InMemoryCredentialStore store = await stored();
+      final RmSession session = sessionWith(
+        (_) => envelope('unauthenticated', status: 401),
+        store: store,
+      );
+
+      await session.restore();
+
+      expect(await store.read(), isNull);
+      expect(session.consumeSignedOutReason(), RmSignedOutReason.sessionEnded);
+    });
+
+    /// Also proven unusable, and distinctly so — signing in again is exactly
+    /// what will not help a suspended account.
+    test('403 deletes it and says the account is suspended', () async {
+      final InMemoryCredentialStore store = await stored();
+      final RmSession session = sessionWith(
+        (_) => envelope('forbidden', status: 403),
+        store: store,
+      );
+
+      await session.restore();
+
+      expect(await store.read(), isNull);
+      expect(
+        session.consumeSignedOutReason(),
+        RmSignedOutReason.accountSuspended,
+      );
+    });
+
+    /// Everything below learned NOTHING about the credential.
+    for (final (String label, http.Response Function() respond)
+        in <(String, http.Response Function())>[
+          ('a server error', () => envelope('internal_error', status: 500)),
+          ('a rate limit', () => envelope('rate_limited', status: 429)),
+          ('a malformed response', () => http.Response('{oh no', 502)),
+        ]) {
+      test('$label preserves it', () async {
+        final InMemoryCredentialStore store = await stored();
+        final RmSession session = sessionWith((_) => respond(), store: store);
+
+        await session.restore();
+
+        expect(session.state.value, isA<RmSignedOut>());
+        expect(
+          (await store.read())?.refreshToken,
+          'rmr_STORED',
+          reason: '$label is not evidence the credential is bad',
+        );
+        expect(
+          session.consumeSignedOutReason(),
+          isNull,
+          reason: 'nothing ended; the app just could not find out',
+        );
+      });
+    }
+
+    test('a dropped connection preserves it', () async {
+      final InMemoryCredentialStore store = await stored();
+      final RmSession session = sessionWith(
+        (_) => throw http.ClientException('connection reset'),
+        store: store,
+      );
+
+      await session.restore();
+
+      expect(session.state.value, isA<RmSignedOut>());
+      expect((await store.read())?.refreshToken, 'rmr_STORED');
+      expect(session.consumeSignedOutReason(), isNull);
+    });
+
+    /// The member asked. No evidence is required, and no notice is shown.
+    test('an explicit sign-out deletes it', () async {
+      final InMemoryCredentialStore store = InMemoryCredentialStore();
+      final RmSession session = sessionWith((_) => pair(), store: store);
+      await session.verifyPasscode(phone: '+905321234567', code: '123456');
+
+      await session.signOut();
+
+      expect(await store.read(), isNull);
+      expect(session.consumeSignedOutReason(), isNull);
+    });
+
+    /// Fail closed: a session that cannot outlive the process must not be
+    /// reported as established.
+    test('a credential that cannot be written leaves nothing stored', () async {
+      final RmSession session = sessionWith(
+        (_) => pair(),
+        store: const UnavailableCredentialStore(),
+      );
+
+      await expectLater(
+        session.verifyPasscode(phone: '+905321234567', code: '123456'),
+        throwsA(isA<RmFailure>()),
+      );
+
+      expect(session.state.value, isA<RmSignedOut>());
+    });
+
+    /// restore() must never leave the router holding the launch surface.
+    test('every outcome resolves out of unresolved', () async {
+      for (final http.Response Function() respond in <http.Response Function()>[
+        () => pair(),
+        () => envelope('unauthenticated', status: 401),
+        () => envelope('forbidden', status: 403),
+        () => envelope('internal_error', status: 500),
+      ]) {
+        final InMemoryCredentialStore store = await stored();
+        final RmSession session = sessionWith((_) => respond(), store: store);
+
+        await session.restore();
+
+        expect(session.state.value, isNot(isA<RmSessionUnresolved>()));
+      }
+    });
+  });
 }
 
 /// Accepts the first write and refuses every later one, so a session can be

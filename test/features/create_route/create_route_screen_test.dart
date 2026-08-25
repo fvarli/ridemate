@@ -25,6 +25,7 @@ import 'package:ridemate/core/widgets/rm_chip.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
+import 'package:ridemate/features/create_route/domain/departure.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/create_route/presentation/widgets/recurrence_card.dart';
 
@@ -64,6 +65,26 @@ void main() {
     tester.element(find.byType(CreateRouteScreen)),
   ).read(createRouteDraftProvider);
 
+  CreateRouteDraftController controllerOf(WidgetTester tester) =>
+      ProviderScope.containerOf(
+        tester.element(find.byType(CreateRouteScreen)),
+      ).read(createRouteDraftProvider.notifier);
+
+  /// Fills in the departure the way a driver would, without a picker.
+  ///
+  /// The pickers are platform surfaces; what these tests care about is the
+  /// screen's reaction to a draft that is or is not finished.
+  Future<void> chooseDeparture(
+    WidgetTester tester, {
+    DepartureDate? date,
+    DepartureTime time = const DepartureTime(hour: 8, minute: 25),
+  }) async {
+    final CreateRouteDraftController controller = controllerOf(tester);
+    if (date != null) controller.setDepartureDate(date);
+    controller.setDepartureTime(time);
+    await tester.pump();
+  }
+
   group('CreateRouteScreen', () {
     testBothThemes('renders the approved copy', (
       WidgetTester tester,
@@ -77,12 +98,12 @@ void main() {
       expect(find.text('Ataşehir, Palladium'), findsOneWidget);
       expect(find.text('Maslak, 42 Maslak'), findsOneWidget);
       expect(find.text('Her hafta içi tekrarla'), findsOneWidget);
-      expect(find.text('Pzt–Cum · 08:00 kalkış'), findsOneWidget);
+      expect(find.text('Pzt–Cum'), findsOneWidget);
       expect(find.text('BOŞ KOLTUK'), findsOneWidget);
+      // The departure the driver has to state, and its empty prompts.
+      expect(find.text('GİDİŞ SAATİ'), findsOneWidget);
+      expect(find.text('Saat seç'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
-      expect(find.text('KİŞİ BAŞI'), findsOneWidget);
-      expect(find.text('₺18'), findsOneWidget);
-      expect(find.text('Önerilen · maliyet paylaşımı'), findsOneWidget);
       expect(find.text('YOLCULUK KURALLARI'), findsOneWidget);
       expect(find.text('Rotayı yayınla'), findsOneWidget);
     });
@@ -172,21 +193,21 @@ void main() {
       WidgetTester tester,
     ) async {
       await pump(tester);
-      expect(find.text('Pzt–Cum · 08:00 kalkış'), findsOneWidget);
+      expect(find.text('Pzt–Cum'), findsOneWidget);
 
       await tester.tap(find.text('Her hafta içi tekrarla'));
       await tester.pumpAndSettle();
 
-      expect(draftOf(tester).repeatsOnWeekdays, isFalse);
-      expect(find.text('Pzt–Cum · 08:00 kalkış'), findsNothing);
+      expect(draftOf(tester).recurrence == Recurrence.weekdays, isFalse);
+      expect(find.text('Pzt–Cum'), findsNothing);
       // No invented replacement copy — the line is simply absent.
       expect(find.text('Her hafta içi tekrarla'), findsOneWidget);
 
       await tester.tap(find.text('Her hafta içi tekrarla'));
       await tester.pumpAndSettle();
 
-      expect(draftOf(tester).repeatsOnWeekdays, isTrue);
-      expect(find.text('Pzt–Cum · 08:00 kalkış'), findsOneWidget);
+      expect(draftOf(tester).recurrence == Recurrence.weekdays, isTrue);
+      expect(find.text('Pzt–Cum'), findsOneWidget);
     });
 
     testWidgets('announces as a switch, not a button', (
@@ -340,59 +361,50 @@ void main() {
     });
   });
 
-  group('The cost share never moves', () {
-    testWidgets('changing seats leaves it at ₺18', (WidgetTester tester) async {
-      // The signature test for this phase. Deriving the amount from the seat
-      // count would author a pricing rule, and a total would be an earnings
-      // claim. Neither exists.
+  group('The publication surface carries no cost at all', () {
+    testWidgets('no amount is rendered, at any seat count', (
+      WidgetTester tester,
+    ) async {
+      // The signature test for this commit, and it is an ABSENCE test. The
+      // screen used to show a fixture ₺18 captioned "suggested", which was
+      // honest while nothing was published. It is not honest on a form whose
+      // other fields are about to become server-owned.
       await pump(tester);
-      expect(find.text('₺18'), findsOneWidget);
 
-      await tester.tap(find.text('+'));
-      await tester.pump();
-      expect(draftOf(tester).seats, 4);
-      expect(find.text('₺18'), findsOneWidget);
+      expect(find.textContaining('₺'), findsNothing);
+      expect(find.textContaining('18'), findsNothing);
+      expect(find.text('KİŞİ BAŞI'), findsNothing);
+      expect(find.text('Önerilen · maliyet paylaşımı'), findsNothing);
 
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 4; i++) {
         await tester.tap(find.text('+'));
         await tester.pump();
       }
       expect(draftOf(tester).seats, 7);
-      expect(find.text('₺18'), findsOneWidget);
-      // No total anywhere: 7 x 18 = 126.
+
+      // Not merely unchanged — absent. And still no total: 7 x 18 = 126.
+      expect(find.textContaining('₺'), findsNothing);
       expect(find.textContaining('126'), findsNothing);
-      expect(find.textContaining('₺126'), findsNothing);
     });
 
-    testWidgets('no other edit moves it either', (WidgetTester tester) async {
+    testWidgets('no edit anywhere on the screen brings one back', (
+      WidgetTester tester,
+    ) async {
       await pump(tester);
 
       await tester.tap(find.text('Her hafta içi tekrarla'));
       await tester.pump();
-      expect(find.text('₺18'), findsOneWidget);
+      expect(find.textContaining('₺'), findsNothing);
 
       await tester.tap(find.text('Evcil hayvan yok'));
       await tester.pump();
-      expect(find.text('₺18'), findsOneWidget);
+      expect(find.textContaining('₺'), findsNothing);
 
       await tester.tap(find.text('Ataşehir, Palladium'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Kadıköy, İskele Meydanı').last);
       await tester.pumpAndSettle();
-      expect(find.text('₺18'), findsOneWidget);
-    });
-
-    testWidgets('reads as data, not as an unfinished control', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-
-      final SemanticsNode node = tester.getSemantics(
-        find.bySemanticsLabel('Kişi başı önerilen maliyet paylaşımı: ₺18'),
-      );
-      expect(node.flagsCollection.isReadOnly, isTrue);
-      expect(node.flagsCollection.isButton, isFalse);
-      expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isFalse);
+      expect(find.textContaining('₺'), findsNothing);
     });
   });
 
@@ -415,7 +427,133 @@ void main() {
       expect(draftOf(tester).isRuleSelected(kRuleNeedingPolicyReview), isTrue);
       // Nothing else on the screen reacted.
       expect(draftOf(tester).seats, 3);
-      expect(find.text('₺18'), findsOneWidget);
+    });
+  });
+
+  group('The departure the driver states', () {
+    testWidgets('a weekday commute asks for a time and no date', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+
+      expect(draftOf(tester).recurrence, Recurrence.weekdays);
+      expect(find.text('GİDİŞ SAATİ'), findsOneWidget);
+      expect(find.text('Saat seç'), findsOneWidget);
+
+      // A commute has no single day, so no date is offered — and none can be
+      // published.
+      expect(find.text('GİDİŞ TARİHİ'), findsNothing);
+      expect(find.text('Tarih seç'), findsNothing);
+      expect(draftOf(tester).departureDate, isNull);
+    });
+
+    testWidgets('a one-off journey asks for both', (WidgetTester tester) async {
+      await pump(tester);
+
+      await tester.tap(find.text('Her hafta içi tekrarla'));
+      await tester.pumpAndSettle();
+
+      expect(draftOf(tester).recurrence, Recurrence.once);
+      expect(find.text('GİDİŞ TARİHİ'), findsOneWidget);
+      expect(find.text('Tarih seç'), findsOneWidget);
+      expect(find.text('GİDİŞ SAATİ'), findsOneWidget);
+    });
+
+    testWidgets('no fixture departure is shown before one is chosen', (
+      WidgetTester tester,
+    ) async {
+      // The screen used to display 08:00 because it could not ask. It asks now.
+      await pump(tester);
+
+      expect(find.textContaining('08:00'), findsNothing);
+      expect(draftOf(tester).departureTime, isNull);
+    });
+
+    testWidgets('a chosen departure is what the tiles show', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('Her hafta içi tekrarla'));
+      await tester.pumpAndSettle();
+
+      await chooseDeparture(
+        tester,
+        date: const DepartureDate(year: 2099, month: 4, day: 1),
+        time: const DepartureTime(hour: 7, minute: 45),
+      );
+
+      expect(find.text('07:45'), findsOneWidget);
+      expect(find.text('1 Nisan 2099'), findsOneWidget);
+      expect(find.text('Saat seç'), findsNothing);
+      expect(find.text('Tarih seç'), findsNothing);
+    });
+
+    testWidgets('the date disappears with the mode that needed it', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('Her hafta içi tekrarla'));
+      await tester.pumpAndSettle();
+      await chooseDeparture(
+        tester,
+        date: const DepartureDate(year: 2099, month: 4, day: 1),
+      );
+      expect(find.text('1 Nisan 2099'), findsOneWidget);
+
+      await tester.tap(find.text('Her hafta içi tekrarla'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 Nisan 2099'), findsNothing);
+      expect(draftOf(tester).departureDate, isNull);
+      // The time is needed in both modes and stays.
+      expect(find.text('08:25'), findsOneWidget);
+    });
+
+    testWidgets('both tiles announce themselves as buttons', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('Her hafta içi tekrarla'));
+      await tester.pumpAndSettle();
+
+      for (final String label in <String>[
+        'GİDİŞ TARİHİ: Tarih seç',
+        'GİDİŞ SAATİ: Saat seç',
+      ]) {
+        final SemanticsNode node = tester.getSemantics(
+          find.bySemanticsLabel(label),
+        );
+        expect(node.flagsCollection.isButton, isTrue, reason: label);
+      }
+    });
+  });
+
+  group('An unfinished form is told what is missing', () {
+    testWidgets('publishing without a time names the time', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+
+      expect(find.text('Gidiş saati seç.'), findsOneWidget);
+      // And it does not claim anything about publishing.
+      expect(find.textContaining('Rota henüz yayınlanmadı'), findsNothing);
+    });
+
+    testWidgets('publishing a dated journey without a date names the date', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('Her hafta içi tekrarla'));
+      await tester.pumpAndSettle();
+      await chooseDeparture(tester);
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+
+      expect(find.text('Gidiş tarihi seç.'), findsOneWidget);
     });
   });
 
@@ -424,6 +562,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await pump(tester);
+      await chooseDeparture(tester);
       final CreateRouteDraft before = draftOf(tester);
 
       await tester.tap(find.text('Rotayı yayınla'));
@@ -451,6 +590,48 @@ void main() {
   });
 
   group('Responsiveness', () {
+    /// The one-off layout is two tiles in a row, and no golden captures it.
+    ///
+    /// The goldens photograph the screen's default state, which is a weekday
+    /// commute with a single tile. The dated variant only exists after a tap,
+    /// so the narrow and mirrored cases have to be asserted here or nowhere —
+    /// and a two-tile row at 360dp with a long localized date is exactly the
+    /// shape that has overflowed on this project before.
+    testWidgets('the dated layout survives RTL, English and 360dp', (
+      WidgetTester tester,
+    ) async {
+      // September is the longest month name a Turkish date carries here, so
+      // this is the widest the tile ever gets.
+      Future<void> fillDatedForm() async {
+        // Driven through the controller rather than the switch: what is under
+        // test here is the two-tile layout, and the toggle has its own tests.
+        controllerOf(tester).setRecurrence(Recurrence.once);
+        await tester.pumpAndSettle();
+        await chooseDeparture(
+          tester,
+          date: const DepartureDate(year: 2099, month: 9, day: 28),
+          time: const DepartureTime(hour: 23, minute: 45),
+        );
+
+        // A layout test that never reached the layout would pass for the
+        // wrong reason, so prove the two-tile row is actually on screen.
+        expect(draftOf(tester).recurrence, Recurrence.once);
+        expect(find.text('23:45'), findsOneWidget);
+      }
+
+      await pump(tester, textDirection: TextDirection.rtl);
+      await fillDatedForm();
+      expect(tester.takeException(), isNull, reason: 'TR RTL, dated');
+
+      await pump(tester, size: kNarrowPhone);
+      await fillDatedForm();
+      expect(tester.takeException(), isNull, reason: 'TR at 360dp, dated');
+
+      await pump(tester, locale: const Locale('en'), size: kNarrowPhone);
+      await fillDatedForm();
+      expect(tester.takeException(), isNull, reason: 'EN at 360dp, dated');
+    });
+
     testWidgets('renders in English, RTL and at the narrow width', (
       WidgetTester tester,
     ) async {
@@ -464,7 +645,7 @@ void main() {
       expect(tester.takeException(), isNull, reason: 'EN');
       expect(find.text('Create route'), findsOneWidget);
       expect(find.text('Share a seat as a driver'), findsOneWidget);
-      expect(find.text('Mon–Fri · departs 08:00'), findsOneWidget);
+      expect(find.text('Mon–Fri'), findsOneWidget);
       expect(find.text('Publish route'), findsOneWidget);
 
       await pump(tester, locale: const Locale('en'), size: kNarrowPhone);

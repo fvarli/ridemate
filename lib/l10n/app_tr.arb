@@ -431,15 +431,8 @@
   "@createRouteRecurrenceTitle": {
     "description": "Yolculuğun hafta içi her gün tekrarlanmasını açıp kapatan anahtarın başlığı. Tasarımdaki tek tekrar seçeneğidir."
   },
-  "createRouteRecurrenceDetail": "Pzt–Cum · {time} kalkış",
-  "@createRouteRecurrenceDetail": {
-    "description": "Tekrar açıkken gösterilen özet. Yalnızca açıkken görünür; kapalıyken tasarımda bir karşılığı yoktur.",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
+  "createRouteRecurrenceDetail": "Pzt–Cum",
+  "@createRouteRecurrenceDetail": {"description": "Tekrar açıkken gösterilen gün aralığı. Kalkış saati kendi alanında gösterilir; burada tekrarlanmaz."},
   "createRouteSeatsLabel": "BOŞ KOLTUK",
   "@createRouteSeatsLabel": {
     "description": "Paylaşılan boş koltuk sayısı alanının üst etiketi."
@@ -457,23 +450,18 @@
       }
     }
   },
-  "createRouteCostShareLabel": "KİŞİ BAŞI",
-  "@createRouteCostShareLabel": {
-    "description": "Kişi başına düşen maliyet payı alanının üst etiketi. Ücret veya fiyat değildir."
-  },
-  "createRouteCostShareCaption": "Önerilen · maliyet paylaşımı",
-  "@createRouteCostShareCaption": {
-    "description": "Maliyet payının altındaki açıklama. Gösterilen tutar sabit bir örnek değerdir; hiçbir hesaplamadan gelmez ve bu aşamada değiştirilemez."
-  },
-  "createRouteCostShareSemanticLabel": "Kişi başı önerilen maliyet paylaşımı: {amount}",
-  "@createRouteCostShareSemanticLabel": {
-    "description": "Maliyet payı kutusunun ekran okuyucu etiketi. Bir düğme değil, salt okunur bir bilgidir.",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
+  "createRouteDepartureDateLabel": "GİDİŞ TARİHİ",
+  "@createRouteDepartureDateLabel": {"description": "Tek seferlik yolculuğun tarih alanının üst etiketi."},
+  "createRouteDepartureDateEmpty": "Tarih seç",
+  "@createRouteDepartureDateEmpty": {"description": "Henüz tarih seçilmediğinde gösterilir. Örnek bir tarih göstermek, seçilmiş bir tarihten ayırt edilemezdi."},
+  "createRouteDepartureTimeLabel": "GİDİŞ SAATİ",
+  "@createRouteDepartureTimeLabel": {"description": "Kalkış saati alanının üst etiketi. Her iki tekrar seçeneğinde de gereklidir."},
+  "createRouteDepartureTimeEmpty": "Saat seç",
+  "@createRouteDepartureTimeEmpty": {"description": "Henüz saat seçilmediğinde gösterilir."},
+  "createRouteDepartureDateMissing": "Gidiş tarihi seç.",
+  "@createRouteDepartureDateMissing": {"description": "Tek seferlik yolculuk tarihsiz yayınlanamaz."},
+  "createRouteDepartureTimeMissing": "Gidiş saati seç.",
+  "@createRouteDepartureTimeMissing": {"description": "Kalkış saati seçilmeden yolculuk yayınlanamaz."},
   "createRouteRulesTitle": "YOLCULUK KURALLARI",
   "@createRouteRulesTitle": {
     "description": "Sürücünün yolculukla birlikte yayımladığı kuralların bölüm başlığı."

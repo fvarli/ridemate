@@ -131,6 +131,15 @@ class RmFormatters {
   String time(DateTime dateTime) => hourMinute(dateTime.hour, dateTime.minute);
 
   /// An hour and minute as 24-hour, zero-padded text.
+  /// A calendar day in the reader's language, e.g. `14 Eylül 2026`.
+  ///
+  /// Takes the parts rather than a DateTime because the value it renders IS
+  /// three numbers: a day on a calendar, with no time and no zone. A DateTime
+  /// is assembled here only because that is what the formatter wants, and it
+  /// never leaves this method.
+  String calendarDate(int year, int month, int day) =>
+      DateFormat.yMMMMd(localeName).format(DateTime(year, month, day));
+
   String hourMinute(int hour, int minute) => '${_pad(hour)}:${_pad(minute)}';
 
   static String _pad(int value) => value.toString().padLeft(2, '0');

@@ -396,9 +396,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get createRouteRecurrenceTitle => 'Her hafta içi tekrarla';
 
   @override
-  String createRouteRecurrenceDetail(String time) {
-    return 'Pzt–Cum · $time kalkış';
-  }
+  String get createRouteRecurrenceDetail => 'Pzt–Cum';
 
   @override
   String get createRouteSeatsLabel => 'BOŞ KOLTUK';
@@ -418,15 +416,22 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get createRouteCostShareLabel => 'KİŞİ BAŞI';
+  String get createRouteDepartureDateLabel => 'GİDİŞ TARİHİ';
 
   @override
-  String get createRouteCostShareCaption => 'Önerilen · maliyet paylaşımı';
+  String get createRouteDepartureDateEmpty => 'Tarih seç';
 
   @override
-  String createRouteCostShareSemanticLabel(String amount) {
-    return 'Kişi başı önerilen maliyet paylaşımı: $amount';
-  }
+  String get createRouteDepartureTimeLabel => 'GİDİŞ SAATİ';
+
+  @override
+  String get createRouteDepartureTimeEmpty => 'Saat seç';
+
+  @override
+  String get createRouteDepartureDateMissing => 'Gidiş tarihi seç.';
+
+  @override
+  String get createRouteDepartureTimeMissing => 'Gidiş saati seç.';
 
   @override
   String get createRouteRulesTitle => 'YOLCULUK KURALLARI';

@@ -395,9 +395,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createRouteRecurrenceTitle => 'Repeat every weekday';
 
   @override
-  String createRouteRecurrenceDetail(String time) {
-    return 'Mon–Fri · departs $time';
-  }
+  String get createRouteRecurrenceDetail => 'Mon–Fri';
 
   @override
   String get createRouteSeatsLabel => 'FREE SEATS';
@@ -417,15 +415,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get createRouteCostShareLabel => 'PER PERSON';
+  String get createRouteDepartureDateLabel => 'DEPARTURE DATE';
 
   @override
-  String get createRouteCostShareCaption => 'Suggested · cost sharing';
+  String get createRouteDepartureDateEmpty => 'Choose a date';
 
   @override
-  String createRouteCostShareSemanticLabel(String amount) {
-    return 'Suggested cost share per person: $amount';
-  }
+  String get createRouteDepartureTimeLabel => 'DEPARTURE TIME';
+
+  @override
+  String get createRouteDepartureTimeEmpty => 'Choose a time';
+
+  @override
+  String get createRouteDepartureDateMissing => 'Choose a departure date.';
+
+  @override
+  String get createRouteDepartureTimeMissing => 'Choose a departure time.';
 
   @override
   String get createRouteRulesTitle => 'RIDE RULES';

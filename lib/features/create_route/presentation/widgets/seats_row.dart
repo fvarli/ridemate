@@ -1,22 +1,23 @@
 // ─────────────────────────────────────────────────────────────
-// RideMate — Seats and cost share
+// RideMate — Free seats
 //
 // Source: docs/claude-designs/RideMate App.dc.html, "CREATE ROUTE" (immutable).
 //
-// Two tiles side by side. The left one is the only stepper in all fifteen
-// approved screens, so — like the recurrence switch — it stays feature-local
-// rather than being promoted to core.
+// The design draws two tiles side by side: a seat stepper and a read-only
+// per-person cost share. ONLY THE STEPPER REMAINS, and its absence of a
+// neighbour is the deviation.
 //
-// The right one has NO CONTROL OF ANY KIND in the design: no stepper, no
-// input, no chevron, no tap affordance. That is not an oversight to fix. The
-// amount is a fixture captioned `Önerilen · maliyet paylaşımı`, and making
-// driver-set cost sharing editable may materially affect how RideMate is
-// characterized for regulatory purposes — it needs legal and product review
-// first. See create_route_fixtures.dart.
+// The cost tile was a fixture — an amount no driver chose and no approved
+// policy produced. That was honest while this screen published nothing. It
+// stops being honest the moment the screen becomes a real publication form,
+// because a figure sitting beside fields the server will own reads as though
+// it belonged to the published journey. Cost sharing still appears on Home,
+// Match Results and Route Details, which remain wholly fixture-backed and claim
+// nothing.
 //
-// There is deliberately no total: `seats × costShare` would be both a formula
-// this layer may not author and a driver-earnings claim the product does not
-// make.
+// The stepper is the only one in all fifteen approved screens, so — like the
+// recurrence switch — it stays feature-local rather than being promoted to
+// core.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -31,11 +32,10 @@ import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
 import '../../../../core/widgets/rm_card.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/create_route_fixtures.dart';
 
 /// The seats and cost-share pair.
-class SeatsAndCostRow extends StatelessWidget {
-  const SeatsAndCostRow({
+class SeatsRow extends StatelessWidget {
+  const SeatsRow({
     required this.seats,
     required this.canDecrement,
     required this.onIncrement,
@@ -50,24 +50,14 @@ class SeatsAndCostRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The two tiles have different natural heights, and `stretch` inside a
-    // scroll view demands an infinite one — the trap that bit Route Details.
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Expanded(
-            child: SeatsStepper(
-              seats: seats,
-              canDecrement: canDecrement,
-              onIncrement: onIncrement,
-              onDecrement: onDecrement,
-            ),
-          ),
-          const SizedBox(width: RmSpacing.md),
-          const Expanded(child: CostShareTile()),
-        ],
-      ),
+    // One tile, full width. The Row and IntrinsicHeight that used to balance
+    // two tiles of different natural heights went with the second tile; keeping
+    // them would be scaffolding holding up nothing.
+    return SeatsStepper(
+      seats: seats,
+      canDecrement: canDecrement,
+      onIncrement: onIncrement,
+      onDecrement: onDecrement,
     );
   }
 }
@@ -232,48 +222,3 @@ class _StepperButton extends StatelessWidget {
 }
 
 /// The suggested per-person cost share. Read-only, on purpose.
-class CostShareTile extends StatelessWidget {
-  const CostShareTile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final RmColors c = context.rmColors;
-    final AppLocalizations l10n = AppLocalizations.of(context);
-    final RmFormatters f = RmFormatters.of(context);
-
-    final String amount = f.money(kSuggestedCostSharePerPerson);
-
-    // One merged read-only node, with no `button` — so assistive tech agrees
-    // with the visual that this is data, not an unfinished control. There is
-    // no InkWell, no ripple and no chevron for the same reason; the green
-    // `Önerilen` caption is what carries the meaning.
-    return Semantics(
-      container: true,
-      readOnly: true,
-      label: l10n.createRouteCostShareSemanticLabel(amount),
-      excludeSemantics: true,
-      child: _FieldTile(
-        label: l10n.createRouteCostShareLabel,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            FittedBox(
-              child: Text(
-                amount,
-                style: RmTypography.numericLg.copyWith(color: c.ink),
-              ),
-            ),
-            const SizedBox(height: RmSpacing.xs),
-            Text(
-              l10n.createRouteCostShareCaption,
-              style: RmTypography.micro.copyWith(color: c.success),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

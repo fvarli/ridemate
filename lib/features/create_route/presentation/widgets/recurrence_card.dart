@@ -21,7 +21,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/format/rm_formatters.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_motion.dart';
 import '../../../../core/theme/tokens/rm_radius.dart';
@@ -31,7 +30,6 @@ import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
 import '../../../../core/widgets/rm_card.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/create_route_fixtures.dart';
 
 /// The weekday-recurrence row.
 class RecurrenceCard extends StatelessWidget {
@@ -48,7 +46,6 @@ class RecurrenceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final RmColors c = context.rmColors;
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final RmFormatters f = RmFormatters.of(context);
 
     final String title = l10n.createRouteRecurrenceTitle;
 
@@ -87,12 +84,10 @@ class RecurrenceCard extends StatelessWidget {
                     if (repeats) ...<Widget>[
                       const SizedBox(height: RmSpacing.xxs),
                       Text(
-                        l10n.createRouteRecurrenceDetail(
-                          f.hourMinute(
-                            kRecurrenceDepartureHour,
-                            kRecurrenceDepartureMinute,
-                          ),
-                        ),
+                        // The days only. The departure time has its own
+                        // control now, and a card repeating it would go stale
+                        // the moment the two disagreed.
+                        l10n.createRouteRecurrenceDetail,
                         style: RmTypography.caption.copyWith(color: c.muted),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

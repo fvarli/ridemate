@@ -20,6 +20,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/places/place.dart';
 import 'create_route_fixtures.dart';
+import 'departure.dart';
 
 /// The ride rules the design offers, in the order it draws them.
 ///
@@ -59,7 +60,9 @@ final class CreateRouteDraft {
   const CreateRouteDraft({
     required this.origin,
     required this.destination,
-    required this.repeatsOnWeekdays,
+    required this.recurrence,
+    required this.departureDate,
+    required this.departureTime,
     required this.seats,
     required this.rules,
   });
@@ -67,13 +70,26 @@ final class CreateRouteDraft {
   final Place origin;
   final Place destination;
 
-  /// Whether the journey repeats every weekday.
+  /// How often the journey happens.
   ///
-  /// Named for exactly the one choice the design offers — `Her hafta içi
-  /// tekrarla` — rather than a general `recurrenceRule`. There is no RRULE, no
-  /// day picker, no calendar, no exceptions, no background scheduling and no
-  /// reminders, because none of that is designed.
-  final bool repeatsOnWeekdays;
+  /// Exactly the one choice the design offers — `Her hafta içi tekrarla` — but
+  /// held as the two named cases the API accepts rather than as a boolean.
+  /// There is still no RRULE, no day picker, no exceptions and no background
+  /// scheduling, because none of that is designed.
+  final Recurrence recurrence;
+
+  /// The day a one-off journey happens.
+  ///
+  /// Null for a weekday commute, and CLEARED when the driver switches to one —
+  /// not merely ignored. A date that is off screen but still in the draft is
+  /// state nobody can see and something a request could still carry.
+  final DepartureDate? departureDate;
+
+  /// The wall clock the driver chose. Needed in both modes.
+  ///
+  /// There is no default. The screen used to show a fixed 08:00 that no driver
+  /// had picked, and publishing that would have recorded a choice nobody made.
+  final DepartureTime? departureTime;
 
   /// Free seats the driver is offering.
   final int seats;
@@ -83,23 +99,46 @@ final class CreateRouteDraft {
 
   bool isRuleSelected(RideRuleId id) => rules.contains(id);
 
+  /// Whether a date is part of this draft at all.
+  bool get needsDepartureDate => recurrence.needsDate;
+
+  /// Whether the driver has said everything a journey needs.
+  ///
+  /// Deliberately narrow. It asks only whether the form has been filled in —
+  /// not whether the departure is still in the future, which is read in a
+  /// timezone the server owns and which this client must not second-guess.
+  bool get isComplete =>
+      departureTime != null && (!needsDepartureDate || departureDate != null);
+
   /// Whether the seat count can still go down.
   ///
   /// There is deliberately no matching `canIncrementSeats`: no ceiling exists.
   /// See [kSeatsFloor].
   bool get canDecrementSeats => seats > kSeatsFloor;
 
+  /// A copy with the named fields replaced.
+  ///
+  /// `clearDepartureDate` exists because `departureDate: null` cannot mean
+  /// "remove it" here — a null named argument is indistinguishable from an
+  /// omitted one. Switching to a weekday commute has to say so explicitly.
   CreateRouteDraft copyWith({
     Place? origin,
     Place? destination,
-    bool? repeatsOnWeekdays,
+    Recurrence? recurrence,
+    DepartureDate? departureDate,
+    DepartureTime? departureTime,
+    bool clearDepartureDate = false,
     int? seats,
     Set<RideRuleId>? rules,
   }) {
     return CreateRouteDraft(
       origin: origin ?? this.origin,
       destination: destination ?? this.destination,
-      repeatsOnWeekdays: repeatsOnWeekdays ?? this.repeatsOnWeekdays,
+      recurrence: recurrence ?? this.recurrence,
+      departureDate: clearDepartureDate
+          ? null
+          : departureDate ?? this.departureDate,
+      departureTime: departureTime ?? this.departureTime,
       seats: seats ?? this.seats,
       rules: rules ?? this.rules,
     );
@@ -117,7 +156,9 @@ final class CreateRouteDraft {
       other is CreateRouteDraft &&
       other.origin == origin &&
       other.destination == destination &&
-      other.repeatsOnWeekdays == repeatsOnWeekdays &&
+      other.recurrence == recurrence &&
+      other.departureDate == departureDate &&
+      other.departureTime == departureTime &&
       other.seats == seats &&
       setEquals(other.rules, rules);
 
@@ -125,7 +166,9 @@ final class CreateRouteDraft {
   int get hashCode => Object.hash(
     origin,
     destination,
-    repeatsOnWeekdays,
+    recurrence,
+    departureDate,
+    departureTime,
     seats,
     Object.hashAllUnordered(rules),
   );

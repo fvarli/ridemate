@@ -20,7 +20,8 @@ import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
-import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
+import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
+import 'package:ridemate/features/create_route/domain/departure.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
@@ -148,7 +149,8 @@ void main() {
       expect(find.text('5'), findsOneWidget);
       expect(container.read(createRouteDraftProvider).seats, 5);
       expect(
-        container.read(createRouteDraftProvider).repeatsOnWeekdays,
+        container.read(createRouteDraftProvider).recurrence ==
+            Recurrence.weekdays,
         isFalse,
       );
       expect(find.text('Pzt–Cum · 08:00 kalkış'), findsNothing);
@@ -160,6 +162,17 @@ void main() {
       final ProviderContainer container = await _pumpApp(tester);
       await _openCreateRoute(tester);
 
+      // The form has to be finished before publishing can say anything about
+      // publishing; an unfinished one is told what is missing instead.
+      ProviderScope.containerOf(tester.element(find.byType(CreateRouteScreen)))
+          .read(createRouteDraftProvider.notifier)
+          .setDepartureTime(const DepartureTime(hour: 8, minute: 25));
+      await tester.pump();
+
+      // What publishing must not change is whatever the driver has entered —
+      // not the screen's opening state, which they have already edited.
+      final CreateRouteDraft before = container.read(createRouteDraftProvider);
+
       await tester.tap(find.text('Rotayı yayınla'));
       await tester.pump();
 
@@ -170,10 +183,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(CreateRouteScreen), findsOneWidget);
-      expect(
-        container.read(createRouteDraftProvider),
-        kInitialCreateRouteDraft,
-      );
+      expect(container.read(createRouteDraftProvider), before);
     });
   });
 }

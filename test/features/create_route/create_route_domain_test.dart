@@ -4,6 +4,7 @@ import 'package:ridemate/core/places/mock_places.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
+import 'package:ridemate/features/create_route/domain/departure.dart';
 
 void main() {
   ProviderContainer container() {
@@ -18,7 +19,7 @@ void main() {
       expect(d.origin, MockPlaces.atasehir);
       expect(d.destination, MockPlaces.maslak);
       expect(d.seats, 3);
-      expect(d.repeatsOnWeekdays, isTrue);
+      expect(d.recurrence, Recurrence.weekdays);
       // The design selects exactly one rule.
       expect(d.rules, <RideRuleId>{RideRuleId.noSmoking});
     });
@@ -92,25 +93,26 @@ void main() {
     });
   });
 
-  group('The cost share is displayed, never computed', () {
-    test('the amount is a fixture the draft cannot reach', () {
-      // The guarantee here is structural: the suggested share is a top-level
-      // compile-time constant, and CreateRouteDraft carries no cost field for
-      // anything to derive one into. Deriving it from seats, endpoints or
-      // recurrence would author a pricing rule the client may not author, and
-      // multiplying it by seats would be a driver-earnings claim.
-      //
-      // The behavioural half of this guarantee — the screen still shows ₺18
-      // after the seat count changes — lives in create_route_screen_test.dart,
-      // where it has teeth.
-      expect(kSuggestedCostSharePerPerson, 18);
+  group('The publication surface carries no fixture departure or cost', () {
+    test('the draft has no cost field for anything to derive one into', () {
+      // Structural, and it is the point. There is no cost on the draft, so
+      // nothing can multiply it by seats or recompute it from a route — and
+      // the fixture amount that used to sit on this screen went with it, since
+      // a figure beside fields the server will own reads as though the server
+      // owned it too.
+      const CreateRouteDraft draft = kInitialCreateRouteDraft;
+
+      expect(draft.toString().toLowerCase(), isNot(contains('cost')));
+      expect(draft.toString(), isNot(contains('18')));
     });
 
-    test('the departure fixtures are declared, not scheduled', () {
-      // The approved screen has no date or time control, so these are the only
-      // departure values it can express. They are constants, not a schedule.
-      expect(kRecurrenceDepartureHour, 8);
-      expect(kRecurrenceDepartureMinute, 0);
+    test('a fresh draft states no departure at all', () {
+      // The screen used to show a fixed 08:00 because it had no way to ask.
+      // Now it asks, so a default would be a choice attributed to a driver who
+      // never made one.
+      expect(kInitialCreateRouteDraft.departureDate, isNull);
+      expect(kInitialCreateRouteDraft.departureTime, isNull);
+      expect(kInitialCreateRouteDraft.isComplete, isFalse);
     });
   });
 
@@ -134,8 +136,8 @@ void main() {
         expect(after.origin, before.origin, reason: '$id changed the origin');
         expect(after.seats, before.seats, reason: '$id changed the seats');
         expect(
-          after.repeatsOnWeekdays,
-          before.repeatsOnWeekdays,
+          after.recurrence,
+          before.recurrence,
           reason: '$id changed the recurrence',
         );
       }
@@ -164,11 +166,11 @@ void main() {
       controller.setDestination(MockPlaces.levent);
       expect(c.read(createRouteDraftProvider).destination, MockPlaces.levent);
 
-      controller.setRepeatsOnWeekdays(false);
-      expect(c.read(createRouteDraftProvider).repeatsOnWeekdays, isFalse);
+      controller.setRecurrence(Recurrence.once);
+      expect(c.read(createRouteDraftProvider).recurrence, Recurrence.once);
 
-      controller.setRepeatsOnWeekdays(true);
-      expect(c.read(createRouteDraftProvider).repeatsOnWeekdays, isTrue);
+      controller.setRecurrence(Recurrence.weekdays);
+      expect(c.read(createRouteDraftProvider).recurrence, Recurrence.weekdays);
     });
 
     test('a fresh container starts from the designed defaults', () {

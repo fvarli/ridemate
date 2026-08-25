@@ -31,6 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/providers/clock_provider.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/icons/rm_icons.dart';
 import '../../../core/places/mock_places.dart';
@@ -46,10 +47,12 @@ import '../../../core/widgets/rm_place_picker_sheet.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/create_route_providers.dart';
 import '../domain/create_route_draft.dart';
+import '../domain/departure.dart';
+import 'widgets/departure_card.dart';
 import 'widgets/recurrence_card.dart';
 import 'widgets/ride_rule_chips.dart';
 import 'widgets/route_endpoints_card.dart';
-import 'widgets/seats_and_cost_row.dart';
+import 'widgets/seats_row.dart';
 
 /// The driver's route composer.
 class CreateRouteScreen extends ConsumerWidget {
@@ -88,13 +91,25 @@ class CreateRouteScreen extends ConsumerWidget {
                   const SizedBox(height: RmSpacing.md),
                   _Gutter(
                     child: RecurrenceCard(
-                      repeats: draft.repeatsOnWeekdays,
-                      onChanged: controller.setRepeatsOnWeekdays,
+                      repeats: draft.recurrence == Recurrence.weekdays,
+                      onChanged: (bool repeats) => controller.setRecurrence(
+                        repeats ? Recurrence.weekdays : Recurrence.once,
+                      ),
                     ),
                   ),
                   const SizedBox(height: RmSpacing.md),
                   _Gutter(
-                    child: SeatsAndCostRow(
+                    child: DepartureCard(
+                      recurrence: draft.recurrence,
+                      date: draft.departureDate,
+                      time: draft.departureTime,
+                      onPickDate: () => _pickDate(context, ref, draft),
+                      onPickTime: () => _pickTime(context, ref, draft),
+                    ),
+                  ),
+                  const SizedBox(height: RmSpacing.md),
+                  _Gutter(
+                    child: SeatsRow(
                       seats: draft.seats,
                       canDecrement: draft.canDecrementSeats,
                       onIncrement: controller.incrementSeats,
@@ -118,7 +133,7 @@ class CreateRouteScreen extends ConsumerWidget {
                 Expanded(
                   child: RmButton(
                     label: l10n.createRoutePublish,
-                    onPressed: () => _onPublishRequested(context, l10n),
+                    onPressed: () => _onPublishRequested(context, l10n, draft),
                   ),
                 ),
               ],
@@ -137,12 +152,84 @@ class CreateRouteScreen extends ConsumerWidget {
   /// says so. When a backend exists the flow becomes publish → server
   /// acknowledgement → visible to other members, and only then may the UI
   /// claim anything was published.
-  void _onPublishRequested(BuildContext context, AppLocalizations l10n) {
+  void _onPublishRequested(
+    BuildContext context,
+    AppLocalizations l10n,
+    CreateRouteDraft draft,
+  ) {
+    // Named rather than disabled. The design system has no disabled button
+    // anywhere, and inventing one here would be a second deviation on top of
+    // the departure controls — so the CTA stays live and says what is missing.
+    final String? missing = switch (draft) {
+      CreateRouteDraft(departureTime: null) =>
+        l10n.createRouteDepartureTimeMissing,
+      CreateRouteDraft(needsDepartureDate: true, departureDate: null) =>
+        l10n.createRouteDepartureDateMissing,
+      _ => null,
+    };
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(l10n.createRoutePublishUnavailable)),
+        SnackBar(content: Text(missing ?? l10n.createRoutePublishUnavailable)),
       );
+  }
+
+  /// Asks for the day a one-off journey happens.
+  ///
+  /// The window opens today, because a driver cannot publish a journey that has
+  /// already left, and closes a year out — far enough for any commute anybody
+  /// is planning and near enough that the picker is not an archive. "Today" is
+  /// injected so a widget test does not depend on the day it runs.
+  Future<void> _pickDate(
+    BuildContext context,
+    WidgetRef ref,
+    CreateRouteDraft draft,
+  ) async {
+    final DateTime now = ref.read(clockProvider)();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: draft.departureDate?.toPickerValue() ?? today,
+      firstDate: today,
+      lastDate: DateTime(today.year + 1, today.month, today.day),
+    );
+
+    if (picked == null) return;
+
+    ref
+        .read(createRouteDraftProvider.notifier)
+        .setDepartureDate(DepartureDate.from(picked));
+  }
+
+  /// Asks for the wall clock the journey leaves at.
+  ///
+  /// No initial value is invented when none has been chosen: the picker opens
+  /// at the current hour, which is a starting position rather than an answer,
+  /// and nothing is written to the draft unless the driver confirms.
+  Future<void> _pickTime(
+    BuildContext context,
+    WidgetRef ref,
+    CreateRouteDraft draft,
+  ) async {
+    final DepartureTime? current = draft.departureTime;
+    final DateTime now = ref.read(clockProvider)();
+
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: current == null
+          ? TimeOfDay(hour: now.hour, minute: now.minute)
+          : TimeOfDay(hour: current.hour, minute: current.minute),
+    );
+
+    if (picked == null) return;
+
+    ref
+        .read(createRouteDraftProvider.notifier)
+        .setDepartureTime(
+          DepartureTime(hour: picked.hour, minute: picked.minute),
+        );
   }
 
   Future<void> _pickOrigin(

@@ -3,40 +3,28 @@
 //
 // PRESENTATION FIXTURES. NOT BUSINESS RULES.
 //
-// Everything here reproduces the approved Create Route screen so the driver
+// What is left here reproduces the approved Create Route screen so the driver
 // flow can be seen and reviewed on a device. None of it is policy, and none of
 // it is computed from anything else.
+//
+// WHAT LEFT, AND WHY
+//
+// The suggested per-person cost share is gone. This screen is becoming a real
+// publication form, and a fixture amount sitting beside fields the server will
+// own would read as though it belonged to the published journey. It does not:
+// no driver chose it and no approved policy produced it. Cost sharing stays
+// visible on the screens that remain wholly fixture-backed, where nothing on
+// them claims to be server truth.
+//
+// The fixed 08:00 departure is gone for the same reason turned around. It
+// existed because the screen had no way to ask, and it was honest only while
+// nothing was published. Now the driver picks a time, so a default would be a
+// choice attributed to somebody who never made it.
 // ─────────────────────────────────────────────────────────────
 
 import '../../../core/places/mock_places.dart';
 import 'create_route_draft.dart';
-
-/// The per-person cost share the design displays.
-///
-/// PRESENTATION FIXTURE — REQUIRES LEGAL AND PRODUCT REVIEW BEFORE IT BECOMES
-/// EDITABLE.
-///
-/// The design shows this amount read-only, captioned `Önerilen · maliyet
-/// paylaşımı`, and it stays that way. Making driver-set cost sharing editable
-/// may materially affect how RideMate is characterized for regulatory
-/// purposes, so it needs legal and product review before implementation rather
-/// than a decision taken in the client layer.
-///
-/// The value is NOT derived from distance, duration, seats, recurrence, route,
-/// vehicle or anything else. There is deliberately no `calculateFare`,
-/// `calculatePrice`, `recommendedPrice` or pricing engine in this codebase,
-/// and no total is displayed anywhere — `seats × costShare` would be both a
-/// formula the client may not author and a driver-earnings claim this product
-/// does not make.
-const int kSuggestedCostSharePerPerson = 18;
-
-/// The departure the recurrence summary shows: `Pzt–Cum · 08:00 kalkış`.
-///
-/// Fixtures, not a schedule engine. The approved screen has no date or time
-/// control at all, so this is the only departure information it can express.
-/// That gap is recorded in docs/design-system.md §8.
-const int kRecurrenceDepartureHour = 8;
-const int kRecurrenceDepartureMinute = 0;
+import 'departure.dart';
 
 /// The lowest seat count the screen allows.
 ///
@@ -50,11 +38,17 @@ const int kRecurrenceDepartureMinute = 0;
 const int kSeatsFloor = 1;
 
 /// The journey the design shows already filled in.
+///
+/// The departure is deliberately empty. Everything else here is the design's
+/// own starting state; a date and a time are the driver's, and seeding them
+/// would put words in their mouth before they had opened the screen.
 const CreateRouteDraft kInitialCreateRouteDraft = CreateRouteDraft(
   origin: MockPlaces.atasehir,
   destination: MockPlaces.maslak,
   // The design draws the toggle on.
-  repeatsOnWeekdays: true,
+  recurrence: Recurrence.weekdays,
+  departureDate: null,
+  departureTime: null,
   seats: 3,
   // The design selects exactly one rule.
   rules: <RideRuleId>{RideRuleId.noSmoking},

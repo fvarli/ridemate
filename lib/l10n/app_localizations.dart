@@ -728,11 +728,11 @@ abstract class AppLocalizations {
   /// **'Her hafta içi tekrarla'**
   String get createRouteRecurrenceTitle;
 
-  /// Tekrar açıkken gösterilen özet. Yalnızca açıkken görünür; kapalıyken tasarımda bir karşılığı yoktur.
+  /// Tekrar açıkken gösterilen gün aralığı. Kalkış saati kendi alanında gösterilir; burada tekrarlanmaz.
   ///
   /// In tr, this message translates to:
-  /// **'Pzt–Cum · {time} kalkış'**
-  String createRouteRecurrenceDetail(String time);
+  /// **'Pzt–Cum'**
+  String get createRouteRecurrenceDetail;
 
   /// Paylaşılan boş koltuk sayısı alanının üst etiketi.
   ///
@@ -752,23 +752,41 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 koltuk} other{{count} koltuk}}'**
   String createRouteSeatsValue(int count);
 
-  /// Kişi başına düşen maliyet payı alanının üst etiketi. Ücret veya fiyat değildir.
+  /// Tek seferlik yolculuğun tarih alanının üst etiketi.
   ///
   /// In tr, this message translates to:
-  /// **'KİŞİ BAŞI'**
-  String get createRouteCostShareLabel;
+  /// **'GİDİŞ TARİHİ'**
+  String get createRouteDepartureDateLabel;
 
-  /// Maliyet payının altındaki açıklama. Gösterilen tutar sabit bir örnek değerdir; hiçbir hesaplamadan gelmez ve bu aşamada değiştirilemez.
+  /// Henüz tarih seçilmediğinde gösterilir. Örnek bir tarih göstermek, seçilmiş bir tarihten ayırt edilemezdi.
   ///
   /// In tr, this message translates to:
-  /// **'Önerilen · maliyet paylaşımı'**
-  String get createRouteCostShareCaption;
+  /// **'Tarih seç'**
+  String get createRouteDepartureDateEmpty;
 
-  /// Maliyet payı kutusunun ekran okuyucu etiketi. Bir düğme değil, salt okunur bir bilgidir.
+  /// Kalkış saati alanının üst etiketi. Her iki tekrar seçeneğinde de gereklidir.
   ///
   /// In tr, this message translates to:
-  /// **'Kişi başı önerilen maliyet paylaşımı: {amount}'**
-  String createRouteCostShareSemanticLabel(String amount);
+  /// **'GİDİŞ SAATİ'**
+  String get createRouteDepartureTimeLabel;
+
+  /// Henüz saat seçilmediğinde gösterilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Saat seç'**
+  String get createRouteDepartureTimeEmpty;
+
+  /// Tek seferlik yolculuk tarihsiz yayınlanamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gidiş tarihi seç.'**
+  String get createRouteDepartureDateMissing;
+
+  /// Kalkış saati seçilmeden yolculuk yayınlanamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gidiş saati seç.'**
+  String get createRouteDepartureTimeMissing;
 
   /// Sürücünün yolculukla birlikte yayımladığı kuralların bölüm başlığı.
   ///

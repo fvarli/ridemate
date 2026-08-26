@@ -34,7 +34,6 @@ import 'package:go_router/go_router.dart';
 import '../../../app/providers/clock_provider.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/icons/rm_icons.dart';
-import '../../../core/places/mock_places.dart';
 import '../../../core/places/place.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
 import '../../../core/theme/tokens/rm_spacing.dart';
@@ -46,6 +45,7 @@ import '../../../core/widgets/rm_list_row.dart';
 import '../../../core/widgets/rm_place_picker_sheet.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/create_route_providers.dart';
+import '../application/place_catalogue_providers.dart';
 import '../domain/create_route_draft.dart';
 import '../domain/departure.dart';
 import 'widgets/departure_card.dart';
@@ -66,6 +66,18 @@ class CreateRouteScreen extends ConsumerWidget {
     final CreateRouteDraftController controller = ref.read(
       createRouteDraftProvider.notifier,
     );
+    final AsyncValue<List<Place>> catalogue = ref.watch(placeCatalogueProvider);
+
+    // A refreshed catalogue may no longer contain something already chosen.
+    // Matched on id: a place that has gone is gone, whatever it was called,
+    // and keeping a reference the server would reject helps nobody.
+    ref.listen<AsyncValue<List<Place>>>(placeCatalogueProvider, (
+      AsyncValue<List<Place>>? previous,
+      AsyncValue<List<Place>> next,
+    ) {
+      final List<Place>? places = next.value;
+      if (places != null) controller.reconcileWith(places);
+    });
 
     return Scaffold(
       backgroundColor: c.background,
@@ -83,11 +95,22 @@ class CreateRouteScreen extends ConsumerWidget {
                     child: RouteEndpointsCard(
                       origin: draft.origin,
                       destination: draft.destination,
-                      onEditOrigin: () => _pickOrigin(context, ref, draft),
-                      onEditDestination: () =>
-                          _pickDestination(context, ref, draft),
+                      // Tappable only once there is something to choose from.
+                      // A picker over a spinner or a failure would offer an
+                      // empty list and look broken instead of honest.
+                      onEditOrigin: () => _withCatalogue(
+                        catalogue,
+                        (List<Place> places) =>
+                            _pickOrigin(context, ref, draft, places),
+                      ),
+                      onEditDestination: () => _withCatalogue(
+                        catalogue,
+                        (List<Place> places) =>
+                            _pickDestination(context, ref, draft, places),
+                      ),
                     ),
                   ),
+                  _CatalogueStatus(catalogue: catalogue),
                   const SizedBox(height: RmSpacing.md),
                   _Gutter(
                     child: RecurrenceCard(
@@ -161,6 +184,10 @@ class CreateRouteScreen extends ConsumerWidget {
     // anywhere, and inventing one here would be a second deviation on top of
     // the departure controls — so the CTA stays live and says what is missing.
     final String? missing = switch (draft) {
+      CreateRouteDraft(origin: null) => l10n.createRouteOriginEmpty,
+      CreateRouteDraft(destination: null) => l10n.createRouteDestinationEmpty,
+      CreateRouteDraft(hasDistinctEndpoints: false) =>
+        l10n.createRouteEndpointsSame,
       CreateRouteDraft(departureTime: null) =>
         l10n.createRouteDepartureTimeMissing,
       CreateRouteDraft(needsDepartureDate: true, departureDate: null) =>
@@ -232,15 +259,30 @@ class CreateRouteScreen extends ConsumerWidget {
         );
   }
 
+  /// Runs [open] only when the catalogue has actually arrived.
+  void _withCatalogue(
+    AsyncValue<List<Place>> catalogue,
+    void Function(List<Place>) open,
+  ) {
+    final List<Place>? places = catalogue.value;
+    if (places != null && places.isNotEmpty) open(places);
+  }
+
+  /// Opens the picker over the catalogue the server returned.
+  ///
+  /// `places` is passed in rather than read here, so this method cannot be
+  /// called with anything but a loaded catalogue — there is no path from a
+  /// failure or a spinner to an open picker.
   Future<void> _pickOrigin(
     BuildContext context,
     WidgetRef ref,
     CreateRouteDraft draft,
+    List<Place> places,
   ) async {
     final Place? place = await showPlacePicker(
       context,
       title: AppLocalizations.of(context).createRouteOriginPickerTitle,
-      places: MockPlaces.all,
+      places: places,
       selected: draft.origin,
     );
     if (place != null) {
@@ -252,16 +294,83 @@ class CreateRouteScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     CreateRouteDraft draft,
+    List<Place> places,
   ) async {
     final Place? place = await showPlacePicker(
       context,
       title: AppLocalizations.of(context).createRouteDestinationPickerTitle,
-      places: MockPlaces.all,
+      places: places,
       selected: draft.destination,
     );
     if (place != null) {
       ref.read(createRouteDraftProvider.notifier).setDestination(place);
     }
+  }
+}
+
+/// What the endpoints card can offer, and why, when it cannot offer anything.
+///
+/// Renders nothing at all when the catalogue is present and non-empty — the
+/// card speaks for itself then. Every other case says something true: still
+/// loading, nothing supported yet, or could not be read, with a way to ask
+/// again.
+///
+/// THERE IS NO FALLBACK LIST. A failure here leaves a driver unable to choose
+/// an endpoint, which is correct: the alternative is offering places the server
+/// has never heard of, letting them build a journey on one, and failing at
+/// publication with an error about an unknown id.
+class _CatalogueStatus extends ConsumerWidget {
+  const _CatalogueStatus({required this.catalogue});
+
+  final AsyncValue<List<Place>> catalogue;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+
+    final (String message, bool retryable)? state = switch (catalogue) {
+      AsyncValue<List<Place>>(hasError: true) => (
+        l10n.createRoutePlacesUnavailable,
+        true,
+      ),
+      AsyncValue<List<Place>>(isLoading: true) => (
+        l10n.createRoutePlacesLoading,
+        false,
+      ),
+      AsyncValue<List<Place>>(:final List<Place> value) when value.isEmpty => (
+        l10n.createRoutePlacesEmpty,
+        true,
+      ),
+      _ => null,
+    };
+
+    if (state == null) return const SizedBox.shrink();
+
+    final (String message, bool retryable) = state;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: RmSpacing.md),
+      child: _Gutter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            RmInlineMessage(message: message),
+            if (retryable) ...<Widget>[
+              const SizedBox(height: RmSpacing.md),
+              RmButton(
+                label: l10n.createRoutePlacesRetry,
+                size: RmButtonSize.sm,
+                variant: RmButtonVariant.outline,
+                fullWidth: false,
+                // A fresh request, not a cached answer — there is no cache.
+                onPressed: () =>
+                    ref.read(placeCatalogueProvider.notifier).refresh(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -722,6 +722,48 @@ abstract class AppLocalizations {
   /// **'Nereye gidiyorsun?'**
   String get createRouteDestinationPickerTitle;
 
+  /// Kalkış henüz seçilmediğinde gösterilir. Sunucudan gelmeyen bir yer adı gösterilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalkış noktası seç'**
+  String get createRouteOriginEmpty;
+
+  /// Varış henüz seçilmediğinde gösterilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varış noktası seç'**
+  String get createRouteDestinationEmpty;
+
+  /// İki uç aynı yeri gösterdiğinde yayınlamaya basıldığında söylenir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalkış ve varış aynı yer olamaz.'**
+  String get createRouteEndpointsSame;
+
+  /// Sunucudan gelen yer listesi beklenirken gösterilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yerler yükleniyor…'**
+  String get createRoutePlacesLoading;
+
+  /// Sunucu boş bir katalog döndürdüğünde. Bilinen yerler istemcide uydurulmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu anda desteklenen bir yer yok.'**
+  String get createRoutePlacesEmpty;
+
+  /// Katalog okunamadığında. Yedek olarak sahte yer gösterilmez; seçim yapılamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yer listesi alınamadı.'**
+  String get createRoutePlacesUnavailable;
+
+  /// Katalog isteğini yeniden başlatır. Önbellek yoktur; istek baştan yapılır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden dene'**
+  String get createRoutePlacesRetry;
+
   /// Yolculuğun hafta içi her gün tekrarlanmasını açıp kapatan anahtarın başlığı. Tasarımdaki tek tekrar seçeneğidir.
   ///
   /// In tr, this message translates to:

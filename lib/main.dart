@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/misc.dart';
 
 import 'app/data/app_preferences_repository.dart';
 import 'app/error/rm_error_reporter.dart';
+import 'app/providers/api_client_provider.dart';
 import 'app/providers/app_preferences_provider.dart';
 import 'app/providers/credential_store_provider.dart';
 import 'app/providers/session_provider.dart';
@@ -68,10 +69,11 @@ Future<void> main() async {
   // surface until this settles, so nothing signed-out flashes on the way.
   //
   // It never throws: every outcome ends signed in or signed out.
-  final RmSession session = RmSession(
-    api: AuthApi(RmApiClient.fromConfig()),
-    store: credentials,
-  );
+  // One client for the whole app: the session authenticates through it, and
+  // every feature repository sends through the session.
+  final RmApiClient api = RmApiClient.fromConfig();
+
+  final RmSession session = RmSession(api: AuthApi(api), store: credentials);
 
   unawaited(session.restore());
 
@@ -81,6 +83,7 @@ Future<void> main() async {
         appPreferencesRepositoryProvider.overrideWithValue(preferences),
         credentialStoreProvider.overrideWithValue(credentials),
         rmSessionProvider.overrideWithValue(session),
+        rmApiClientProvider.overrideWithValue(api),
       ],
       child: const RideMateApp(),
     ),

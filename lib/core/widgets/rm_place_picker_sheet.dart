@@ -30,7 +30,7 @@ Future<Place?> showPlacePicker(
   BuildContext context, {
   required String title,
   required List<Place> places,
-  required Place selected,
+  required Place? selected,
 }) {
   return showModalBottomSheet<Place>(
     context: context,
@@ -50,7 +50,13 @@ class _PlacePickerSheet extends StatelessWidget {
 
   final String title;
   final List<Place> places;
-  final Place selected;
+
+  /// The place already chosen, if any.
+  ///
+  /// Null before a driver has chosen one — which is the normal state of a
+  /// Create Route endpoint until the server catalogue has been read and
+  /// something picked from it. No row is marked, and nothing is preselected.
+  final Place? selected;
 
   @override
   Widget build(BuildContext context) {

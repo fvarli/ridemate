@@ -393,6 +393,27 @@ class AppLocalizationsTr extends AppLocalizations {
   String get createRouteDestinationPickerTitle => 'Nereye gidiyorsun?';
 
   @override
+  String get createRouteOriginEmpty => 'Kalkış noktası seç';
+
+  @override
+  String get createRouteDestinationEmpty => 'Varış noktası seç';
+
+  @override
+  String get createRouteEndpointsSame => 'Kalkış ve varış aynı yer olamaz.';
+
+  @override
+  String get createRoutePlacesLoading => 'Yerler yükleniyor…';
+
+  @override
+  String get createRoutePlacesEmpty => 'Şu anda desteklenen bir yer yok.';
+
+  @override
+  String get createRoutePlacesUnavailable => 'Yer listesi alınamadı.';
+
+  @override
+  String get createRoutePlacesRetry => 'Yeniden dene';
+
+  @override
   String get createRouteRecurrenceTitle => 'Her hafta içi tekrarla';
 
   @override

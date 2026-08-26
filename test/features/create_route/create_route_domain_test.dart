@@ -16,8 +16,10 @@ void main() {
   group('CreateRouteDraft', () {
     test('starts from the journey the design shows', () {
       const CreateRouteDraft d = kInitialCreateRouteDraft;
-      expect(d.origin, MockPlaces.atasehir);
-      expect(d.destination, MockPlaces.maslak);
+      // Unselected: the catalogue is the server's, so nothing can be chosen
+      // before it arrives.
+      expect(d.origin, isNull);
+      expect(d.destination, isNull);
       expect(d.seats, 3);
       expect(d.recurrence, Recurrence.weekdays);
       // The design selects exactly one rule.

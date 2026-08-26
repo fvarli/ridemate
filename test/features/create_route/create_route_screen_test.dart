@@ -16,19 +16,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/a11y/rm_a11y.dart';
 import 'package:ridemate/core/a11y/rm_tap_target.dart';
 import 'package:ridemate/core/places/mock_places.dart';
+import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/core/theme/tokens/rm_sizing.dart';
 import 'package:ridemate/core/widgets/rm_chip.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
+import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
 import 'package:ridemate/features/create_route/domain/departure.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/create_route/presentation/widgets/recurrence_card.dart';
 
+import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/pump.dart';
 
@@ -41,6 +45,10 @@ const Size kStandardPhone = Size(393, 852);
 void main() {
   setUpAll(loadRideMateFonts);
 
+  late FakePlaceRepository places;
+
+  setUp(() => places = FakePlaceRepository());
+
   Future<void> pump(
     WidgetTester tester, {
     Brightness brightness = Brightness.light,
@@ -48,6 +56,7 @@ void main() {
     Locale locale = kDefaultTestLocale,
     Size size = kStandardPhone,
     double textScale = 1,
+    FakePlaceRepository? repository,
   }) async {
     await tester.pumpRmScreen(
       const CreateRouteScreen(),
@@ -56,7 +65,13 @@ void main() {
       locale: locale,
       surfaceSize: size,
       textScaler: TextScaler.linear(textScale),
+      overrides: <Override>[
+        placeRepositoryProvider.overrideWithValue(repository ?? places),
+      ],
     );
+    // Twice: the catalogue is fetched asynchronously, so the first frame is
+    // the loading state and the second is the answer.
+    await tester.pump();
     await tester.pump();
   }
 
@@ -69,6 +84,19 @@ void main() {
       ProviderScope.containerOf(
         tester.element(find.byType(CreateRouteScreen)),
       ).read(createRouteDraftProvider.notifier);
+
+  /// Chooses both endpoints from the loaded catalogue, the way a driver would.
+  Future<void> chooseEndpoints(WidgetTester tester) async {
+    await tester.tap(find.text('Kalkış noktası seç'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(kFakePlaces[0].label).last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Varış noktası seç'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(kFakePlaces[1].label).last);
+    await tester.pumpAndSettle();
+  }
 
   /// Fills in the departure the way a driver would, without a picker.
   ///
@@ -95,8 +123,8 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Rota oluştur'), findsOneWidget);
       expect(find.text('Sürücü olarak koltuk paylaş'), findsOneWidget);
-      expect(find.text('Ataşehir, Palladium'), findsOneWidget);
-      expect(find.text('Maslak, 42 Maslak'), findsOneWidget);
+      expect(find.text('Kalkış noktası seç'), findsOneWidget);
+      expect(find.text('Varış noktası seç'), findsOneWidget);
       expect(find.text('Her hafta içi tekrarla'), findsOneWidget);
       expect(find.text('Pzt–Cum'), findsOneWidget);
       expect(find.text('BOŞ KOLTUK'), findsOneWidget);
@@ -144,33 +172,41 @@ void main() {
     });
   });
 
-  group('Endpoints', () {
-    testWidgets('tapping an endpoint opens the picker', (
+  group('Endpoints come from the server, or from nowhere', () {
+    testWidgets('both endpoints start unselected', (WidgetTester tester) async {
+      await pump(tester);
+
+      expect(draftOf(tester).origin, isNull);
+      expect(draftOf(tester).destination, isNull);
+      expect(find.text('Kalkış noktası seç'), findsOneWidget);
+      expect(find.text('Varış noktası seç'), findsOneWidget);
+      expect(draftOf(tester).isComplete, isFalse);
+    });
+
+    testWidgets('the picker offers the catalogue the server returned', (
       WidgetTester tester,
     ) async {
       await pump(tester);
 
-      await tester.tap(find.text('Ataşehir, Palladium'));
+      await tester.tap(find.text('Kalkış noktası seç'));
       await tester.pumpAndSettle();
 
       expect(find.text('Nereden yola çıkıyorsun?'), findsOneWidget);
-      expect(find.text('Kadıköy, İskele Meydanı'), findsOneWidget);
+      for (final Place place in kFakePlaces) {
+        expect(find.text(place.label), findsWidgets, reason: place.label);
+      }
     });
 
-    testWidgets('selecting a place updates the draft', (
+    testWidgets('selecting stores the exact place the server sent', (
       WidgetTester tester,
     ) async {
       await pump(tester);
+      await chooseEndpoints(tester);
 
-      await tester.tap(find.text('Maslak, 42 Maslak'));
-      await tester.pumpAndSettle();
-      expect(find.text('Nereye gidiyorsun?'), findsOneWidget);
-
-      await tester.tap(find.text('Üniversite').last);
-      await tester.pumpAndSettle();
-
-      expect(draftOf(tester).destination, MockPlaces.university);
-      expect(find.text('Üniversite'), findsOneWidget);
+      expect(draftOf(tester).origin, kFakePlaces[0]);
+      expect(draftOf(tester).destination, kFakePlaces[1]);
+      // The stored id is the server's, verbatim.
+      expect(draftOf(tester).origin?.id, kFakePlaces[0].id);
     });
 
     testWidgets('each row says which end of the journey it is', (
@@ -180,11 +216,100 @@ void main() {
       // the only thing carrying the role.
       await pump(tester);
 
+      expect(find.bySemanticsLabel('Kalkış noktası seç'), findsOneWidget);
+      expect(find.bySemanticsLabel('Varış noktası seç'), findsOneWidget);
+
+      await chooseEndpoints(tester);
+
       expect(
-        find.bySemanticsLabel('Kalkış: Ataşehir, Palladium'),
+        find.bySemanticsLabel('Kalkış: ${kFakePlaces[0].label}'),
         findsOneWidget,
       );
-      expect(find.bySemanticsLabel('Varış: Maslak, 42 Maslak'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Varış: ${kFakePlaces[1].label}'),
+        findsOneWidget,
+      );
+    });
+
+    /// CARRIES WEIGHT. A failure must leave the picker empty, not fixture-full.
+    testWidgets('an unreachable backend offers no places at all', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester, repository: FakePlaceRepository.offline());
+
+      expect(find.text('Yer listesi alınamadı.'), findsOneWidget);
+      expect(find.text('Yeniden dene'), findsOneWidget);
+
+      // Not one fixture leaked in.
+      for (final Place place in MockPlaces.all) {
+        expect(find.text(place.label), findsNothing, reason: place.label);
+      }
+      expect(find.text('Ataşehir, Palladium'), findsNothing);
+      expect(find.text('Maslak, 42 Maslak'), findsNothing);
+
+      // And the endpoints cannot be chosen, rather than being chosen wrongly.
+      await tester.tap(find.text('Kalkış noktası seç'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nereden yola çıkıyorsun?'), findsNothing);
+      expect(draftOf(tester).origin, isNull);
+    });
+
+    testWidgets('retrying asks the server again', (WidgetTester tester) async {
+      final FakePlaceRepository repository = FakePlaceRepository.offline();
+      await pump(tester, repository: repository);
+      expect(repository.callCount, 1);
+
+      // The backend comes back.
+      repository.failure = null;
+      await tester.tap(find.text('Yeniden dene'));
+      await tester.pumpAndSettle();
+
+      // Exactly one more request. A retry that doubled the load on a server
+      // that had just failed would be the worst possible moment to do it.
+      expect(repository.callCount, 2);
+      expect(find.text('Yer listesi alınamadı.'), findsNothing);
+
+      await tester.tap(find.text('Kalkış noktası seç'));
+      await tester.pumpAndSettle();
+      expect(find.text(kFakePlaces[0].label), findsWidgets);
+    });
+
+    testWidgets('an empty catalogue says so and invents nothing', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        repository: FakePlaceRepository(places: const <Place>[]),
+      );
+
+      expect(find.text('Şu anda desteklenen bir yer yok.'), findsOneWidget);
+      for (final Place place in MockPlaces.all) {
+        expect(find.text(place.label), findsNothing, reason: place.label);
+      }
+    });
+
+    testWidgets('two endpoints must be different places', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+
+      await tester.tap(find.text('Kalkış noktası seç'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kFakePlaces[0].label).last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Varış noktası seç'));
+      await tester.pumpAndSettle();
+      // The same place is still offered — the driver has not finished
+      // choosing, and silently withholding it would be correcting them.
+      await tester.tap(find.text(kFakePlaces[0].label).last);
+      await tester.pumpAndSettle();
+
+      expect(draftOf(tester).hasDistinctEndpoints, isFalse);
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+      expect(find.text('Kalkış ve varış aynı yer olamaz.'), findsOneWidget);
     });
   });
 
@@ -400,10 +525,7 @@ void main() {
       await tester.pump();
       expect(find.textContaining('₺'), findsNothing);
 
-      await tester.tap(find.text('Ataşehir, Palladium'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Kadıköy, İskele Meydanı').last);
-      await tester.pumpAndSettle();
+      await chooseEndpoints(tester);
       expect(find.textContaining('₺'), findsNothing);
     });
   });
@@ -533,6 +655,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await pump(tester);
+      await chooseEndpoints(tester);
 
       await tester.tap(find.text('Rotayı yayınla'));
       await tester.pump();
@@ -546,6 +669,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await pump(tester);
+      await chooseEndpoints(tester);
       await tester.tap(find.text('Her hafta içi tekrarla'));
       await tester.pumpAndSettle();
       await chooseDeparture(tester);
@@ -562,6 +686,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await pump(tester);
+      await chooseEndpoints(tester);
       await chooseDeparture(tester);
       final CreateRouteDraft before = draftOf(tester);
 

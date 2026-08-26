@@ -67,8 +67,14 @@ final class CreateRouteDraft {
     required this.rules,
   });
 
-  final Place origin;
-  final Place destination;
+  /// Where the journey starts, once the driver has chosen it.
+  ///
+  /// Null until then, and null is the honest starting value: the places come
+  /// from the server, so nothing can be selected before the catalogue arrives.
+  /// Seeding a fixture here would put a choice in the draft that the driver
+  /// never made and the server has never heard of.
+  final Place? origin;
+  final Place? destination;
 
   /// How often the journey happens.
   ///
@@ -108,7 +114,42 @@ final class CreateRouteDraft {
   /// not whether the departure is still in the future, which is read in a
   /// timezone the server owns and which this client must not second-guess.
   bool get isComplete =>
-      departureTime != null && (!needsDepartureDate || departureDate != null);
+      hasDistinctEndpoints &&
+      departureTime != null &&
+      (!needsDepartureDate || departureDate != null);
+
+  /// Both endpoints chosen, and not the same place twice.
+  ///
+  /// Compared by id. A label is what a place is called; the id is what it is,
+  /// and the server rejects a journey from somewhere to itself regardless of
+  /// what the two are named.
+  bool get hasDistinctEndpoints {
+    final Place? origin = this.origin;
+    final Place? destination = this.destination;
+
+    return origin != null && destination != null && origin.id != destination.id;
+  }
+
+  /// The same draft, minus any endpoint the catalogue no longer contains.
+  ///
+  /// Matched on id only. Reconciling by label would quietly move a journey the
+  /// day two places were renamed, and a stale endpoint kept "because the name
+  /// still matches" is exactly the sort of reference the server would refuse.
+  CreateRouteDraft reconciledWith(List<Place> catalogue) {
+    final Set<String> known = <String>{
+      for (final Place place in catalogue) place.id,
+    };
+
+    return CreateRouteDraft(
+      origin: known.contains(origin?.id) ? origin : null,
+      destination: known.contains(destination?.id) ? destination : null,
+      recurrence: recurrence,
+      departureDate: departureDate,
+      departureTime: departureTime,
+      seats: seats,
+      rules: rules,
+    );
+  }
 
   /// Whether the seat count can still go down.
   ///

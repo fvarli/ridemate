@@ -9,8 +9,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ridemate/app/data/app_preferences_repository.dart';
+import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/api/rm_response.dart';
+import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/core/session/rm_session.dart';
+import 'package:ridemate/features/create_route/data/place_repository.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 
 /// In-memory [OnboardingRepository].
@@ -156,3 +159,41 @@ class FakeSession implements RmSession {
     Future<RmResponse> Function(Map<String, String> headers) request,
   ) => request(<String, String>{'Authorization': 'Bearer rma_FAKE'});
 }
+
+/// A place catalogue that answers however a test needs it to.
+///
+/// Deliberately capable of failing. The Phase 10 invariant is that a failure
+/// leaves the picker empty rather than falling back to fixtures, and that can
+/// only be proven by a repository that actually refuses.
+class FakePlaceRepository implements PlaceRepository {
+  FakePlaceRepository({List<Place>? places, this.failure})
+    : places = places ?? kFakePlaces;
+
+  /// Fails every call with a transport error, the way an unreachable backend
+  /// does.
+  factory FakePlaceRepository.offline() =>
+      FakePlaceRepository(failure: const RmFailure.transport());
+
+  List<Place> places;
+  RmFailure? failure;
+
+  int callCount = 0;
+
+  @override
+  Future<List<Place>> catalogue() async {
+    callCount++;
+    final RmFailure? failure = this.failure;
+    if (failure != null) throw failure;
+
+    return places;
+  }
+}
+
+/// Places shaped like the server's: opaque ids, and labels that appear in no
+/// fixture. If one of these turns up in a test that expected a failure, the
+/// catalogue was read; if a MockPlaces label turns up, something fell back.
+const List<Place> kFakePlaces = <Place>[
+  Place(id: '01991a00-0000-7000-8000-000000000001', label: 'Sunucu Yeri Bir'),
+  Place(id: '01991a00-0000-7000-8000-000000000002', label: 'Sunucu Yeri İki'),
+  Place(id: '01991a00-0000-7000-8000-000000000003', label: 'Sunucu Yeri Üç'),
+];

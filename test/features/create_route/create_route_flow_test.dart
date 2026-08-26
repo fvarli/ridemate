@@ -20,6 +20,7 @@ import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
+import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/departure.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
@@ -54,6 +55,9 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        // Create Route reads its endpoints from the server now, so the flow
+        // needs a catalogue to choose from.
+        placeRepositoryProvider.overrideWithValue(FakePlaceRepository()),
       ],
       child: const RideMateApp(),
     ),
@@ -164,6 +168,15 @@ void main() {
 
       // The form has to be finished before publishing can say anything about
       // publishing; an unfinished one is told what is missing instead.
+      await tester.tap(find.text('Kalkış noktası seç'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kFakePlaces[0].label).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Varış noktası seç'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kFakePlaces[1].label).last);
+      await tester.pumpAndSettle();
+
       ProviderScope.containerOf(tester.element(find.byType(CreateRouteScreen)))
           .read(createRouteDraftProvider.notifier)
           .setDepartureTime(const DepartureTime(hour: 8, minute: 25));

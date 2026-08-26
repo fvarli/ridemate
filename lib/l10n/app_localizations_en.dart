@@ -392,6 +392,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createRouteDestinationPickerTitle => 'Where are you going?';
 
   @override
+  String get createRouteOriginEmpty => 'Choose a pickup point';
+
+  @override
+  String get createRouteDestinationEmpty => 'Choose a destination';
+
+  @override
+  String get createRouteEndpointsSame =>
+      'Pickup and destination cannot be the same place.';
+
+  @override
+  String get createRoutePlacesLoading => 'Loading places…';
+
+  @override
+  String get createRoutePlacesEmpty => 'No places are supported yet.';
+
+  @override
+  String get createRoutePlacesUnavailable =>
+      'The place list could not be loaded.';
+
+  @override
+  String get createRoutePlacesRetry => 'Try again';
+
+  @override
   String get createRouteRecurrenceTitle => 'Repeat every weekday';
 
   @override

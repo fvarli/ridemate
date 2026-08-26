@@ -427,6 +427,20 @@
   "@createRouteDestinationPickerTitle": {
     "description": "Varış noktası seçme sayfasının başlığı."
   },
+  "createRouteOriginEmpty": "Kalkış noktası seç",
+  "@createRouteOriginEmpty": {"description": "Kalkış henüz seçilmediğinde gösterilir. Sunucudan gelmeyen bir yer adı gösterilmez."},
+  "createRouteDestinationEmpty": "Varış noktası seç",
+  "@createRouteDestinationEmpty": {"description": "Varış henüz seçilmediğinde gösterilir."},
+  "createRouteEndpointsSame": "Kalkış ve varış aynı yer olamaz.",
+  "@createRouteEndpointsSame": {"description": "İki uç aynı yeri gösterdiğinde yayınlamaya basıldığında söylenir."},
+  "createRoutePlacesLoading": "Yerler yükleniyor…",
+  "@createRoutePlacesLoading": {"description": "Sunucudan gelen yer listesi beklenirken gösterilir."},
+  "createRoutePlacesEmpty": "Şu anda desteklenen bir yer yok.",
+  "@createRoutePlacesEmpty": {"description": "Sunucu boş bir katalog döndürdüğünde. Bilinen yerler istemcide uydurulmaz."},
+  "createRoutePlacesUnavailable": "Yer listesi alınamadı.",
+  "@createRoutePlacesUnavailable": {"description": "Katalog okunamadığında. Yedek olarak sahte yer gösterilmez; seçim yapılamaz."},
+  "createRoutePlacesRetry": "Yeniden dene",
+  "@createRoutePlacesRetry": {"description": "Katalog isteğini yeniden başlatır. Önbellek yoktur; istek baştan yapılır."},
   "createRouteRecurrenceTitle": "Her hafta içi tekrarla",
   "@createRouteRecurrenceTitle": {
     "description": "Yolculuğun hafta içi her gün tekrarlanmasını açıp kapatan anahtarın başlığı. Tasarımdaki tek tekrar seçeneğidir."

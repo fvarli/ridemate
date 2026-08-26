@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
@@ -12,6 +13,16 @@ import 'package:ridemate/features/create_route/domain/departure.dart';
 /// clock; neither is an instant, because turning them into one needs a timezone
 /// this client does not own and must not guess.
 void main() {
+  /// Two places the way the server returns them.
+  const Place from = Place(
+    id: '01991a00-0000-7000-8000-00000000000a',
+    label: 'Sunucu Yeri A',
+  );
+  const Place to = Place(
+    id: '01991a00-0000-7000-8000-00000000000b',
+    label: 'Sunucu Yeri B',
+  );
+
   ProviderContainer container() {
     final ProviderContainer c = ProviderContainer();
     addTearDown(c.dispose);
@@ -109,6 +120,8 @@ void main() {
         createRouteDraftProvider.notifier,
       );
 
+      controller.setOrigin(from);
+      controller.setDestination(to);
       controller.setRecurrence(Recurrence.weekdays);
       expect(c.read(createRouteDraftProvider).isComplete, isFalse);
 
@@ -122,6 +135,8 @@ void main() {
         createRouteDraftProvider.notifier,
       );
 
+      controller.setOrigin(from);
+      controller.setDestination(to);
       controller.setRecurrence(Recurrence.once);
       controller.setDepartureTime(const DepartureTime(hour: 8, minute: 25));
       expect(c.read(createRouteDraftProvider).isComplete, isFalse);
@@ -239,6 +254,98 @@ void main() {
       ]) {
         expect(rendered, isNot(contains(forbidden)), reason: forbidden);
       }
+    });
+  });
+
+  group('A refreshed catalogue is reconciled by identity', () {
+    /// CARRIES WEIGHT. A place that has gone cannot stay selected.
+    test('a selection survives only if its exact id is still there', () {
+      final ProviderContainer c = container();
+      final CreateRouteDraftController controller = c.read(
+        createRouteDraftProvider.notifier,
+      );
+
+      controller.setOrigin(from);
+      controller.setDestination(to);
+
+      // The same places come back, unchanged.
+      controller.reconcileWith(<Place>[from, to]);
+      expect(c.read(createRouteDraftProvider).origin, from);
+      expect(c.read(createRouteDraftProvider).destination, to);
+    });
+
+    test('a disappearing place clears that endpoint and only that one', () {
+      final ProviderContainer c = container();
+      final CreateRouteDraftController controller = c.read(
+        createRouteDraftProvider.notifier,
+      );
+
+      controller.setOrigin(from);
+      controller.setDestination(to);
+
+      controller.reconcileWith(<Place>[to]);
+
+      expect(c.read(createRouteDraftProvider).origin, isNull);
+      expect(c.read(createRouteDraftProvider).destination, to);
+    });
+
+    /// A label is what a place is called; the id is what it is.
+    test('a renamed place keeps its selection, a re-labelled id does not', () {
+      final ProviderContainer c = container();
+      final CreateRouteDraftController controller = c.read(
+        createRouteDraftProvider.notifier,
+      );
+
+      controller.setOrigin(from);
+
+      // Same id, new name: still the same place, so the choice stands.
+      const Place renamed = Place(
+        id: '01991a00-0000-7000-8000-00000000000a',
+        label: 'Sunucu Yeri A (yeni ad)',
+      );
+      controller.reconcileWith(<Place>[renamed]);
+      expect(c.read(createRouteDraftProvider).origin?.id, from.id);
+
+      // Same NAME, different id: a different place wearing the old name, and
+      // matching on the label would have silently moved the journey.
+      const Place impostor = Place(
+        id: '01991a00-0000-7000-8000-0000000000ff',
+        label: 'Sunucu Yeri A',
+      );
+      controller.reconcileWith(<Place>[impostor]);
+      expect(c.read(createRouteDraftProvider).origin, isNull);
+    });
+
+    test('an empty catalogue clears both endpoints', () {
+      final ProviderContainer c = container();
+      final CreateRouteDraftController controller = c.read(
+        createRouteDraftProvider.notifier,
+      );
+
+      controller.setOrigin(from);
+      controller.setDestination(to);
+      controller.reconcileWith(const <Place>[]);
+
+      expect(c.read(createRouteDraftProvider).origin, isNull);
+      expect(c.read(createRouteDraftProvider).destination, isNull);
+    });
+
+    test('nothing else about the draft is touched', () {
+      final ProviderContainer c = container();
+      final CreateRouteDraftController controller = c.read(
+        createRouteDraftProvider.notifier,
+      );
+
+      controller.setOrigin(from);
+      controller.setDepartureTime(const DepartureTime(hour: 8, minute: 25));
+      controller.incrementSeats();
+
+      controller.reconcileWith(const <Place>[]);
+      final CreateRouteDraft after = c.read(createRouteDraftProvider);
+
+      expect(after.departureTime, const DepartureTime(hour: 8, minute: 25));
+      expect(after.seats, 4);
+      expect(after.rules, isNotEmpty);
     });
   });
 }

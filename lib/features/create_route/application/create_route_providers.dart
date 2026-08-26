@@ -50,6 +50,16 @@ class CreateRouteDraftController extends Notifier<CreateRouteDraft> {
     clearDepartureDate: !value.needsDate,
   );
 
+  /// Drops any endpoint the refreshed catalogue no longer contains.
+  ///
+  /// By id, never by label. A place that has left the catalogue cannot be
+  /// published against, and keeping it because the name still matches would
+  /// hand the server a reference it would refuse.
+  void reconcileWith(List<Place> catalogue) {
+    final CreateRouteDraft next = state.reconciledWith(catalogue);
+    if (next != state) state = next;
+  }
+
   void setDepartureDate(DepartureDate value) =>
       state = state.copyWith(departureDate: value);
 

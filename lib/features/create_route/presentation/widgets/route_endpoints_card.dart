@@ -39,8 +39,13 @@ class RouteEndpointsCard extends StatelessWidget {
     super.key,
   });
 
-  final Place origin;
-  final Place destination;
+  /// The chosen endpoints, or null while the driver has not chosen.
+  ///
+  /// Null renders a prompt rather than a place. There is nothing to fall back
+  /// to: the catalogue is the server's, and showing a plausible name here
+  /// would be showing one this app invented.
+  final Place? origin;
+  final Place? destination;
   final VoidCallback onEditOrigin;
   final VoidCallback onEditDestination;
 
@@ -60,17 +65,21 @@ class RouteEndpointsCard extends StatelessWidget {
         children: <Widget>[
           _EndpointRow(
             point: RmJourneyPoint.origin,
-            value: origin.label,
-            semanticLabel: l10n.createRouteOriginSemanticLabel(origin.label),
+            value: origin?.label ?? l10n.createRouteOriginEmpty,
+            chosen: origin != null,
+            semanticLabel: origin == null
+                ? l10n.createRouteOriginEmpty
+                : l10n.createRouteOriginSemanticLabel(origin!.label),
             onTap: onEditOrigin,
           ),
           Divider(height: 1, thickness: 1, color: c.divider),
           _EndpointRow(
             point: RmJourneyPoint.destination,
-            value: destination.label,
-            semanticLabel: l10n.createRouteDestinationSemanticLabel(
-              destination.label,
-            ),
+            value: destination?.label ?? l10n.createRouteDestinationEmpty,
+            chosen: destination != null,
+            semanticLabel: destination == null
+                ? l10n.createRouteDestinationEmpty
+                : l10n.createRouteDestinationSemanticLabel(destination!.label),
             onTap: onEditDestination,
           ),
         ],
@@ -83,12 +92,19 @@ class _EndpointRow extends StatelessWidget {
   const _EndpointRow({
     required this.point,
     required this.value,
+    required this.chosen,
     required this.semanticLabel,
     required this.onTap,
   });
 
   final RmJourneyPoint point;
   final String value;
+
+  /// Whether [value] is a place or a prompt to choose one.
+  ///
+  /// A prompt is muted, so a driver can tell at a glance which endpoints they
+  /// have actually stated — the difference must be visible, not only readable.
+  final bool chosen;
   final String semanticLabel;
   final VoidCallback onTap;
 
@@ -115,7 +131,9 @@ class _EndpointRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   value,
-                  style: RmTypography.bodyLg.copyWith(color: c.ink),
+                  style: RmTypography.bodyLg.copyWith(
+                    color: chosen ? c.ink : c.muted,
+                  ),
                   // Two lines for the same reason as Search's card: a full
                   // İstanbul address does not fit on one at the scaled type
                   // size, and truncating hides which stop it is.

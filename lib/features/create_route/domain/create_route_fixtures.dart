@@ -22,7 +22,6 @@
 // choice attributed to somebody who never made it.
 // ─────────────────────────────────────────────────────────────
 
-import '../../../core/places/mock_places.dart';
 import 'create_route_draft.dart';
 import 'departure.dart';
 
@@ -37,14 +36,18 @@ import 'departure.dart';
 /// real limit arrives as domain data rather than as a number chosen here.
 const int kSeatsFloor = 1;
 
-/// The journey the design shows already filled in.
+/// The state Create Route opens in.
 ///
-/// The departure is deliberately empty. Everything else here is the design's
-/// own starting state; a date and a time are the driver's, and seeding them
-/// would put words in their mouth before they had opened the screen.
+/// The endpoints and the departure are deliberately empty. Everything else is
+/// the design's own starting state; where a journey runs and when it leaves
+/// are the driver's to say, and seeding either would put words in their mouth
+/// before they had opened the screen.
 const CreateRouteDraft kInitialCreateRouteDraft = CreateRouteDraft(
-  origin: MockPlaces.atasehir,
-  destination: MockPlaces.maslak,
+  // Unselected. The catalogue is the server's, so nothing can be chosen
+  // before it arrives — and a fixture sitting here would be a choice the
+  // driver never made and the server would not recognise.
+  origin: null,
+  destination: null,
   // The design draws the toggle on.
   recurrence: Recurrence.weekdays,
   departureDate: null,

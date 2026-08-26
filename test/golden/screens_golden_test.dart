@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
+import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
@@ -59,6 +60,10 @@ void main() {
             InMemoryOnboardingRepository(seen: true),
           ),
           rmSessionProvider.overrideWithValue(FakeSession()),
+          // Create Route reads its endpoints from the server. A deterministic
+          // catalogue keeps the capture stable — and keeps it honest, since
+          // the screen has no fixture to fall back on.
+          placeRepositoryProvider.overrideWithValue(FakePlaceRepository()),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -332,6 +337,8 @@ void main() {
     for (final Brightness brightness in Brightness.values) {
       testWidgets(brightness.name, (WidgetTester tester) async {
         await pump(tester, const CreateRouteScreen(), brightness: brightness);
+        // The catalogue arrives a frame later.
+        await tester.pumpAndSettle();
         await expectLater(
           find.byType(CreateRouteScreen),
           matchesGoldenFile('goldens/create_route_${brightness.name}.png'),

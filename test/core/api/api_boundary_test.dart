@@ -120,6 +120,51 @@ void main() {
     });
   });
 
+  group('Where places come from', () {
+    /// CARRIES WEIGHT. Create Route may not fall back to fixtures.
+    ///
+    /// The whole point of F3 is that its endpoints are the server's. A single
+    /// import of the mock catalogue would make a fallback one line away, and
+    /// the failure it produces — a journey published against an id the server
+    /// has never seen — surfaces far from wherever that line was written.
+    test('create_route never reaches for the fixture catalogue', () {
+      final List<String> offenders = <String>[];
+
+      for (final File file in dartFilesIn('lib/features/create_route')) {
+        if (code(file).contains('mock_places')) {
+          offenders.add(file.path);
+        }
+      }
+
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            'Create Route reads the server catalogue. A fixture here would be '
+            'a list the backend does not recognise.',
+      );
+    });
+
+    /// And Search still does, deliberately.
+    ///
+    /// Search stays wholly fixture-backed in Phase 10 — it has no real query
+    /// to run — so its picker keeps the mock list. This asserts the split is
+    /// intentional rather than something half-migrated.
+    test('search still chooses from fixtures', () {
+      final File screen = File(
+        'lib/features/discovery/presentation/search_screen.dart',
+      );
+
+      expect(code(screen), contains('mock_places'));
+    });
+
+    test('the feature reaches the network only through core/api', () {
+      for (final File file in dartFilesIn('lib/features/create_route')) {
+        expect(code(file), isNot(contains('package:http')), reason: file.path);
+      }
+    });
+  });
+
   group('No dependency crept in with it', () {
     test('the transport is package:http and not an alternative', () {
       final String pubspec = File('pubspec.yaml').readAsStringSync();

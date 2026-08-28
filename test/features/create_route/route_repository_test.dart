@@ -354,6 +354,36 @@ void main() {
       );
     });
 
+    /// CARRIES WEIGHT. The status of an unreadable success survives on the
+    /// failure, and the publication controller classifies on it.
+    ///
+    /// A body that will not decode and a 404 both carry
+    /// [RmErrorCode.unexpected], and they mean opposite things: the first may
+    /// be a route that now exists, the second is the server saying no. Only
+    /// the status separates them. If this failure were ever built with a
+    /// hardcoded status, every indeterminate publication would be reclassified
+    /// as a deterministic refusal — and the retry that would have confirmed
+    /// the route would stop happening.
+    test('an unreadable success carries the status the server sent', () async {
+      for (final int status in <int>[200, 201]) {
+        final ApiRouteRepository repository = repositoryOver(
+          (_) async =>
+              created(<String, Object?>{'route': 'not an object'}, status),
+        );
+
+        await expectLater(
+          repository.publish(command),
+          throwsA(
+            isA<RmFailure>()
+                .having((RmFailure f) => f.status, 'status', status)
+                .having((RmFailure f) => f.code, 'code', RmErrorCode.unexpected)
+                .having((RmFailure f) => f.isTransport, 'isTransport', isFalse),
+          ),
+          reason: '$status',
+        );
+      }
+    });
+
     /// CARRIES WEIGHT. A success that will not decode is not a success. Half a
     /// route is worse than none: the driver would be told it worked and shown
     /// a journey the server does not agree with.

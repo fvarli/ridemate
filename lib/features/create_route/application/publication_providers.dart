@@ -145,9 +145,9 @@ class PublicationController extends Notifier<PublicationState> {
       _attemptDraft = null;
       state = PublicationConfirmed(route);
     } on RmFailure catch (failure) {
-      state = _isTerminal(failure)
-          ? PublicationRefused(routeId, failure)
-          : PublicationRetryable(routeId, failure);
+      state = _isRetryable(failure)
+          ? PublicationRetryable(routeId, failure)
+          : PublicationRefused(routeId, failure);
     }
   }
 
@@ -169,15 +169,46 @@ class PublicationController extends Notifier<PublicationState> {
     return minted;
   }
 
-  /// Whether repeating this request unchanged would be pointless.
+  /// Whether sending this exact request again could still change the answer.
   ///
-  /// A conflict and a validation failure are answers, not accidents. Everything
-  /// else — a timeout, a dropped connection, a 500, a body that would not
-  /// decode — leaves the outcome unknown, and unknown means retry with the
-  /// same id.
-  bool _isTerminal(RmFailure failure) =>
-      failure.code == RmErrorCode.conflict ||
-      failure.code == RmErrorCode.validationFailed;
+  /// Retryable means the outcome is unknown, or a later attempt could
+  /// legitimately succeed. Refused means the server has decided, and repeating
+  /// the same bytes produces the same decision.
+  ///
+  /// CLASSIFIED BY STATUS, NOT BY CODE ALONE. A body this build cannot read
+  /// and a 404 both arrive as [RmErrorCode.unexpected] — the code says only
+  /// that the contract could not describe the answer — and they are opposites.
+  /// An unreadable 201 may be a route that now exists; a 404 is the server
+  /// saying no in a way repetition will not change. The status is what tells
+  /// them apart, and RmApiClient preserves it on every path it can produce.
+  bool _isRetryable(RmFailure failure) {
+    // Nothing came back at all. The request may already have reached the
+    // server, so the outcome is unknown rather than negative.
+    if (failure.isTransport) return true;
+
+    final int status = failure.status!;
+
+    // The server accepted the publication and this build could not read the
+    // answer. A route may exist under this id, which is exactly why the retry
+    // has to carry the same one.
+    if (status >= 200 && status < 300) return true;
+
+    // The server broke. It never said anything about this journey.
+    if (status >= 500) return true;
+
+    // Come back later is an instruction to retry, not a refusal. 429 and
+    // `rate_limited` are one and the same in the backend's error renderer.
+    if (status == 429) return true;
+
+    // Everything left is the server deciding: 400, 401, 403, 404, 405, 409,
+    // 422. A 403 is a suspended account and would answer identically forever —
+    // RmSession.send says so in as many words and refuses to retry it. A 401
+    // has already survived Phase 9's single refresh-and-retry, so publication
+    // is not the layer that recovers it: the session owns signing out and the
+    // router owns where that lands. Retrying any of these would be an action
+    // dressed up as hope.
+    return false;
+  }
 
   /// Returns to a state where the driver can edit and try again.
   ///

@@ -358,6 +358,201 @@ void main() {
     });
   });
 
+  group('Retry semantics decide the state', () {
+    /// The matrix, stated once.
+    ///
+    /// Retryable means the outcome is unknown or a later attempt could
+    /// legitimately succeed. Refused means the server has decided, and sending
+    /// the same bytes again produces the same decision.
+    ///
+    /// Notice the two rows that share a code and disagree: a 201 that would
+    /// not decode and a 404 are both `unexpected`, and they are opposites. The
+    /// status is what separates them.
+    const List<(String, RmFailure, bool)> matrix = <(String, RmFailure, bool)>[
+      ('nothing came back at all', RmFailure.transport(), true),
+      (
+        'the server broke',
+        RmFailure.fromBackend(status: 500, code: RmErrorCode.internalError),
+        true,
+      ),
+      (
+        'the server was unavailable',
+        RmFailure.fromBackend(status: 503, code: RmErrorCode.unexpected),
+        true,
+      ),
+      (
+        'a 201 whose body would not decode',
+        RmFailure.fromBackend(status: 201, code: RmErrorCode.unexpected),
+        true,
+      ),
+      (
+        'a 200 whose body would not decode',
+        RmFailure.fromBackend(status: 200, code: RmErrorCode.unexpected),
+        true,
+      ),
+      (
+        'come back later',
+        RmFailure.fromBackend(status: 429, code: RmErrorCode.rateLimited),
+        true,
+      ),
+      (
+        'the id already means something else',
+        RmFailure.fromBackend(status: 409, code: RmErrorCode.conflict),
+        false,
+      ),
+      (
+        'the journey was refused',
+        RmFailure.fromBackend(status: 422, code: RmErrorCode.validationFailed),
+        false,
+      ),
+      (
+        'the account is suspended',
+        RmFailure.fromBackend(status: 403, code: RmErrorCode.forbidden),
+        false,
+      ),
+      (
+        'a 401 that escaped the session',
+        RmFailure.fromBackend(status: 401, code: RmErrorCode.unauthenticated),
+        false,
+      ),
+      (
+        'the request was malformed',
+        RmFailure.fromBackend(status: 400, code: RmErrorCode.badRequest),
+        false,
+      ),
+      (
+        'the endpoint was not found',
+        RmFailure.fromBackend(status: 404, code: RmErrorCode.notFound),
+        false,
+      ),
+      (
+        'the method was wrong',
+        RmFailure.fromBackend(status: 405, code: RmErrorCode.methodNotAllowed),
+        false,
+      ),
+    ];
+
+    for (final (String label, RmFailure failure, bool retryable) in matrix) {
+      test('$label → ${retryable ? 'Retryable' : 'Refused'}', () async {
+        final ProviderContainer c = container();
+        fillDraft(c);
+        routes.failure = failure;
+
+        await c.read(publicationProvider.notifier).publish();
+
+        final PublicationState state = c.read(publicationProvider);
+
+        expect(
+          state,
+          retryable ? isA<PublicationRetryable>() : isA<PublicationRefused>(),
+          reason: label,
+        );
+
+        // Whichever way it landed, the attempt keeps its identity.
+        expect(
+          switch (state) {
+            PublicationRetryable(:final String routeId) => routeId,
+            PublicationRefused(:final String routeId) => routeId,
+            _ => null,
+          },
+          ids.minted.single,
+          reason: label,
+        );
+      });
+    }
+
+    /// CARRIES WEIGHT. A refusal is not a reason to mint a replacement id.
+    ///
+    /// If it were, a driver who tapped again after a 409 would publish a
+    /// second copy of the journey the 409 was telling them about.
+    test('no failure silently regenerates the id', () async {
+      for (final (String label, RmFailure failure, _) in matrix) {
+        final ProviderContainer c = container();
+        fillDraft(c);
+        routes.failure = failure;
+
+        await c.read(publicationProvider.notifier).publish();
+        // A second deliberate tap, with nothing edited in between.
+        await c.read(publicationProvider.notifier).publish();
+
+        expect(ids.minted, hasLength(1), reason: label);
+        expect(routes.routeIds.toSet(), hasLength(1), reason: label);
+        expect(routes.callCount, 2, reason: label);
+      }
+    });
+
+    /// And a changed journey still gets a new identity, whatever went wrong.
+    test('editing after any failure mints a new id', () async {
+      for (final (String label, RmFailure failure, _) in matrix) {
+        final ProviderContainer c = container();
+        fillDraft(c);
+        routes.failure = failure;
+
+        await c.read(publicationProvider.notifier).publish();
+        final String first = ids.minted.single;
+
+        c
+            .read(createRouteDraftProvider.notifier)
+            .setDepartureTime(const DepartureTime(hour: 9, minute: 15));
+
+        await c.read(publicationProvider.notifier).publish();
+
+        expect(ids.minted, hasLength(2), reason: label);
+        expect(routes.routeIds.last, isNot(first), reason: label);
+      }
+    });
+
+    /// CARRIES WEIGHT, and the reason the predicate reads the status.
+    ///
+    /// The server said 201. The body was unreadable. The route probably
+    /// exists, so this must be the retryable case and the retry must carry the
+    /// id the first attempt used — otherwise the recovery publishes a
+    /// duplicate of the journey it was trying to confirm.
+    test('an unreadable success is indeterminate, and keeps its id', () async {
+      final ProviderContainer c = container();
+      fillDraft(c);
+      routes.failure = const RmFailure.fromBackend(
+        status: 201,
+        code: RmErrorCode.unexpected,
+      );
+
+      await c.read(publicationProvider.notifier).publish();
+
+      final PublicationState state = c.read(publicationProvider);
+      expect(state, isA<PublicationRetryable>());
+      final String pending = (state as PublicationRetryable).routeId;
+
+      routes.failure = null;
+      await c.read(publicationProvider.notifier).publish();
+
+      expect(c.read(publicationProvider), isA<PublicationConfirmed>());
+      expect(routes.routeIds, <String>[pending, pending]);
+      expect(ids.minted, hasLength(1));
+    });
+
+    /// The same code, the opposite verdict. This is the pair the old
+    /// code-only classifier could not tell apart.
+    test('unexpected is not one answer: 201 retries, 404 does not', () async {
+      final ProviderContainer unreadable = container();
+      fillDraft(unreadable);
+      routes.failure = const RmFailure.fromBackend(
+        status: 201,
+        code: RmErrorCode.unexpected,
+      );
+      await unreadable.read(publicationProvider.notifier).publish();
+      expect(unreadable.read(publicationProvider), isA<PublicationRetryable>());
+
+      final ProviderContainer missing = container();
+      fillDraft(missing);
+      routes.failure = const RmFailure.fromBackend(
+        status: 404,
+        code: RmErrorCode.unexpected,
+      );
+      await missing.read(publicationProvider.notifier).publish();
+      expect(missing.read(publicationProvider), isA<PublicationRefused>());
+    });
+  });
+
   group('Refusals are not retried behind the driver', () {
     test('a conflict does not mint a replacement id', () async {
       final ProviderContainer c = container();

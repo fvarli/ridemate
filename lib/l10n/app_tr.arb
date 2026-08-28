@@ -27,6 +27,8 @@
     "description": "Alt gezinme çubuğunun ortasındaki eylem düğmesi. Sürücü olarak rota yayınlama akışını açar."
   },
 
+  "commonRetry": "Yeniden dene",
+  "@commonRetry": {"description": "Başarısız bir isteği yeniden başlatır. Önbellek yoktur; istek baştan yapılır."},
   "commonBack": "Geri",
   "@commonBack": {
     "description": "Geri düğmesi için erişilebilirlik etiketi."
@@ -439,8 +441,6 @@
   "@createRoutePlacesEmpty": {"description": "Sunucu boş bir katalog döndürdüğünde. Bilinen yerler istemcide uydurulmaz."},
   "createRoutePlacesUnavailable": "Yer listesi alınamadı.",
   "@createRoutePlacesUnavailable": {"description": "Katalog okunamadığında. Yedek olarak sahte yer gösterilmez; seçim yapılamaz."},
-  "createRoutePlacesRetry": "Yeniden dene",
-  "@createRoutePlacesRetry": {"description": "Katalog isteğini yeniden başlatır. Önbellek yoktur; istek baştan yapılır."},
   "createRouteRecurrenceTitle": "Her hafta içi tekrarla",
   "@createRouteRecurrenceTitle": {
     "description": "Yolculuğun hafta içi her gün tekrarlanmasını açıp kapatan anahtarın başlığı. Tasarımdaki tek tekrar seçeneğidir."
@@ -476,6 +476,10 @@
   "@createRouteDepartureDateMissing": {"description": "Tek seferlik yolculuk tarihsiz yayınlanamaz."},
   "createRouteDepartureTimeMissing": "Gidiş saati seç.",
   "@createRouteDepartureTimeMissing": {"description": "Kalkış saati seçilmeden yolculuk yayınlanamaz."},
+  "createRoutePublished": "Rotan yayınlandı.",
+  "@createRoutePublished": {"description": "Sunucu yolculuğu kabul ettikten sonra gösterilir. Yalnızca sunucu onayladıktan sonra söylenir."},
+  "createRoutePublishFailed": "Rota yayınlanamadı.",
+  "@createRoutePublishFailed": {"description": "Sonucu belirsiz kalan bir denemeden sonra başlık. Ayrıntı RmErrorCopy'den gelir."},
   "createRouteRulesTitle": "YOLCULUK KURALLARI",
   "@createRouteRulesTitle": {
     "description": "Sürücünün yolculukla birlikte yayımladığı kuralların bölüm başlığı."
@@ -499,10 +503,6 @@
   "createRoutePublish": "Rotayı yayınla",
   "@createRoutePublish": {
     "description": "Rota oluştur ekranının ana eylemi."
-  },
-  "createRoutePublishUnavailable": "Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.",
-  "@createRoutePublishUnavailable": {
-    "description": "Yayınla düğmesine basıldığında gösterilen geçici bilgi. Hiçbir rota oluşturulmadığını açıkça söylemelidir; başarı ya da 'yayınlandı' izlenimi vermemelidir."
   },
 
   "activeTripLiveBadge": "CANLI YOLCULUK",
@@ -1014,6 +1014,8 @@
   "@errorNetwork": {
     "description": "Ağ hatası. Sunucuya hiç ulaşılamadığında gösterilir."
   },
+  "errorConflict": "Bu rota zaten yayınlanmış görünüyor.",
+  "@errorConflict": {"description": "409. İstek, sunucudaki mevcut durumla bağdaşmıyor. Sessizce yeni bir kimlikle tekrar denenmez."},
   "errorUnexpected": "Beklenmeyen bir sorun oluştu. Lütfen tekrar dene.",
   "@errorUnexpected": {
     "description": "Tanınmayan veya beklenmeyen sunucu hatası için güvenli varsayılan metin."

@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Rota oluştur'**
   String get navCreateRoute;
 
+  /// Başarısız bir isteği yeniden başlatır. Önbellek yoktur; istek baştan yapılır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden dene'**
+  String get commonRetry;
+
   /// Geri düğmesi için erişilebilirlik etiketi.
   ///
   /// In tr, this message translates to:
@@ -758,12 +764,6 @@ abstract class AppLocalizations {
   /// **'Yer listesi alınamadı.'**
   String get createRoutePlacesUnavailable;
 
-  /// Katalog isteğini yeniden başlatır. Önbellek yoktur; istek baştan yapılır.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yeniden dene'**
-  String get createRoutePlacesRetry;
-
   /// Yolculuğun hafta içi her gün tekrarlanmasını açıp kapatan anahtarın başlığı. Tasarımdaki tek tekrar seçeneğidir.
   ///
   /// In tr, this message translates to:
@@ -830,6 +830,18 @@ abstract class AppLocalizations {
   /// **'Gidiş saati seç.'**
   String get createRouteDepartureTimeMissing;
 
+  /// Sunucu yolculuğu kabul ettikten sonra gösterilir. Yalnızca sunucu onayladıktan sonra söylenir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rotan yayınlandı.'**
+  String get createRoutePublished;
+
+  /// Sonucu belirsiz kalan bir denemeden sonra başlık. Ayrıntı RmErrorCopy'den gelir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rota yayınlanamadı.'**
+  String get createRoutePublishFailed;
+
   /// Sürücünün yolculukla birlikte yayımladığı kuralların bölüm başlığı.
   ///
   /// In tr, this message translates to:
@@ -865,12 +877,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Rotayı yayınla'**
   String get createRoutePublish;
-
-  /// Yayınla düğmesine basıldığında gösterilen geçici bilgi. Hiçbir rota oluşturulmadığını açıkça söylemelidir; başarı ya da 'yayınlandı' izlenimi vermemelidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.'**
-  String get createRoutePublishUnavailable;
 
   /// Harita üstündeki canlı yolculuk rozeti. Yalnızca görsel bir işarettir; arkasında gerçek bir konum takibi yoktur.
   ///
@@ -1445,6 +1451,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bağlantı kurulamadı. İnternet bağlantını kontrol et.'**
   String get errorNetwork;
+
+  /// 409. İstek, sunucudaki mevcut durumla bağdaşmıyor. Sessizce yeni bir kimlikle tekrar denenmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu rota zaten yayınlanmış görünüyor.'**
+  String get errorConflict;
 
   /// Tanınmayan veya beklenmeyen sunucu hatası için güvenli varsayılan metin.
   ///

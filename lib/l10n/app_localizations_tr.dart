@@ -27,6 +27,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get navCreateRoute => 'Rota oluştur';
 
   @override
+  String get commonRetry => 'Yeniden dene';
+
+  @override
   String get commonBack => 'Geri';
 
   @override
@@ -411,9 +414,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get createRoutePlacesUnavailable => 'Yer listesi alınamadı.';
 
   @override
-  String get createRoutePlacesRetry => 'Yeniden dene';
-
-  @override
   String get createRouteRecurrenceTitle => 'Her hafta içi tekrarla';
 
   @override
@@ -455,6 +455,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get createRouteDepartureTimeMissing => 'Gidiş saati seç.';
 
   @override
+  String get createRoutePublished => 'Rotan yayınlandı.';
+
+  @override
+  String get createRoutePublishFailed => 'Rota yayınlanamadı.';
+
+  @override
   String get createRouteRulesTitle => 'YOLCULUK KURALLARI';
 
   @override
@@ -471,10 +477,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get createRoutePublish => 'Rotayı yayınla';
-
-  @override
-  String get createRoutePublishUnavailable =>
-      'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.';
 
   @override
   String get activeTripLiveBadge => 'CANLI YOLCULUK';
@@ -861,6 +863,9 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get errorNetwork =>
       'Bağlantı kurulamadı. İnternet bağlantını kontrol et.';
+
+  @override
+  String get errorConflict => 'Bu rota zaten yayınlanmış görünüyor.';
 
   @override
   String get errorUnexpected =>

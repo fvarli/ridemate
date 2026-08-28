@@ -27,6 +27,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCreateRoute => 'Create route';
 
   @override
+  String get commonRetry => 'Try again';
+
+  @override
   String get commonBack => 'Back';
 
   @override
@@ -412,9 +415,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'The place list could not be loaded.';
 
   @override
-  String get createRoutePlacesRetry => 'Try again';
-
-  @override
   String get createRouteRecurrenceTitle => 'Repeat every weekday';
 
   @override
@@ -456,6 +456,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createRouteDepartureTimeMissing => 'Choose a departure time.';
 
   @override
+  String get createRoutePublished => 'Your route is published.';
+
+  @override
+  String get createRoutePublishFailed => 'The route could not be published.';
+
+  @override
   String get createRouteRulesTitle => 'RIDE RULES';
 
   @override
@@ -472,10 +478,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createRoutePublish => 'Publish route';
-
-  @override
-  String get createRoutePublishUnavailable =>
-      'The route has not been published. Publishing will be added later.';
 
   @override
   String get activeTripLiveBadge => 'LIVE TRIP';
@@ -863,6 +865,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorNetwork =>
       'Couldn\'t connect. Check your internet connection.';
+
+  @override
+  String get errorConflict =>
+      'This route appears to have been published already.';
 
   @override
   String get errorUnexpected => 'Something went wrong. Please try again.';

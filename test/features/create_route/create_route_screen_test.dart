@@ -22,10 +22,13 @@ import 'package:ridemate/core/a11y/rm_a11y.dart';
 import 'package:ridemate/core/a11y/rm_tap_target.dart';
 import 'package:ridemate/core/places/mock_places.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/theme/tokens/rm_sizing.dart';
+import 'package:ridemate/core/widgets/rm_button.dart';
 import 'package:ridemate/core/widgets/rm_chip.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
 import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
+import 'package:ridemate/features/create_route/application/publication_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
 import 'package:ridemate/features/create_route/domain/departure.dart';
@@ -46,8 +49,14 @@ void main() {
   setUpAll(loadRideMateFonts);
 
   late FakePlaceRepository places;
+  late FakeRouteRepository routes;
+  late FakeUuidGenerator ids;
 
-  setUp(() => places = FakePlaceRepository());
+  setUp(() {
+    places = FakePlaceRepository();
+    routes = FakeRouteRepository();
+    ids = FakeUuidGenerator();
+  });
 
   Future<void> pump(
     WidgetTester tester, {
@@ -67,6 +76,8 @@ void main() {
       textScaler: TextScaler.linear(textScale),
       overrides: <Override>[
         placeRepositoryProvider.overrideWithValue(repository ?? places),
+        routeRepositoryProvider.overrideWithValue(routes),
+        uuidGeneratorProvider.overrideWithValue(ids),
       ],
     );
     // Twice: the catalogue is fetched asynchronously, so the first frame is
@@ -681,36 +692,164 @@ void main() {
     });
   });
 
-  group('Publishing is honest', () {
-    testWidgets('shows a message that says nothing was published', (
+  group('Publishing says only what the server said', () {
+    testWidgets('a finished journey goes to the server, once', (
       WidgetTester tester,
     ) async {
       await pump(tester);
       await chooseEndpoints(tester);
       await chooseDeparture(tester);
-      final CreateRouteDraft before = draftOf(tester);
 
       await tester.tap(find.text('Rotayı yayınla'));
       await tester.pump();
+      await tester.pump();
 
-      expect(
-        find.text(
-          'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.',
-        ),
-        findsOneWidget,
-      );
-      // The draft is untouched — not mutated, not cleared.
-      expect(draftOf(tester), before);
-      // No navigation, no success state, no disabled flip.
-      expect(find.byType(CreateRouteScreen), findsOneWidget);
-      expect(find.text('Rotayı yayınla'), findsOneWidget);
+      expect(routes.callCount, 1);
+      // Exactly the two places the driver chose from the server catalogue.
+      expect(routes.lastBody['origin_place_id'], kFakePlaces[0].id);
+      expect(routes.lastBody['destination_place_id'], kFakePlaces[1].id);
+      expect(routes.lastBody['id'], ids.minted.single);
+      expect(find.text('Rotan yayınlandı.'), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. Success is stated after the server confirms it, never
+    /// while the request is still in the air.
+    testWidgets('nothing claims success before the answer arrives', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await chooseEndpoints(tester);
+      await chooseDeparture(tester);
+      routes.hold();
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      // The request is in the air and nothing has come back.
+      await tester.pump();
+
+      expect(find.text('Rotan yayınlandı.'), findsNothing);
       for (final String forbidden in <String>[
         'Rota oluşturuldu',
-        'Yayınlandı',
+        'yayınlandı',
         'başarıyla',
       ]) {
         expect(find.textContaining(forbidden), findsNothing, reason: forbidden);
       }
+
+      routes.release();
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Rotan yayınlandı.'), findsOneWidget);
+    });
+
+    testWidgets('a failure is stated as a failure and keeps the draft', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await chooseEndpoints(tester);
+      await chooseDeparture(tester);
+      routes.failure = const RmFailure.transport();
+      final CreateRouteDraft before = draftOf(tester);
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Rotan yayınlandı.'), findsNothing);
+      expect(find.textContaining('bağlan'), findsOneWidget);
+      // Nothing the driver wrote is lost to a dropped connection.
+      expect(draftOf(tester), before);
+      expect(find.text('Rotayı yayınla'), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. Two taps are one intention arriving twice.
+    testWidgets('tapping twice publishes one journey under one id', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await chooseEndpoints(tester);
+      await chooseDeparture(tester);
+      // The first request is still in the air when the second tap lands,
+      // which is exactly the case an impatient driver produces.
+      routes.hold();
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+
+      expect(routes.callCount, 1);
+      expect(ids.minted, hasLength(1));
+
+      routes.release();
+      await tester.pump();
+      await tester.pump();
+
+      expect(routes.callCount, 1);
+    });
+
+    testWidgets('the button shows it is working, and stops', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await chooseEndpoints(tester);
+      await chooseDeparture(tester);
+
+      // By type, not by label: a loading button replaces its label with a
+      // spinner, so a finder that goes through the text stops finding it at
+      // exactly the moment this test is about.
+      final Finder cta = find.byType(RmButton);
+
+      expect(cta, findsOneWidget);
+      expect(tester.widget<RmButton>(cta).loading, isFalse);
+
+      routes.hold();
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+
+      expect(tester.widget<RmButton>(cta).loading, isTrue);
+
+      routes.release();
+      await tester.pump();
+      await tester.pump();
+
+      expect(tester.widget<RmButton>(cta).loading, isFalse);
+    });
+
+    /// A retry after an indeterminate failure carries the same id, so the
+    /// server can recognise it rather than publishing the journey twice.
+    testWidgets('retrying reuses the id the first attempt used', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await chooseEndpoints(tester);
+      await chooseDeparture(tester);
+      routes.failure = const RmFailure.transport();
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+      await tester.pump();
+
+      routes.failure = null;
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(routes.callCount, 2);
+      expect(routes.routeIds.toSet(), hasLength(1));
+      expect(find.text('Rotan yayınlandı.'), findsOneWidget);
+    });
+
+    testWidgets('an unfinished journey reaches no server at all', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+      await chooseEndpoints(tester);
+
+      await tester.tap(find.text('Rotayı yayınla'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(routes.callCount, 0);
+      expect(find.text('Rotan yayınlandı.'), findsNothing);
     });
   });
 

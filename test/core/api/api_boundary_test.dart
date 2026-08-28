@@ -165,11 +165,68 @@ void main() {
     });
   });
 
+  group('Where a route id comes from', () {
+    /// CARRIES WEIGHT. One generator, one seam, one place to override.
+    ///
+    /// The id IS the create-idempotency mechanism: a retry after a timeout
+    /// must carry the id the first attempt carried, or the same journey is
+    /// published twice. A second `Uuid()` anywhere would be a second source of
+    /// ids that no test could hold still, and the duplicate it eventually
+    /// produced would look like a server defect.
+    test('package:uuid is used only inside lib/core/id', () {
+      final List<String> offenders = <String>[];
+
+      for (final File file in dartFilesIn('lib')) {
+        if (file.path.startsWith('lib/core/id/')) continue;
+        if (code(file).contains('package:uuid')) offenders.add(file.path);
+      }
+
+      expect(
+        offenders,
+        isEmpty,
+        reason: 'mint ids through RmUuidGenerator, not through the package',
+      );
+    });
+
+    test('the wrapper is the only file that imports it', () {
+      final List<String> importers = <String>[
+        for (final File file in dartFilesIn('lib/core/id'))
+          if (code(file).contains('package:uuid')) file.path,
+      ];
+
+      expect(importers, <String>['lib/core/id/rm_uuid.dart']);
+    });
+
+    /// CARRIES WEIGHT. Whether a departure has passed is read, never computed.
+    ///
+    /// The rule lives in the pilot's timezone, which is the server's
+    /// configuration. A client that answered the question locally would
+    /// eventually disagree with the service about whether a route may still be
+    /// cancelled — and it would disagree silently.
+    test('departure state is only ever decoded, never derived', () {
+      final List<String> constructors = <String>[
+        for (final File file in dartFilesIn('lib'))
+          if (code(file).contains('DepartureState.upcoming') ||
+              code(file).contains('DepartureState.past'))
+            file.path,
+      ];
+
+      expect(
+        constructors,
+        isEmpty,
+        reason:
+            'a named DepartureState case in lib/ means something chose one; '
+            'the server chooses it and the decoder reads it by name',
+      );
+    });
+  });
+
   group('No dependency crept in with it', () {
     test('the transport is package:http and not an alternative', () {
       final String pubspec = File('pubspec.yaml').readAsStringSync();
 
       expect(pubspec, contains('http: ^1.6.0'));
+      expect(pubspec, contains('uuid: ^4.6.0'));
       for (final String rejected in <String>['dio', 'chopper', 'retrofit']) {
         expect(pubspec, isNot(contains(rejected)), reason: rejected);
       }

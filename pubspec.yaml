@@ -43,6 +43,13 @@ dependencies:
   # Flutter bumps that pin.
   intl: any
   shared_preferences: ^2.5.5
+  # A route's id is minted on the client and IS the create-idempotency
+  # mechanism, so a retry after a timeout publishes one journey rather than
+  # two. Used only through lib/core/id/rm_uuid.dart, which is what tests
+  # override. Already present transitively, so this promotes it to a direct
+  # dependency rather than pulling anything new in — the lock file records the
+  # same 4.6.0 and the same hash as before.
+  uuid: ^4.6.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0

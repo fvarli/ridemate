@@ -21,6 +21,7 @@ import 'package:ridemate/core/widgets/rm_icon_button.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
 import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
+import 'package:ridemate/features/create_route/application/publication_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/departure.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
@@ -58,6 +59,8 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
         // Create Route reads its endpoints from the server now, so the flow
         // needs a catalogue to choose from.
         placeRepositoryProvider.overrideWithValue(FakePlaceRepository()),
+        routeRepositoryProvider.overrideWithValue(FakeRouteRepository()),
+        uuidGeneratorProvider.overrideWithValue(FakeUuidGenerator()),
       ],
       child: const RideMateApp(),
     ),
@@ -189,12 +192,7 @@ void main() {
       await tester.tap(find.text('Rotayı yayınla'));
       await tester.pump();
 
-      expect(
-        find.text(
-          'Rota henüz yayınlanmadı. Yayınlama özelliği yakında eklenecek.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Rotan yayınlandı.'), findsOneWidget);
       expect(find.byType(CreateRouteScreen), findsOneWidget);
       expect(container.read(createRouteDraftProvider), before);
     });

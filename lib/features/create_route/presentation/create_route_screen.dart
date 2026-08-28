@@ -3,23 +3,22 @@
 //
 // Source: docs/claude-designs/RideMate App.dc.html, "CREATE ROUTE" (immutable).
 //
-// Title → endpoints → weekday recurrence → seats and cost share → ride rules,
-// with the primary action docked at the bottom.
+// Title → endpoints → recurrence → departure → seats → ride rules, with the
+// primary action docked at the bottom.
 //
 // A driver here is sharing a journey they are ALREADY making. Nothing on this
 // screen implies commercial passenger transport, customer acquisition, driver
 // earnings, fare setting or dynamic pricing, and no trip is taken because a
 // passenger asked for it.
 //
-// PHASE 4 SCOPE. `Rotayı yayınla` does NOT publish anything: there is no
-// backend, no route entity and no publication lifecycle. It shows a message
-// that says so plainly and creates no success or pending state. Telling a
-// driver their route was published when nothing left the device is the wrong
-// thing to encode in a trust product.
+// `Rotayı yayınla` NOW PUBLISHES. The journey goes to the server and the
+// screen says it worked only once the server has said so — never optimistically
+// and never before. A failure is stated as a failure, and the draft survives it
+// intact, so nothing the driver typed is lost to a dropped connection.
 //
-// The approved screen has no date or time control at all, so a one-off
-// journey cannot state when it departs. That gap is recorded rather than
-// designed around — see docs/design-system.md §8.
+// The approved screen has no date, time or place control at all, and no
+// loading, empty or failure state anywhere. Those are recorded deviations, not
+// improvisation — see docs/design-system.md §8.
 //
 // DEVIATION D-create-1: the header gains a back control the comp does not
 // draw. The screen is pushed above the shell with no tab bar, so without it
@@ -27,12 +26,16 @@
 // Match Results and Route Details already use.
 // ─────────────────────────────────────────────────────────────
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/providers/clock_provider.dart';
 import '../../../app/router/app_routes.dart';
+import '../../../core/api/rm_error_copy.dart';
+import '../../../core/api/rm_failure.dart';
 import '../../../core/icons/rm_icons.dart';
 import '../../../core/places/place.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
@@ -46,6 +49,7 @@ import '../../../core/widgets/rm_place_picker_sheet.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/create_route_providers.dart';
 import '../application/place_catalogue_providers.dart';
+import '../application/publication_providers.dart';
 import '../domain/create_route_draft.dart';
 import '../domain/departure.dart';
 import 'widgets/departure_card.dart';
@@ -67,6 +71,15 @@ class CreateRouteScreen extends ConsumerWidget {
       createRouteDraftProvider.notifier,
     );
     final AsyncValue<List<Place>> catalogue = ref.watch(placeCatalogueProvider);
+    final PublicationState publication = ref.watch(publicationProvider);
+
+    // The outcome is announced once, when it arrives, rather than rebuilt into
+    // the tree — a driver must not have to wonder whether the journey landed.
+    ref.listen<PublicationState>(
+      publicationProvider,
+      (PublicationState? previous, PublicationState next) =>
+          _announce(context, l10n, next),
+    );
 
     // A refreshed catalogue may no longer contain something already chosen.
     // Matched on id: a place that has gone is gone, whatever it was called,
@@ -156,7 +169,12 @@ class CreateRouteScreen extends ConsumerWidget {
                 Expanded(
                   child: RmButton(
                     label: l10n.createRoutePublish,
-                    onPressed: () => _onPublishRequested(context, l10n, draft),
+                    // The same treatment the auth screens use while a request
+                    // is out. A second tap while this is true is ignored by
+                    // the controller, so two taps cannot become two journeys.
+                    loading: publication is PublicationInFlight,
+                    onPressed: () =>
+                        _onPublishRequested(context, ref, l10n, draft),
                   ),
                 ),
               ],
@@ -167,16 +185,15 @@ class CreateRouteScreen extends ConsumerWidget {
     );
   }
 
-  /// Temporary Phase 4 behaviour for publishing a route.
+  /// Publishes, or says what is still missing.
   ///
-  /// Shows an informational message only. It deliberately does NOT create a
-  /// route, mark anything published, mutate or clear the draft, navigate away,
-  /// or start a publication lifecycle. Nothing left the device, and the copy
-  /// says so. When a backend exists the flow becomes publish → server
-  /// acknowledgement → visible to other members, and only then may the UI
-  /// claim anything was published.
+  /// Local completeness only. Whether the departure is still in the future,
+  /// whether the places exist and whether the id is well formed are the
+  /// server's questions, and asking them twice would produce two answers that
+  /// could disagree.
   void _onPublishRequested(
     BuildContext context,
+    WidgetRef ref,
     AppLocalizations l10n,
     CreateRouteDraft draft,
   ) {
@@ -195,11 +212,42 @@ class CreateRouteScreen extends ConsumerWidget {
       _ => null,
     };
 
+    if (missing != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(missing)));
+
+      return;
+    }
+
+    unawaited(ref.read(publicationProvider.notifier).publish());
+  }
+
+  /// Says what happened, once.
+  ///
+  /// Success is stated only after the server has confirmed it. A failure is
+  /// stated as a failure: nothing optimistic is shown, no route is invented,
+  /// and the draft is left exactly as the driver wrote it so nothing they
+  /// typed is lost to a dropped connection.
+  void _announce(
+    BuildContext context,
+    AppLocalizations l10n,
+    PublicationState state,
+  ) {
+    final String? message = switch (state) {
+      PublicationConfirmed() => l10n.createRoutePublished,
+      // The detail comes from the shared error vocabulary rather than a second
+      // one invented here.
+      PublicationRetryable(:final RmFailure failure) ||
+      PublicationRefused(:final RmFailure failure) => failure.copy(l10n),
+      PublicationIdle() || PublicationInFlight() => null,
+    };
+
+    if (message == null) return;
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(missing ?? l10n.createRoutePublishUnavailable)),
-      );
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Asks for the day a one-off journey happens.
@@ -358,7 +406,7 @@ class _CatalogueStatus extends ConsumerWidget {
             if (retryable) ...<Widget>[
               const SizedBox(height: RmSpacing.md),
               RmButton(
-                label: l10n.createRoutePlacesRetry,
+                label: l10n.commonRetry,
                 size: RmButtonSize.sm,
                 variant: RmButtonVariant.outline,
                 fullWidth: false,

@@ -41,6 +41,10 @@ extension RmFailureCopy on RmFailure {
       // that fails forever.
       RmErrorCode.forbidden => l10n.errorForbidden,
       RmErrorCode.rateLimited => l10n.errorRateLimited,
+      // A conflict is a specific, explainable state — the request cannot be
+      // applied to what the server currently holds. Folding it into
+      // "something went wrong" told a member nothing they could act on.
+      RmErrorCode.conflict => l10n.errorConflict,
 
       // The rest describe a client or server defect rather than anything the
       // member did. They get one honest sentence instead of five variations
@@ -48,7 +52,6 @@ extension RmFailureCopy on RmFailure {
       RmErrorCode.badRequest ||
       RmErrorCode.notFound ||
       RmErrorCode.methodNotAllowed ||
-      RmErrorCode.conflict ||
       RmErrorCode.internalError ||
       RmErrorCode.unexpected => l10n.errorUnexpected,
     };

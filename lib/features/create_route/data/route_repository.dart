@@ -187,8 +187,9 @@ class ApiRouteRepository implements RouteRepository {
     final int? month = int.tryParse(parts[1]);
     final int? day = int.tryParse(parts[2]);
 
-    if (year == null || month == null || day == null)
+    if (year == null || month == null || day == null) {
       throw _malformed(response);
+    }
 
     return DepartureDate(year: year, month: month, day: day);
   }

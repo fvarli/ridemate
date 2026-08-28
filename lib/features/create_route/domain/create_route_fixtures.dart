@@ -22,8 +22,9 @@
 // choice attributed to somebody who never made it.
 // ─────────────────────────────────────────────────────────────
 
+import '../../../core/routes/departure.dart';
+import '../../../core/routes/ride_rule.dart';
 import 'create_route_draft.dart';
-import 'departure.dart';
 
 /// The lowest seat count the screen allows.
 ///

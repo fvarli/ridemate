@@ -1565,6 +1565,125 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yeni bir kod gönderildi.'**
   String get authCodeResent;
+
+  /// Yayınlanan rotalar ekranının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rotalarım'**
+  String get myRoutesTitle;
+
+  /// Profil listesi satırı; yayınlanan rotalar ekranını açar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rotalarım'**
+  String get profileMyRoutes;
+
+  /// Sürücünün sunduğu koltuk sayısı. Kalan/boş koltuk DEĞİLDİR: sunucu koltuk isteklerini henüz bilmiyor, dolayısıyla müsaitlik iddiası edilemez.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =1{1 koltuk sunuluyor} other{{count} koltuk sunuluyor}}'**
+  String myRoutesSeatsOffered(int count);
+
+  /// Hafta içi tekrarlanan bir rotanın kart üzerindeki ifadesi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her hafta içi'**
+  String get myRoutesRecurrenceWeekdays;
+
+  /// Rota hâlâ geçerli.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayında'**
+  String get myRoutesStatusPublished;
+
+  /// Rota geri çekildi. Listeden silinmez; geçmiş korunur.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal edildi'**
+  String get myRoutesStatusCancelled;
+
+  /// Tek seferlik bir rotanın kalkışı geçti. Bu değer sunucudan gelir; istemci hesaplamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geçmiş'**
+  String get myRoutesStatusPast;
+
+  /// Hiç rota yokken gösterilir. Uydurma bir örnek rota gösterilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz rota yayınlamadın'**
+  String get myRoutesEmptyTitle;
+
+  /// Boş durumun açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayınladığın rotalar burada görünür.'**
+  String get myRoutesEmptyBody;
+
+  /// Sonraki sayfayı ister. Yalnızca sunucu devam edilecek bir konum bildirdiğinde görünür.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla yükle'**
+  String get myRoutesLoadMore;
+
+  /// Sonraki sayfa gelmedi. Zaten yüklenmiş rotalar ekranda kalır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki sayfa yüklenemedi.'**
+  String get myRoutesLoadMoreFailed;
+
+  /// Bir rotayı geri çeker. Yalnızca sunucu rotayı yayında VE kalkışı gelecekte bildirdiğinde görünür.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rotayı iptal et'**
+  String get myRoutesCancel;
+
+  /// İptal onay sayfasının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu rota iptal edilsin mi?'**
+  String get myRoutesCancelConfirmTitle;
+
+  /// Neyin iptal edileceğini adıyla söyler ve kaydın silinmediğini belirtir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} rotası yayından kalkar. Geçmişinde kalmaya devam eder.'**
+  String myRoutesCancelConfirmBody(String route);
+
+  /// Onay sayfasındaki yıkıcı eylem.
+  ///
+  /// In tr, this message translates to:
+  /// **'Evet, iptal et'**
+  String get myRoutesCancelConfirm;
+
+  /// Onay sayfasını hiçbir şey yapmadan kapatır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Vazgeç'**
+  String get myRoutesCancelDismiss;
+
+  /// Sunucu iptali onayladıktan sonra gösterilir; önce değil.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rota iptal edildi.'**
+  String get myRoutesCancelled;
+
+  /// Bir rota kartının ekran okuyucuya okunan tam hâli.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route}, {departure}, {seats}, {status}'**
+  String myRoutesCardSemanticLabel(
+    String route,
+    String departure,
+    String seats,
+    String status,
+  );
+
+  /// İptal düğmesinin hangi rotaya ait olduğunu söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} rotasını iptal et'**
+  String myRoutesCancelSemanticLabel(String route);
 }
 
 class _AppLocalizationsDelegate

@@ -35,9 +35,9 @@ import '../../../app/providers/session_provider.dart';
 import '../../../core/api/rm_error_code.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/id/rm_uuid.dart';
+import '../../../core/routes/published_route.dart';
 import '../data/route_repository.dart';
 import '../domain/create_route_draft.dart';
-import '../domain/published_route.dart';
 import 'create_route_providers.dart';
 
 final Provider<RmUuidGenerator> uuidGeneratorProvider =

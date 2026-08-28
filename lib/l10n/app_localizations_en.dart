@@ -925,4 +925,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authCodeResent => 'A new code has been sent.';
+
+  @override
+  String get myRoutesTitle => 'My routes';
+
+  @override
+  String get profileMyRoutes => 'My routes';
+
+  @override
+  String myRoutesSeatsOffered(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'offering $count seats',
+      one: 'offering 1 seat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get myRoutesRecurrenceWeekdays => 'Every weekday';
+
+  @override
+  String get myRoutesStatusPublished => 'Published';
+
+  @override
+  String get myRoutesStatusCancelled => 'Cancelled';
+
+  @override
+  String get myRoutesStatusPast => 'Past';
+
+  @override
+  String get myRoutesEmptyTitle => 'You haven\'t published a route yet';
+
+  @override
+  String get myRoutesEmptyBody => 'The routes you publish will appear here.';
+
+  @override
+  String get myRoutesLoadMore => 'Load more';
+
+  @override
+  String get myRoutesLoadMoreFailed => 'Couldn\'t load the next page.';
+
+  @override
+  String get myRoutesCancel => 'Cancel route';
+
+  @override
+  String get myRoutesCancelConfirmTitle => 'Cancel this route?';
+
+  @override
+  String myRoutesCancelConfirmBody(String route) {
+    return '$route will be withdrawn. It stays in your history.';
+  }
+
+  @override
+  String get myRoutesCancelConfirm => 'Yes, cancel it';
+
+  @override
+  String get myRoutesCancelDismiss => 'Keep it';
+
+  @override
+  String get myRoutesCancelled => 'The route is cancelled.';
+
+  @override
+  String myRoutesCardSemanticLabel(
+    String route,
+    String departure,
+    String seats,
+    String status,
+  ) {
+    return '$route, $departure, $seats, $status';
+  }
+
+  @override
+  String myRoutesCancelSemanticLabel(String route) {
+    return 'Cancel the $route route';
+  }
 }

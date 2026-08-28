@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
-import 'package:ridemate/features/create_route/domain/departure.dart';
 
 /// The departure a driver states, and the things the client must not decide.
 ///

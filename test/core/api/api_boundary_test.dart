@@ -203,21 +203,130 @@ void main() {
     /// configuration. A client that answered the question locally would
     /// eventually disagree with the service about whether a route may still be
     /// cancelled — and it would disagree silently.
-    test('departure state is only ever decoded, never derived', () {
-      final List<String> constructors = <String>[
+    /// RENDERING a decoded state is fine and necessary; My Routes has to know
+    /// which pill to draw. What must never happen is a file naming a
+    /// DepartureState case AND reaching for a clock, because that is the shape
+    /// of deriving one. The two together are the defect, not either alone.
+    test('nothing decides departure state from a clock', () {
+      const List<String> clock = <String>[
+        'DateTime.now',
+        'toUtc',
+        'toLocal',
+        'isBefore',
+        'isAfter',
+        'difference(',
+      ];
+
+      final List<String> offenders = <String>[
         for (final File file in dartFilesIn('lib'))
-          if (code(file).contains('DepartureState.upcoming') ||
-              code(file).contains('DepartureState.past'))
+          if ((code(file).contains('DepartureState.upcoming') ||
+                  code(file).contains('DepartureState.past')) &&
+              clock.any(code(file).contains))
             file.path,
       ];
 
+      expect(offenders, isEmpty, reason: 'the server decides this');
+    });
+
+    /// And the enum is only ever built by name, from a response.
+    test('a departure state is only ever constructed by the decoder', () {
+      final List<String> builders = <String>[
+        for (final File file in dartFilesIn('lib'))
+          if (code(file).contains('DepartureState.values')) file.path,
+      ];
+
+      expect(builders, <String>['lib/core/routes/route_decoder.dart']);
+    });
+  });
+
+  group('My Routes depends inward, never sideways', () {
+    /// CARRIES WEIGHT. Two features, one shared model, no arrow between them.
+    ///
+    /// My Routes and Create Route are equal consumers of the same server
+    /// projection. If one imported the other, the shared type would belong to
+    /// whichever got written first, and every later change to it would be made
+    /// on behalf of a feature that is not asking.
+    test('my_routes never imports create_route', () {
+      final List<String> offenders = <String>[
+        for (final File file in dartFilesIn('lib/features/my_routes'))
+          if (code(file).contains('features/create_route')) file.path,
+      ];
+
       expect(
-        constructors,
+        offenders,
         isEmpty,
-        reason:
-            'a named DepartureState case in lib/ means something chose one; '
-            'the server chooses it and the decoder reads it by name',
+        reason: 'the shared route model lives in lib/core/routes',
       );
+    });
+
+    /// RouteTimeline lives in Discovery and looks like what a route card
+    /// needs. Resembling something is not a reason to depend on it.
+    test('my_routes never imports discovery', () {
+      final List<String> offenders = <String>[
+        for (final File file in dartFilesIn('lib/features/my_routes'))
+          if (code(file).contains('features/discovery')) file.path,
+      ];
+
+      expect(offenders, isEmpty, reason: 'compose core primitives instead');
+    });
+
+    test('and create_route does not import my_routes either', () {
+      final List<String> offenders = <String>[
+        for (final File file in dartFilesIn('lib/features/create_route'))
+          if (code(file).contains('features/my_routes')) file.path,
+      ];
+
+      expect(offenders, isEmpty);
+    });
+
+    test('the feature reaches the network only through core/api', () {
+      for (final File file in dartFilesIn('lib/features/my_routes')) {
+        expect(code(file), isNot(contains('package:http')), reason: file.path);
+      }
+    });
+
+    /// CARRIES WEIGHT. No fixture may reach this screen.
+    ///
+    /// A route nobody published, on the screen that exists to show what you
+    /// published, would be the exact lie Phase 10 was built to remove — and it
+    /// would appear precisely when the network failed, which is when nobody is
+    /// looking closely.
+    test('my_routes reaches for no fixture at all', () {
+      for (final File file in dartFilesIn('lib/features/my_routes')) {
+        for (final String fixture in <String>[
+          'mock_places',
+          'mock_discovery_fixtures',
+          'review_fixtures',
+          'create_route_fixtures',
+          'MockPlaces',
+          'MockRouteOffers',
+        ]) {
+          expect(code(file), isNot(contains(fixture)), reason: file.path);
+        }
+      }
+    });
+
+    /// CARRIES WEIGHT. Whether a journey has departed is the server's answer.
+    ///
+    /// The rule lives in the route's own timezone, which is the server's
+    /// configuration. A client that worked it out locally would eventually
+    /// offer Cancel on a journey the API refuses to cancel — or hide it on one
+    /// the API would have accepted — and would do it silently.
+    test('my_routes never works out past or upcoming for itself', () {
+      for (final File file in dartFilesIn('lib/features/my_routes')) {
+        // Reading `route.departureState` is the point; computing one is the
+        // defect. So what is banned here is the clock, not the enum.
+        for (final String forbidden in <String>[
+          'DateTime.now',
+          'toUtc',
+          'toLocal',
+          'isBefore',
+          'isAfter',
+          'difference(',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
     });
   });
 

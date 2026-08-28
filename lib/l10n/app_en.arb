@@ -252,5 +252,25 @@
   "authCodeInvalid": "That code isn't right. Try again.",
   "authCodeSubmit": "Verify",
   "authCodeResend": "Send a new code",
-  "authCodeResent": "A new code has been sent."
+  "authCodeResent": "A new code has been sent.",
+
+  "myRoutesTitle": "My routes",
+  "profileMyRoutes": "My routes",
+  "myRoutesSeatsOffered": "{count, plural, =1{offering 1 seat} other{offering {count} seats}}",
+  "myRoutesRecurrenceWeekdays": "Every weekday",
+  "myRoutesStatusPublished": "Published",
+  "myRoutesStatusCancelled": "Cancelled",
+  "myRoutesStatusPast": "Past",
+  "myRoutesEmptyTitle": "You haven't published a route yet",
+  "myRoutesEmptyBody": "The routes you publish will appear here.",
+  "myRoutesLoadMore": "Load more",
+  "myRoutesLoadMoreFailed": "Couldn't load the next page.",
+  "myRoutesCancel": "Cancel route",
+  "myRoutesCancelConfirmTitle": "Cancel this route?",
+  "myRoutesCancelConfirmBody": "{route} will be withdrawn. It stays in your history.",
+  "myRoutesCancelConfirm": "Yes, cancel it",
+  "myRoutesCancelDismiss": "Keep it",
+  "myRoutesCancelled": "The route is cancelled.",
+  "myRoutesCardSemanticLabel": "{route}, {departure}, {seats}, {status}",
+  "myRoutesCancelSemanticLabel": "Cancel the {route} route"
 }

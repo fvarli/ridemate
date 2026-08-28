@@ -141,10 +141,14 @@ void main() {
           matching: find.byType(RmCard),
         ),
       );
-      expect(rows.length, 2);
+      // Three since F5 added My Routes. An exact count on purpose: a fourth
+      // row is a deliberate edit, not something that appears unnoticed.
+      expect(rows.length, 3);
       // The comp gives the first row no chevron, so it does nothing — and it
       // therefore must not announce itself as actionable.
       expect(rows.first.onTap, isNull);
+      // Both navigation rows do go somewhere.
+      expect(rows.elementAt(1).onTap, isNotNull);
       expect(rows.last.onTap, isNotNull);
 
       final SemanticsNode node = tester.getSemantics(

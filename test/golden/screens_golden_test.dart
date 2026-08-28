@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
+import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
@@ -15,6 +18,9 @@ import 'package:ridemate/features/discovery/presentation/match_results_screen.da
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
+import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
+import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
+import 'package:ridemate/features/my_routes/presentation/my_routes_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
@@ -64,6 +70,48 @@ void main() {
           // catalogue keeps the capture stable — and keeps it honest, since
           // the screen has no fixture to fall back on.
           placeRepositoryProvider.overrideWithValue(FakePlaceRepository()),
+          // My Routes reads the server too, and has no fixture to fall back
+          // on. A fixed page keeps the capture deterministic and covers the
+          // three things the card can say: upcoming, past and cancelled.
+          myRoutesRepositoryProvider.overrideWithValue(
+            FakeMyRoutesRepository(
+              pages: <MyRoutesResult>[
+                MyRoutesResult(
+                  routes: <PublishedRoute>[
+                    fakeRoute(
+                      id: '01991b00-0000-7000-8000-000000000001',
+                      originLabel: 'Kadıköy, Vapur İskelesi',
+                      destinationLabel: 'Levent, Metro İstasyonu',
+                      rules: const <RideRuleId>{
+                        RideRuleId.noSmoking,
+                        RideRuleId.quiet,
+                      },
+                    ),
+                    fakeRoute(
+                      id: '01991b00-0000-7000-8000-000000000002',
+                      originLabel: 'Maslak, Atatürk Oto Sanayi',
+                      destinationLabel: 'Ataşehir, Palladium',
+                      recurrence: Recurrence.once,
+                      departureDate: '2026-09-14',
+                      departureTime: '18:10',
+                      seatsOffered: 2,
+                      rules: const <RideRuleId>{},
+                      departureState: DepartureState.past,
+                    ),
+                    fakeRoute(
+                      id: '01991b00-0000-7000-8000-000000000003',
+                      originLabel: 'İTÜ Ayazağa, Metro İstasyonu',
+                      destinationLabel: 'Kadıköy, Vapur İskelesi',
+                      seatsOffered: 1,
+                      status: RouteStatus.cancelled,
+                      cancelledAt: '2026-08-27T18:00:00+00:00',
+                    ),
+                  ],
+                  nextCursor: 'more',
+                ),
+              ],
+            ),
+          ),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -329,6 +377,36 @@ void main() {
       await expectLater(
         find.byType(SafetyScreen),
         matchesGoldenFile('goldens/safety_rtl.png'),
+      );
+    });
+  });
+
+  group('My routes', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(tester, const MyRoutesScreen(), brightness: brightness);
+        // The page arrives a frame later.
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(MyRoutesScreen),
+          matchesGoldenFile('goldens/my_routes_${brightness.name}.png'),
+        );
+      });
+    }
+
+    /// A card mixes a directional route line, chips, a status pill and a
+    /// trailing action — the combination most likely to break when mirrored.
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      await pump(
+        tester,
+        const MyRoutesScreen(),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MyRoutesScreen),
+        matchesGoldenFile('goldens/my_routes_rtl.png'),
       );
     });
   });

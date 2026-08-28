@@ -19,40 +19,13 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/places/place.dart';
+import '../../../core/routes/departure.dart';
+import '../../../core/routes/ride_rule.dart';
 import 'create_route_fixtures.dart';
-import 'departure.dart';
 
-/// The ride rules the design offers, in the order it draws them.
-///
-/// These are a driver's PUBLISHED RULES. Search's [SearchFilterId] carries
-/// some of the same words (`Sigara yok`) as a passenger's PREFERENCE, which is
-/// the opposite side of the same conversation. The two stay separate types in
-/// separate features on purpose; reconciling them is a backend concern.
-enum RideRuleId {
-  /// `Sigara yok`
-  noSmoking,
-
-  /// `Müzik OK`
-  musicOk,
-
-  /// `Evcil hayvan yok`
-  noPets,
-
-  /// `Sessiz`
-  quiet,
-}
-
-/// A policy-sensitive preference.
-///
-/// The client renders it and stores it in the draft; it enforces no
-/// eligibility from it. Connecting a "no pets" rule to real matching or
-/// eligibility may raise accessibility and non-discrimination considerations,
-/// and requires legal, accessibility and product review before any backend
-/// enforcement.
-///
-/// This records a review requirement. It states no legal conclusion — how any
-/// particular law applies to this use case is not the client layer's call.
-const RideRuleId kRuleNeedingPolicyReview = RideRuleId.noPets;
+// RideRuleId and its policy-review marker now live in lib/core/routes/:
+// My Routes renders the same rules this screen collects, and a type owned by
+// one of two equal consumers is a dependency waiting to be drawn the wrong way.
 
 /// The journey a driver is composing.
 @immutable

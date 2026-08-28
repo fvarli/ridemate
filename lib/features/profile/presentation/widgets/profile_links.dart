@@ -25,16 +25,18 @@ import '../../../../core/widgets/rm_list_row.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/profile_snapshot.dart';
 
-/// The two navigation rows below the stats.
+/// The navigation rows below the stats.
 class ProfileLinks extends StatelessWidget {
   const ProfileLinks({
     required this.snapshot,
     required this.onOpenReviews,
+    required this.onOpenMyRoutes,
     super.key,
   });
 
   final ProfileSnapshot snapshot;
   final VoidCallback onOpenReviews;
+  final VoidCallback onOpenMyRoutes;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +60,17 @@ class ProfileLinks extends StatelessWidget {
             done,
             total,
           ),
+        ),
+        const SizedBox(height: RmSpacing.sm),
+        // The one row on this screen backed by a real endpoint. Everything
+        // above it is still fixture-backed, which is why it sits here rather
+        // than being dressed up as a headline.
+        RmListRow(
+          title: l10n.profileMyRoutes,
+          icon: RmIcons.car,
+          tone: RmRowTone.primary,
+          tintedIcon: false,
+          onTap: onOpenMyRoutes,
         ),
         const SizedBox(height: RmSpacing.sm),
         RmListRow(

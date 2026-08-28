@@ -27,6 +27,7 @@ import '../../features/discovery/presentation/route_details_screen.dart';
 import '../../features/discovery/presentation/search_screen.dart';
 import '../../features/gallery/presentation/gallery_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/my_routes/presentation/my_routes_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -273,6 +274,13 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.createRoute,
         builder: (BuildContext context, GoRouterState state) =>
             const CreateRouteScreen(),
+      ),
+      // Above the shell, reached from Profile — the Reviews shape exactly.
+      GoRoute(
+        path: AppRoutes.myRoutesPath,
+        name: AppRoutes.myRoutes,
+        builder: (BuildContext context, GoRouterState state) =>
+            const MyRoutesScreen(),
       ),
       // Above the shell: the comp draws a back control and no tab bar.
       GoRoute(

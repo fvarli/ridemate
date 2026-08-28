@@ -1093,5 +1093,91 @@
   "authCodeResent": "Yeni bir kod gönderildi.",
   "@authCodeResent": {
     "description": "Tekrar gönderme isteği kabul edildi."
+  },
+
+  "myRoutesTitle": "Rotalarım",
+  "@myRoutesTitle": {
+    "description": "Yayınlanan rotalar ekranının başlığı."
+  },
+  "profileMyRoutes": "Rotalarım",
+  "@profileMyRoutes": {
+    "description": "Profil listesi satırı; yayınlanan rotalar ekranını açar."
+  },
+  "myRoutesSeatsOffered": "{count, plural, =1{1 koltuk sunuluyor} other{{count} koltuk sunuluyor}}",
+  "@myRoutesSeatsOffered": {
+    "description": "Sürücünün sunduğu koltuk sayısı. Kalan/boş koltuk DEĞİLDİR: sunucu koltuk isteklerini henüz bilmiyor, dolayısıyla müsaitlik iddiası edilemez.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "myRoutesRecurrenceWeekdays": "Her hafta içi",
+  "@myRoutesRecurrenceWeekdays": {
+    "description": "Hafta içi tekrarlanan bir rotanın kart üzerindeki ifadesi."
+  },
+  "myRoutesStatusPublished": "Yayında",
+  "@myRoutesStatusPublished": {
+    "description": "Rota hâlâ geçerli."
+  },
+  "myRoutesStatusCancelled": "İptal edildi",
+  "@myRoutesStatusCancelled": {
+    "description": "Rota geri çekildi. Listeden silinmez; geçmiş korunur."
+  },
+  "myRoutesStatusPast": "Geçmiş",
+  "@myRoutesStatusPast": {
+    "description": "Tek seferlik bir rotanın kalkışı geçti. Bu değer sunucudan gelir; istemci hesaplamaz."
+  },
+  "myRoutesEmptyTitle": "Henüz rota yayınlamadın",
+  "@myRoutesEmptyTitle": {
+    "description": "Hiç rota yokken gösterilir. Uydurma bir örnek rota gösterilmez."
+  },
+  "myRoutesEmptyBody": "Yayınladığın rotalar burada görünür.",
+  "@myRoutesEmptyBody": {
+    "description": "Boş durumun açıklaması."
+  },
+  "myRoutesLoadMore": "Daha fazla yükle",
+  "@myRoutesLoadMore": {
+    "description": "Sonraki sayfayı ister. Yalnızca sunucu devam edilecek bir konum bildirdiğinde görünür."
+  },
+  "myRoutesLoadMoreFailed": "Sonraki sayfa yüklenemedi.",
+  "@myRoutesLoadMoreFailed": {
+    "description": "Sonraki sayfa gelmedi. Zaten yüklenmiş rotalar ekranda kalır."
+  },
+  "myRoutesCancel": "Rotayı iptal et",
+  "@myRoutesCancel": {
+    "description": "Bir rotayı geri çeker. Yalnızca sunucu rotayı yayında VE kalkışı gelecekte bildirdiğinde görünür."
+  },
+  "myRoutesCancelConfirmTitle": "Bu rota iptal edilsin mi?",
+  "@myRoutesCancelConfirmTitle": {
+    "description": "İptal onay sayfasının başlığı."
+  },
+  "myRoutesCancelConfirmBody": "{route} rotası yayından kalkar. Geçmişinde kalmaya devam eder.",
+  "@myRoutesCancelConfirmBody": {
+    "description": "Neyin iptal edileceğini adıyla söyler ve kaydın silinmediğini belirtir.",
+    "placeholders": { "route": { "type": "String" } }
+  },
+  "myRoutesCancelConfirm": "Evet, iptal et",
+  "@myRoutesCancelConfirm": {
+    "description": "Onay sayfasındaki yıkıcı eylem."
+  },
+  "myRoutesCancelDismiss": "Vazgeç",
+  "@myRoutesCancelDismiss": {
+    "description": "Onay sayfasını hiçbir şey yapmadan kapatır."
+  },
+  "myRoutesCancelled": "Rota iptal edildi.",
+  "@myRoutesCancelled": {
+    "description": "Sunucu iptali onayladıktan sonra gösterilir; önce değil."
+  },
+  "myRoutesCardSemanticLabel": "{route}, {departure}, {seats}, {status}",
+  "@myRoutesCardSemanticLabel": {
+    "description": "Bir rota kartının ekran okuyucuya okunan tam hâli.",
+    "placeholders": {
+      "route": { "type": "String" },
+      "departure": { "type": "String" },
+      "seats": { "type": "String" },
+      "status": { "type": "String" }
+    }
+  },
+  "myRoutesCancelSemanticLabel": "{route} rotasını iptal et",
+  "@myRoutesCancelSemanticLabel": {
+    "description": "İptal düğmesinin hangi rotaya ait olduğunu söyler.",
+    "placeholders": { "route": { "type": "String" } }
   }
 }

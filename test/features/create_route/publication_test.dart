@@ -5,11 +5,11 @@ import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/id/rm_uuid.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/features/create_route/application/create_route_providers.dart';
 import 'package:ridemate/features/create_route/application/publication_providers.dart';
-import 'package:ridemate/features/create_route/data/route_repository.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
-import 'package:ridemate/features/create_route/domain/departure.dart';
 
 import '../../support/fakes.dart';
 
@@ -205,9 +205,7 @@ void main() {
       ];
 
       for (final Set<RideRuleId> rules in combinations) {
-        final Map<String, bool> wire = RoutePublicationCommand.rulesToJson(
-          rules,
-        );
+        final Map<String, bool> wire = rideRulesToJson(rules);
 
         expect(wire.keys.toSet(), <String>{
           'no_smoking',
@@ -226,8 +224,7 @@ void main() {
     /// Every rule has a name, and the mapping is total by construction.
     test('no rule is missing a wire name', () {
       final Set<String> keys = <String>{
-        for (final RideRuleId id in RideRuleId.values)
-          RoutePublicationCommand.wireKey(id),
+        for (final RideRuleId id in RideRuleId.values) rideRuleWireKey(id),
       };
 
       expect(keys, hasLength(RideRuleId.values.length));

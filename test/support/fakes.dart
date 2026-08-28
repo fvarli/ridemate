@@ -15,11 +15,15 @@ import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/api/rm_response.dart';
 import 'package:ridemate/core/id/rm_uuid.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/routes/ride_rule.dart';
+import 'package:ridemate/core/routes/route_decoder.dart';
 import 'package:ridemate/core/session/rm_session.dart';
 import 'package:ridemate/features/create_route/data/place_repository.dart';
 import 'package:ridemate/features/create_route/data/route_repository.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
-import 'package:ridemate/features/create_route/domain/published_route.dart';
+import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 
 /// In-memory [OnboardingRepository].
@@ -300,3 +304,135 @@ class FakeUuidGenerator implements RmUuidGenerator {
     return id;
   }
 }
+
+/// A My Routes endpoint a test can steer, page by page.
+///
+/// Answers BY CURSOR, not by call count. A real server does the same, and it
+/// matters here: Riverpod retries a failed provider on its own, so a fake that
+/// served "the next page in a list" would hand out page two because of a retry
+/// nobody asked for. Keyed by cursor, a repeated request simply returns the
+/// same page — which is exactly what a keyset endpoint does.
+///
+/// Records every cursor it was handed, which is how "the token went back
+/// exactly as it arrived" becomes provable rather than assumed.
+class FakeMyRoutesRepository implements MyRoutesRepository {
+  FakeMyRoutesRepository({List<MyRoutesResult>? pages, this.failure}) {
+    chain(pages ?? <MyRoutesResult>[]);
+  }
+
+  /// Fails every call the way an unreachable backend does.
+  factory FakeMyRoutesRepository.offline() =>
+      FakeMyRoutesRepository(failure: const RmFailure.transport());
+
+  /// Pages keyed by the cursor that asks for them; the first is keyed null.
+  final Map<String?, MyRoutesResult> pages = <String?, MyRoutesResult>{};
+
+  /// Links [pages] together: the first answers no cursor, and each subsequent
+  /// one answers the cursor its predecessor returned.
+  void chain(List<MyRoutesResult> ordered) {
+    pages.clear();
+
+    String? key;
+    for (final MyRoutesResult page in ordered) {
+      pages[key] = page;
+      key = page.nextCursor;
+    }
+  }
+
+  /// Set to make calls fail; clear it to let them succeed.
+  RmFailure? failure;
+
+  /// What cancel answers with, when it is allowed to answer.
+  PublishedRoute? cancelResult;
+  RmFailure? cancelFailure;
+
+  /// Every cursor handed to [page], in order. The first is null.
+  final List<String?> cursors = <String?>[];
+
+  /// Every limit asked for.
+  final List<int> limits = <int>[];
+
+  /// Every route id handed to [cancel].
+  final List<String> cancelled = <String>[];
+
+  int get callCount => cursors.length;
+
+  Completer<void>? _gate;
+
+  /// Holds every request open until [release], the way a real network does.
+  void hold() => _gate ??= Completer<void>();
+
+  void release() {
+    _gate?.complete();
+    _gate = null;
+  }
+
+  @override
+  Future<MyRoutesResult> page({String? cursor, int limit = 20}) async {
+    cursors.add(cursor);
+    limits.add(limit);
+
+    await _gate?.future;
+
+    final RmFailure? failure = this.failure;
+    if (failure != null) throw failure;
+
+    final MyRoutesResult? page = pages[cursor];
+    if (page == null) {
+      throw StateError('no page scripted for cursor $cursor');
+    }
+
+    return page;
+  }
+
+  @override
+  Future<PublishedRoute> cancel(String routeId) async {
+    cancelled.add(routeId);
+
+    await _gate?.future;
+
+    final RmFailure? failure = cancelFailure;
+    if (failure != null) throw failure;
+
+    return cancelResult ??
+        fakeRoute(id: routeId, status: RouteStatus.cancelled);
+  }
+}
+
+/// A route shaped exactly as the server sends one.
+///
+/// Built through the real decoder rather than by calling the constructor, so a
+/// test double can never be a shape the API could not actually produce.
+PublishedRoute fakeRoute({
+  String id = '01991b00-0000-7000-8000-000000000001',
+  String originLabel = 'Sunucu Yeri Bir',
+  String destinationLabel = 'Sunucu Yeri İki',
+  Recurrence recurrence = Recurrence.weekdays,
+  String? departureDate,
+  String departureTime = '08:25',
+  DepartureState departureState = DepartureState.upcoming,
+  int seatsOffered = 3,
+  Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
+  RouteStatus status = RouteStatus.published,
+  String? cancelledAt,
+}) => RouteDecoder.route(<String, Object?>{
+  'id': id,
+  'origin': <String, Object?>{
+    'id': '01991a00-0000-7000-8000-00000000000a',
+    'label': originLabel,
+  },
+  'destination': <String, Object?>{
+    'id': '01991a00-0000-7000-8000-00000000000b',
+    'label': destinationLabel,
+  },
+  'recurrence': recurrence.name,
+  'departure_date': departureDate,
+  'departure_time': departureTime,
+  'timezone': 'Europe/Istanbul',
+  'departure_state': departureState.name,
+  'seats_offered': seatsOffered,
+  'rules': rideRulesToJson(rules),
+  'status': status.name,
+  'published_at': '2026-08-28T09:41:00+00:00',
+  'cancelled_at': cancelledAt,
+}, 200);

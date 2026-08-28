@@ -29,10 +29,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/rm_formatters.dart';
+import '../../../../core/routes/departure.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/widgets/rm_selector_tile.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/departure.dart';
 
 class DepartureCard extends StatelessWidget {
   const DepartureCard({

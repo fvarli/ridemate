@@ -15,10 +15,10 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/routes/ride_rule.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/widgets/rm_chip.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/create_route_draft.dart';
 
 /// The ride-rule chip cloud.
 class RideRuleChips extends StatelessWidget {

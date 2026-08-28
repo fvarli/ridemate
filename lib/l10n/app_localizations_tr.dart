@@ -925,4 +925,80 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authCodeResent => 'Yeni bir kod gönderildi.';
+
+  @override
+  String get myRoutesTitle => 'Rotalarım';
+
+  @override
+  String get profileMyRoutes => 'Rotalarım';
+
+  @override
+  String myRoutesSeatsOffered(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count koltuk sunuluyor',
+      one: '1 koltuk sunuluyor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get myRoutesRecurrenceWeekdays => 'Her hafta içi';
+
+  @override
+  String get myRoutesStatusPublished => 'Yayında';
+
+  @override
+  String get myRoutesStatusCancelled => 'İptal edildi';
+
+  @override
+  String get myRoutesStatusPast => 'Geçmiş';
+
+  @override
+  String get myRoutesEmptyTitle => 'Henüz rota yayınlamadın';
+
+  @override
+  String get myRoutesEmptyBody => 'Yayınladığın rotalar burada görünür.';
+
+  @override
+  String get myRoutesLoadMore => 'Daha fazla yükle';
+
+  @override
+  String get myRoutesLoadMoreFailed => 'Sonraki sayfa yüklenemedi.';
+
+  @override
+  String get myRoutesCancel => 'Rotayı iptal et';
+
+  @override
+  String get myRoutesCancelConfirmTitle => 'Bu rota iptal edilsin mi?';
+
+  @override
+  String myRoutesCancelConfirmBody(String route) {
+    return '$route rotası yayından kalkar. Geçmişinde kalmaya devam eder.';
+  }
+
+  @override
+  String get myRoutesCancelConfirm => 'Evet, iptal et';
+
+  @override
+  String get myRoutesCancelDismiss => 'Vazgeç';
+
+  @override
+  String get myRoutesCancelled => 'Rota iptal edildi.';
+
+  @override
+  String myRoutesCardSemanticLabel(
+    String route,
+    String departure,
+    String seats,
+    String status,
+  ) {
+    return '$route, $departure, $seats, $status';
+  }
+
+  @override
+  String myRoutesCancelSemanticLabel(String route) {
+    return '$route rotasını iptal et';
+  }
 }

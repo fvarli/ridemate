@@ -23,6 +23,8 @@ import 'package:ridemate/core/a11y/rm_tap_target.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/places/mock_places.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/theme/tokens/rm_sizing.dart';
 import 'package:ridemate/core/widgets/rm_button.dart';
 import 'package:ridemate/core/widgets/rm_chip.dart';
@@ -31,7 +33,6 @@ import 'package:ridemate/features/create_route/application/place_catalogue_provi
 import 'package:ridemate/features/create_route/application/publication_providers.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/domain/create_route_fixtures.dart';
-import 'package:ridemate/features/create_route/domain/departure.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/create_route/presentation/widgets/recurrence_card.dart';
 

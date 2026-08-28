@@ -15,9 +15,9 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../../../core/places/place.dart';
-import 'create_route_draft.dart';
+import '../places/place.dart';
 import 'departure.dart';
+import 'ride_rule.dart';
 
 /// Whether a route still stands.
 enum RouteStatus { published, cancelled }

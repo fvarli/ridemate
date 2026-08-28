@@ -8,10 +8,11 @@ import 'package:ridemate/core/api/rm_api_client.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/features/create_route/data/route_repository.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
-import 'package:ridemate/features/create_route/domain/departure.dart';
-import 'package:ridemate/features/create_route/domain/published_route.dart';
 
 import '../../support/fakes.dart';
 

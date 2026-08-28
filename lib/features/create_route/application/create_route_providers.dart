@@ -16,9 +16,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/places/place.dart';
+import '../../../core/routes/departure.dart';
+import '../../../core/routes/ride_rule.dart';
 import '../domain/create_route_draft.dart';
 import '../domain/create_route_fixtures.dart';
-import '../domain/departure.dart';
 
 /// The journey the driver is composing.
 final NotifierProvider<CreateRouteDraftController, CreateRouteDraft>

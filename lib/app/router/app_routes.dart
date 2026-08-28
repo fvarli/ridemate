@@ -78,6 +78,13 @@ abstract final class AppRoutes {
   static const String createRoute = 'createRoute';
   static const String createRoutePath = '/route/create';
 
+  /// The journeys this member has published, reached from Profile. Above the
+  /// shell, like Reviews: a member's own history with a back control and no
+  /// tab bar. NOT behind kDebugMode — it reads a real endpoint and delivers
+  /// exactly what it offers.
+  static const String myRoutes = 'myRoutes';
+  static const String myRoutesPath = '/me/routes';
+
   /// A member's reputation in full, reached from Profile. Above the shell:
   /// the comp draws a back control and no tab bar.
   static const String reviews = 'reviews';

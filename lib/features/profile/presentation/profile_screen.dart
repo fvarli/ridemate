@@ -69,6 +69,7 @@ class ProfileScreen extends ConsumerWidget {
                   ProfileLinks(
                     snapshot: snapshot,
                     onOpenReviews: () => context.pushNamed(AppRoutes.reviews),
+                    onOpenMyRoutes: () => context.pushNamed(AppRoutes.myRoutes),
                   ),
                 ],
               ),

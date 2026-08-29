@@ -1,10 +1,17 @@
 # RideMate — Architecture
 
-> **Status:** Phase 7 complete — every approved screen is built, and the repository has a
-> production floor: CI, fail-closed release signing, application error handling and
-> persisted preferences. Active Trip and the Safety Center are reachable only in debug
-> builds. Messages remains the one placeholder, because the design has no conversation
-> list.
+> **Status:** Phase 10 complete. Every approved screen is built, the repository has a
+> production floor — CI, fail-closed release signing, application error handling, persisted
+> preferences — and two things are now genuinely server-backed: **signing in** (Phase 9) and
+> **publishing a journey, listing your own and cancelling one** (Phase 10).
+>
+> Home, Search, Match Results and Route Details remain **fixture-backed**, and this document
+> says which is which rather than letting real data next door imply coverage. Active Trip and
+> the Safety Center are debug-only. Messages remains the one placeholder, because the design
+> has no conversation list.
+>
+> **Production sign-in is not operational until an SMS adapter is configured** — a beta
+> blocker, not a phase.
 
 ## Product framing
 
@@ -14,8 +21,12 @@ may share legitimate journey costs. Trust and safety are first-class product con
 identity verification, reputation, route matching, safety preferences, reporting and
 blocking, trip sharing, and SOS.
 
-All values visible in the design reference (amounts, Trust Scores, names, routes) are
-**mock data**. No backend or business rule is inferred from them.
+All values visible in the **design reference** (amounts, Trust Scores, names, routes) are
+**mock data**. No backend or business rule is inferred from them — that rule has not moved.
+
+What changed in Phase 10 is that some screens no longer read from fixtures at all: Create
+Route's places, departure and publication, and the whole of My Routes, come from the server.
+Everything a *fixture* still feeds is named in *Backend boundary* below.
 
 ## Current structure
 
@@ -30,9 +41,13 @@ lib/
 │   └── router/                     # app_router.dart (Provider<GoRouter>), app_routes.dart
 ├── core/
 │   ├── a11y/                       # RmA11y constants, RmTapTarget
+│   ├── api/                        # RmApiClient, RmFailure, RmErrorCode, retry policy
 │   ├── format/                     # RmFormatters, RmTextConventions
 │   ├── icons/rm_icons.dart         # 25-icon registry
-│   ├── places/                     # Place + the İstanbul fixtures (shared)
+│   ├── id/rm_uuid.dart             # RmUuidGenerator — the only UUID seam
+│   ├── places/                     # Place + the İstanbul fixtures Search still uses
+│   ├── routes/                     # the server's route projection, shared by two features
+│   ├── session/                    # RmSession, credential store
 │   ├── theme/
 │   │   ├── rm_theme.dart           # light + dark ThemeData
 │   │   └── tokens/                 # colors, shadows, typography, spacing, radius,
@@ -41,10 +56,12 @@ lib/
 ├── features/
 │   ├── gallery/                    # debug-only design-system catalogue
 │   ├── onboarding/                 # data + application + presentation
+│   ├── auth/                       # phone + passcode (Phase 9)
 │   ├── verification/               # domain + application + presentation
 │   ├── home/                       # domain + application + presentation
 │   ├── discovery/                  # domain + application + presentation
-│   ├── create_route/               # domain + application + presentation
+│   ├── create_route/               # data + domain + application + presentation
+│   ├── my_routes/                  # data + domain + application + presentation
 │   ├── chat/                       # domain + presentation
 │   ├── trip/                       # domain + application + presentation
 │   ├── profile/                    # domain + application + presentation
@@ -52,6 +69,15 @@ lib/
 │   └── safety/                     # domain + application + presentation (debug-only)
 └── l10n/                           # ARBs + committed generated localizations
 ```
+
+`core/places/` holds `Place` and the İstanbul fixtures **Search** still chooses from. Create
+Route stopped using them in Phase 10: its endpoints come from `GET /api/v1/places`, and a
+guard asserts the feature never mentions `mock_places` — a fixture there would be a list the
+server has never heard of.
+
+`core/routes/` is the server's route projection — `PublishedRoute`, `Recurrence`, the
+departure value types, `RideRuleId` and the decoder that reads all of them. It is
+**source-neutral** because two features consume it.
 
 `discovery/` is one slice rather than three features: `RouteOffer` feeds both the match
 card and the details screen, and splitting them would force a cross-feature domain
@@ -61,8 +87,18 @@ import for no gain.
 and the same picker sheet as Search, the shared vocabulary moved to `core/places/` and
 `core/widgets/rm_place_picker_sheet.dart` rather than the driver-side feature reaching
 into the passenger-side one. Same rule as the design system — promote on the second
-concrete consumer, never in anticipation of one — and a test asserts no file under
-`create_route/` ever mentions `features/discovery`.
+concrete consumer, never in anticipation of one.
+
+Phase 10 applied it again, and this time the pressure was real. My Routes and Create Route
+are **equal consumers** of the same server route projection, and Discovery's `RouteTimeline`
+looks very much like what a route card needs. Both temptations were refused: the model moved
+to `core/routes/`, and resembling something stayed a bad reason to depend on it. Had either
+feature imported the other, the shared type would belong to whichever was written first, and
+every later change to it would be made on behalf of a feature that was not asking.
+
+Guards, all source-scanning with comments stripped: no file under `create_route/` mentions
+`features/discovery`; no file under `my_routes/` mentions `features/create_route` **or**
+`features/discovery`; and neither reaches a fixture.
 
 `core/` is therefore two things: the design system, and shared product vocabulary that
 belongs to no single feature (`format/`, `places/`).
@@ -124,11 +160,42 @@ a bad connection takes, on a device that may have nothing to restore.
 
 Providers include `themeModeProvider`, `localeProvider`, `routerProvider`,
 `onboardingRepositoryProvider`, `onboardingControllerProvider`, `credentialStoreProvider`,
-`rmSessionProvider`, `verificationControllerProvider`, `homeSnapshotProvider`.
+`rmApiClientProvider`, `rmSessionProvider`, `verificationControllerProvider`,
+`homeSnapshotProvider`, and Phase 10's `placeRepositoryProvider`,
+`placeCatalogueProvider`, `routeRepositoryProvider`, `publicationProvider`,
+`uuidGeneratorProvider`, `myRoutesRepositoryProvider` and `myRoutesProvider`.
 
-`rmSessionProvider` deliberately has **no default**, unlike the others. A default would need
-an HTTP client and a base URL, and the only honest values for those reach the network — so a
-test that forgets to override it fails clearly instead of making a request.
+`rmSessionProvider` and `rmApiClientProvider` deliberately have **no default**, unlike the
+others. A default would need an HTTP client and a base URL, and the only honest values for
+those reach the network — so a test that forgets to override one fails clearly instead of
+making a request.
+
+#### Backend reads do not retry themselves
+
+`placeCatalogueProvider` and `myRoutesProvider` each pass an explicit `retry` that returns
+`null`, which disables Riverpod's automatic retry for those two providers.
+
+Left to the default, a provider whose `build` throws is retried ten times on a backoff
+reaching 6.4 seconds. `RmFailure implements Exception`, so every timeout, 5xx and refusal
+qualified — measured at **eleven requests over about thirty-eight seconds** from a screen
+nobody was touching, aimed at a backend that had just failed. A read surface here promises
+one thing: ask once, say plainly that it failed, ask again when the member decides to.
+
+So a failed read performs **one** repository request and holds an honest error state until
+the member presses Retry, which performs exactly one more. Widget tests advance a fake clock
+sixty seconds and assert the count has not moved.
+
+Two boundaries matter and are easy to blur:
+
+* **This is not a global policy.** It is opted into per provider, on the backend read
+  surfaces Phase 10 landed. `onboardingControllerProvider` keeps the default deliberately —
+  it reads a local boolean, so retrying it costs no server anything. An exact-list guard
+  names both decisions, so a third read surface has to make one rather than inherit ten
+  silent attempts.
+* **This is not session recovery.** `RmSession.send` refreshes once and retries once *inside*
+  a single repository call; the provider layer never sees it. The two mechanisms are
+  different layers and never met — removing provider retry could not affect it, and its
+  tests are untouched.
 
 Persisted state, and only this:
 
@@ -519,8 +586,9 @@ font set and Flutter revision.
 
 ## Backend boundary
 
-The backend lives in a separate repository (`ridemate-backend`, Laravel + PostgreSQL). As of
-Phase 9 **authentication is real**; everything else is still fixture-backed.
+The backend lives in a separate repository (`ridemate-backend`, Laravel + PostgreSQL).
+**Authentication is real** (Phase 9), and so are **place selection, route publication, the
+member's own route list and cancellation** (Phase 10).
 
 `lib/core/api/` is the only place that speaks HTTP. `package:http` is imported by exactly one
 file and a test enforces it, so replacing the transport is a change inside that directory
@@ -551,8 +619,109 @@ alone, and the next launch tries again from the same credential. Only a 401 or a
 it, because only the server can say it is unusable.
 
 **Still fixtures, and honestly so:** Profile including Trust Score, tier and factors; Home;
-Search and route offers; Create Route; Active Trip; Reviews; Safety. Email, identity, selfie
-and licence verification do not exist on either side.
+Search, Match Results and Route Details, with their offers, people and amounts; Active Trip;
+Reviews; Safety. Email, identity, selfie and licence verification do not exist on either side.
+
+Those four discovery surfaces make **no server claim at all**, which is what keeps their
+fixture amounts honest. Create Route is no longer among them — see below — and the boundary
+now runs *through* the product rather than around it, so this list is worth keeping exact.
+
+**Authentication being implemented is not the same as sign-in being operational.** A
+production SMS adapter is not configured; until one is, nobody outside a test receives a
+passcode. That is a **beta blocker**, not a phase.
+
+### What Phase 10 made real, and the rules it runs on
+
+Four endpoints: the place catalogue, publish, the member's own routes, and cancel.
+
+**Places are opaque backend ids.** An endpoint is chosen from `GET /api/v1/places` and stored
+by the id the server issued. There is no slug map, no label reconciliation, no hardcoded
+UUID, no coordinate, no geocoding and no maps logic anywhere in the client — the server holds
+coordinates and does not publish them. After a catalogue refresh an endpoint survives **only
+if its exact id is still present**; matching by label would quietly move a journey the day two
+places were renamed into each other's names.
+
+There is **no fixture fallback**. If the catalogue fails, the picker has nothing to show and
+says so. Falling back to the İstanbul fixtures would offer a list the server does not
+recognise, publishing would fail on an id nobody has heard of, and the failure would surface
+three screens later as something unrelated.
+
+**Publication identity is a client-generated UUIDv7**, minted in the publication controller —
+never in the repository, never in the HTTP call — and reached only through `RmUuidGenerator`
+so tests can hold it still.
+
+* An **indeterminate** failure preserves it. The request may already have reached the server,
+  so retrying with a new id would publish the same commute twice and leave the member with
+  two identical routes and no way to tell which one anyone had seen.
+* A **changed semantic intent** discards it. Draft equality *is* semantic intent — the draft
+  holds no presentation state, so its fields are exactly what the server stores. `Place`
+  equality is id-only, so a relabelled place is correctly the same intent.
+* **201 and 200 are the same answer.** 200 means "already published under this id", which is
+  what a retry legitimately receives.
+* A **409 or 422 never mints a replacement id.** Quietly minting one would hide exactly the
+  defect the idempotency contract exists to expose.
+
+**This is not an offline queue.** Nothing is persisted, nothing retries in the background,
+there is no scheduler and no local database. An attempt lives as long as the screen does.
+
+**Retry classification is status-driven, not code-driven.** A body the client cannot read and
+a 404 both arrive as `RmErrorCode.unexpected` and mean opposite things: an unreadable 201 may
+be a route that now exists, while a 404 is the server saying no. Only the HTTP status
+separates them, and `RmApiClient` preserves it on every path.
+
+| Outcome | Treated as |
+|---|---|
+| no HTTP response at all | **retryable** — the request may have landed |
+| a 2xx whose body will not decode | **retryable** — the route may exist; the retry keeps the id |
+| 5xx | **retryable** |
+| 429 | **retryable** — come back later is an instruction, not a refusal |
+| every other deterministic status — 400, 401, 403, 404, 405, 409, 422 | **refusal** |
+
+401 and 403 are refusals here on purpose. A 403 is a decision about the account that answers
+identically forever, and a 401 reaching this layer has already survived Phase 9's single
+refresh-and-retry — **session recovery is a different layer**, and publication is not an
+authentication mechanism.
+
+**The cursor is opaque.** `next_cursor` is received and sent back unchanged. The client never
+parses, decodes, sorts by, timestamps, persists or interprets one, and **only `null` ends the
+list** — an empty page does not, and stopping there would hide a member's own routes from
+them. **Server ordering is authoritative**: nothing recomputes `(created_at, id)`, and a
+duplicate id is dropped defensively without reordering anything.
+
+Load-more is an explicit control, shown only while the server offers a position. It keeps the
+loaded routes on screen whether it succeeds or fails, and a failure retries the same position.
+
+**`departure_state` is server-owned.** The client does not compute past or upcoming — not
+from `DateTime.now`, not from the device timezone, not from the route's date, time or
+`timezone`, which is decoded and deliberately never drawn. Cancel is offered **iff
+`status == published && departure_state == upcoming`**, both read straight from the response.
+A guard forbids the clock inside `my_routes/`, and a second asserts that no file naming a
+`DepartureState` case also touches one.
+
+**Cancellation** is confirmed first and is never optimistic. No request body, no
+`expected_status`, no `Idempotency-Key` — the transition names its own target state. On
+success the matching list item is replaced **by id** with the authoritative route the server
+returned; it is **not removed**, because a withdrawn journey is still something the member
+published and this is the only screen that shows it.
+
+Retrying after an indeterminate outcome safely targets the same route with the same bodyless
+POST. But **repeated cancellations do not return byte-identical bodies**, and no test claims
+they do: `cancelled_at` keeps its original value while `departure_state` is read at the moment
+of asking and may legitimately have moved on. Resource state is the guarantee, not bytes.
+
+A **404 deletes nothing locally** and is not read as proof of ownership or non-existence — the
+server declining to act on an id is not evidence about what this member has. A **409 is never
+converted into fake success**: the route stays published and the conflict is stated.
+
+**What a server-backed surface never renders:** cost, fare or price; driver identity, avatar,
+rating, verified badge, trust score, approval rate or trip count; vehicle or plate;
+compatibility, walk time or any map data. None of it exists on either side, and one plausible
+value beside real departure times is how a screen of fixtures starts looking like server
+truth.
+
+**`seats_offered` means offered seats, never currently available.** Nothing has requested a
+seat — there is no seat-request model to subtract from — so the copy says *offered* and a test
+asserts the Create Route wording (`BOŞ KOLTUK`) does not leak onto the server-backed card.
 
 The base URL is **build-time configuration** — `--dart-define=RIDEMATE_API_BASE_URL` — with no
 default and no production URL in the repository. An absent or unusable value fails at startup
@@ -623,9 +792,10 @@ semantics attached**. The halo says nothing about whether anything is happening.
 ## Cost-sharing constraint
 
 Monetary copy (`maliyet paylaşımı`, `Senin payın`, `KİŞİ BAŞI`, `₺18`) is **display-only
-presentation data**. No payment infrastructure, payment buttons, wallet behaviour,
-transaction state or fake payment services are implemented. `RmFormatters.money` formats
-a number; nothing charges anyone.
+presentation data on fixture-backed screens**. No payment infrastructure, payment buttons,
+wallet behaviour, transaction state or fake payment services are implemented.
+`RmFormatters.money` formats a number; nothing charges anyone, and **no server-backed surface
+renders an amount at all**.
 
 This also constrains **copy**. Chat's approved safety banner tells the member to pay only
 inside the app, which only makes sense if in-app payment exists. It does not, and Chat is
@@ -633,22 +803,29 @@ release-reachable, so the shipped wording keeps the banner's safety purpose with
 claiming the capability (`D-chat-3`). The general rule it follows: deviate from the
 approved design for truthfulness or safety, never for implementation convenience.
 
-### The driver never sets the amount
+### The driver never sets the amount — and Create Route no longer shows one
 
-Create Route displays a suggested per-person share captioned `Önerilen · maliyet
-paylaşımı`, and it is **read-only**: no input, no stepper, no chevron, no tap target, and
-a semantics node marked read-only rather than as a button.
+Create Route used to display a suggested per-person share captioned `Önerilen · maliyet
+paylaşımı`, read-only. **Phase 10 removed it**, along with its fixture constant and its three
+ARB keys.
 
-That is a boundary, not an unfinished control. Making driver-set cost sharing editable
-may materially affect how RideMate is characterized for regulatory purposes, so it
-requires legal and product review before implementation rather than a decision taken in
-the client layer. `kSuggestedCostSharePerPerson` carries that requirement in its doc
-comment so nobody makes it editable in a later phase without meeting it.
+The reason is the boundary itself. Once the screen publishes server-owned data, a fixture
+amount sitting beside real endpoints and a real departure reads as part of the published
+route. It is not: the backend deliberately stores no cost, accepts none and returns none, so
+the figure described nothing that would exist after pressing publish. A test now asserts **no
+cost figure appears on the publication surface at all**, at any seat count — the stronger
+successor to the old test that only asserted it never moved.
 
-The amount is also not derived from distance, duration, seats, recurrence, route or
-vehicle, and **no total is displayed anywhere**: `seats × costShare` would be both a
-formula this layer may not author and a driver-earnings claim the product does not make.
-A test increments the seats and asserts the figure does not move.
+The constraint that produced it stands and is not weakened by the control going away. Making
+driver-set cost sharing editable may materially affect how RideMate is characterized for
+regulatory purposes, so it requires legal and product review before implementation rather
+than a decision taken in the client layer. Any future amount is also not to be derived from
+distance, duration, seats, recurrence, route or vehicle, and **no total is displayed
+anywhere**: `seats × costShare` would be both a formula this layer may not author and a
+driver-earnings claim the product does not make.
+
+Fixture amounts survive only on Home, Match Results and Route Details, which make no server
+claim.
 
 Vocabulary inside `create_route/` stays on the design's own words — `KİŞİ BAŞI`,
 `maliyet paylaşımı` — and never becomes fare, price, earnings, income, payout or revenue.
@@ -694,19 +871,52 @@ The Safety Center's SOS card reuses Active Trip's string rather than restating i
 concept, one sentence — the keys are named `sos*` rather than `activeTripSos*` for that
 reason.
 
-`Rotayı yayınla` on Create Route is the same pattern with sharper copy, because
-*yayınla* implies other members can now see the journey. The message states that the
-route has **not** been published rather than merely that publishing is coming, and the
-action creates no route, marks nothing published, does not mutate or clear the draft, and
-does not navigate. It is also deliberately **not** gated on draft validity: the source
-contains no disabled button anywhere, and inventing validation would author a publishing
-rule that does not exist.
+`Rotayı yayınla` **no longer belongs on this list.** Phase 10 made it real, and the message
+that said nothing had been published was removed with it — a sentence denying a capability
+the app now has would be the same class of lie, pointing the other way.
 
-The Create Route draft lives in an app-scoped provider so backing out by accident does
-not discard the driver's edits, and in memory only — nothing is written to
-`SharedPreferences` or any local store, so a new process starts from the designed
-defaults. When publishing is real, drafts become persisted entities and that scope is
-revisited.
+What replaced it keeps the same discipline. Success is stated **only after the server has
+confirmed it**: nothing is optimistic, no route is invented, and while the request is in the
+air the screen claims nothing. A failure is stated as a failure and the draft is left exactly
+as the driver wrote it, so nothing they typed is lost to a dropped connection. The CTA is
+still deliberately **not** gated on draft validity — the source contains no disabled button
+anywhere — so an unfinished form names the missing field instead of going quiet.
+
+The Create Route draft still lives in an app-scoped provider so backing out by accident does
+not discard the driver's edits, and still in memory only — nothing is written to
+`SharedPreferences` or any local store, so a new process starts from the designed defaults.
+Publishing becoming real did **not** change that: the draft is what the driver is composing,
+and the server holds what they published. A persisted draft would be a second store to keep
+correct, and Phase 10 found no consumer for one.
+
+## Roadmap
+
+Phase 11 onward, in dependency order. The ordering is not a preference: **Discovery cannot
+come next**, and finding that out is what shaped Phase 10.
+
+A match card renders eleven data points and only four could be backend-owned today. The rest
+name a driver, a rating, a verified badge, a trip count, an approval rate and a Trust Score —
+each of which names a phase that must come first. Migrating Discovery earlier would mean
+inventing people and putting them on the one screen whose whole purpose is to suggest a
+stranger worth travelling with.
+
+| Phase | Scope | Unblocks |
+|---|---|---|
+| 11 | **Profile minimum** | a name and initials — another member can finally be named honestly |
+| 12 | **Discovery & corridor matching** | route occurrences, the first PostGIS corridor query and its index, the first real feed, and a reduced but truthful card |
+| 13 | **Seat requests** | seat availability finally changes; approval rate gets a source |
+| 14 | **Trip lifecycle** | trip counts |
+| 15 | **Reviews** | ratings |
+| 16 | **Verification** | the verified state and its badge |
+| 17 | **Trust Score** | depends on 13–16; the match card is finally whole |
+
+**Independent tracks**, unnumbered because none gates another: messaging, Safety/SOS, push, a
+maps vendor — added when a real map or routing consumer exists — and the **production SMS
+adapter**, which is a beta blocker rather than a phase.
+
+Phase 12 is also when `searchSubmit` must change: *"Eşleşmeleri gör · {count} sonuç"* renders
+a live result count **before** the search runs, which is honest only while the results are a
+fixture.
 
 ## Testing
 

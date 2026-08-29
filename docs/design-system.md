@@ -87,13 +87,16 @@ copy (`D-chat-2`).
 | **D-a11y-1** | Home's rating badge is capped at half its row, and its title is `maxLines: 2` | At the maximum supported text scale (1.6) the title wrapped a character at a time until the card overflowed by 53px, and the badge then overflowed its row by 19px. Neither shifts the layout at normal scale. |
 | **D-create-1** | Create Route adds a **back control** to its header, which the comp has none of | The screen is pushed above the shell with no tab bar, so without it the only way out is a system gesture. Same reasoning and same `chevronLeft` tile as `D-details-1`. `closeX` is not the vocabulary: the source uses it once, as a block/report row icon, never to dismiss a screen. |
 | **D-create-2** | Create Route's endpoint rows are **tappable**, and their semantic labels supply the origin/destination role | The comp drops the `NEREDEN`/`NEREYE` eyebrows and draws no tap affordance, but a publish screen where the driver cannot set their own endpoints is worse than a logged deviation. Without the labels a screen reader hears only `Ataşehir, Palladium`, with nothing saying which end of the journey it is. |
-| **D-create-3** | The recurrence summary is **hidden** when the toggle is off | The comp draws only the ON state, and `Pzt–Cum · 08:00 kalkış` describes a weekday pattern — leaving it up would be actively misleading. Hiding it invents **no copy at all**, only a visibility rule, and the underlying fixtures are not cleared, so turning it back on restores the same line. |
+| **D-create-3** | The recurrence summary is **hidden** when the toggle is off | The comp draws only the ON state, and the summary describes a weekday pattern — leaving it up would be actively misleading. Hiding it invents **no copy at all**, only a visibility rule. *Amended in Phase 10:* the summary lost its time (the departure now has its own control, and a card repeating it would go stale the moment the two disagreed), and switching to weekdays **clears** the date rather than preserving it — an invisible date still in the draft is something a request could carry with nobody seeing it. |
 | **D-trip-1** | Active Trip has **no back control**, unlike Route Details and Create Route | Its comp's top row has no free slot — the live pill holds the start, the clock tile the end. The screen is also debug-only and linked from nowhere, so a deep link is the only way in and there is nothing beneath it to pop to. |
 | **D-trip-2** | The Active Trip **clock tile** and the Chat composer's **`+`** render non-interactively | Neither has a defined behaviour anywhere in the fifteen screens. Giving them an action would invent a purpose — attachments? schedule? history? — that nobody has decided, so they are drawn and left inert. **Open ambiguity:** the clock tile is styled as a button, so an inert render is not self-evidently right. Recorded in §8 for design input rather than quietly resolved. |
 | **D-trip-3** | Active Trip's two actions **stack on phones** instead of sharing a row | `Yolculuğu paylaş` needs 138dp of label at the scaled type size, plus its icon and padding, beside a fixed 148dp SOS — about 214dp against the 185dp a 393dp screen leaves. The comp is marginal at its own artboard for the same reason as `D-search-2`. Neither label may be truncated: one is a safety control, the other would read as `Yolculuğu ...`. The designed row returns on a wider surface. |
 | **D-chat-1** | The Chat composer is a **real text field**, where the comp draws a static pill | There is no `<input>` in any of the fifteen screens. Home's search field has the same shape and is deliberately inert, because tapping it opens a picker — a static summary is sufficient there. Here the placeholder says `Mesaj yaz…` beside a send button, so a pill that cannot be typed into would be the more dishonest of the two. **No generic `RmTextField`:** one composer with an embedded send button is not a form field, and promoting it would mean inventing five states with no reference. |
 | **D-chat-2** | Message emoji render through an **isolated fallback span** | 👍 🙌 📍 are in neither bundled family, but they are approved copy and `Görüşürüz 🙌` is not `Görüşürüz`. They keep their place and are rendered in their own span naming the platform emoji families, rather than smuggled through Manrope and left to whatever the engine picks. `D-icon-4` remains about icon-like glyphs where a real icon exists; it is not a ban on emoji. |
 | **D-chat-3** | The Chat safety banner's **payment sentence is replaced** | The approved copy tells the member to pay only inside the app. RideMate has no payments, and Chat is the one Phase 5 screen a real member can reach, so shipping it would claim a capability that does not exist — the same failure as a button claiming a request was sent. The wording keeps the banner's safety purpose and drops the false claim. The approved sentence is untouched in `docs/claude-designs/` and returns when payment does. |
+| **D-create-5** | Create Route gains a **departure date and time control** the comp does not draw | The approved screen states no departure at all: a driver could publish a weekday journey at a fixed `08:00` nobody chose, or a one-off with no time whatsoever. When a driver leaves is basic information for a shared journey, and publishing a value the driver never picked is the larger untruth. The controls reuse `RmSelectorTile` — the vocabulary Search already uses for *NE ZAMAN* — and the native pickers, so no visual language is invented. |
+| **D-create-6** | The suggested **cost tile is removed** | The comp draws `Önerilen · maliyet paylaşımı` with a figure. Once the screen publishes server-owned data, a fixture amount beside real endpoints and a real departure reads as part of the published route — and the backend deliberately stores, accepts and returns no cost. Removing it is the only wording-free way to stop the screen making a claim. Fixture amounts survive untouched on Home, Match Results and Route Details, which make no server claim. |
+| **D-myroutes-1** | An entire **My Routes screen**, plus its loading, empty, failure, retry and pagination states | The design contains no such screen — it is on the *implied but absent* list below. Phase 10 made publishing real, which left a driver able to publish and then never see or withdraw what they published; that is worse than a screen the comp does not draw. Composed only from existing primitives (`RmCard`, `RmStatusPill`, `RmChip`, `RmButton`, `RmTextConventions.route`) and the one modal convention the app has. Discovery's `RouteTimeline` resembles what a route card needs and is deliberately **not** reused: resembling something is not a reason to cross a feature boundary. |
 | **D-create-4** | The stepper's `−` gets a muted **disabled** treatment at 1 seat | The source draws only the enabled control, and the disabled state is extrapolated from the token language. A control that looks tappable and silently does nothing is the worst of the available options. The `+` never disables — there is no ceiling to hit. |
 | **D-profile-1** | Profile **keeps the bottom navigation bar**, which its comp omits | `Profil` is one of the four designed tab destinations, so Profile *is* a tab. Same reasoning as `D-search-1`; the comp omits the bar on almost every screen. |
 | **D-profile-2** | The tier badge's `★` is an **icon**, never text | `Üst %8 · Güvenilir` opens with U+2605, which is absent from both bundled families. `D-icon-4` applies verbatim. |
@@ -387,18 +390,31 @@ on one button.
 These are extrapolated from the token system during implementation, not guessed at.
 SOS specifically is gated behind a written spec (see `architecture.md`).
 
-**Screens implied but absent:** login, OTP entry, document/selfie capture, request
-sent/accepted/declined, driver request inbox, my-routes, conversation list, rate-your-trip,
-trusted-contacts editor, QR scanner, block/report form, settings, notifications.
+**Phase 10 is where that stopped being theoretical.** Server-backed surfaces cannot avoid a
+loading, empty, failure or retry state, and pagination arrived with the member's own route
+list — so the place picker, publishing, My Routes and cancellation each needed states the
+source does not contain. They reuse the existing primitives and are recorded as `D-create-5`,
+`D-create-6` and `D-myroutes-1` rather than appearing unannounced.
+
+**Screens implied but absent:** document/selfie capture, request sent/accepted/declined,
+driver request inbox, conversation list, rate-your-trip, trusted-contacts editor, QR scanner,
+block/report form, settings, notifications.
+
+Three have since been built against no comp, because the capability behind them became real:
+**login** and **OTP entry** in Phase 9, and **my-routes** in Phase 10 (`D-myroutes-1`). Each
+is a deviation on the record, not a silently added screen.
 
 **Gaps found in Phase 4, on Create Route specifically:**
 
-* **No departure date or time control exists on the screen at all.** The only time
-  information is the static recurrence summary. A driver can publish a weekday-recurring
-  journey at a fixed 08:00 — or, with the toggle off, a journey with no stated departure
-  time whatsoever. This is the largest gap found so far: when a driver leaves is basic
-  information for a shared journey. Phase 4 renders the approved surface and does not
-  invent a picker.
+* ~~**No departure date or time control exists on the screen at all.**~~ **Closed in
+  Phase 10** (`D-create-5`). The gap was real and was the largest found in Phase 4: the only
+  time information was a static recurrence summary, so a driver could publish a weekday
+  journey at a fixed `08:00` they never chose, or a one-off with no stated departure at all.
+  Phase 4 correctly rendered the approved surface rather than inventing a picker; Phase 10
+  had to invent one, because publishing a departure nobody selected would have persisted a
+  fixture as if it were a choice. **The `08:00` was never a driver's input and is now gone
+  from the draft entirely** — there is no default, and an unfinished form says which field is
+  missing.
 * The toggle's **off state** is undesigned (already covered by the general
   "toggle-off state" entry above). The off track colour is extrapolated from the tokens.
 * The stepper's **disabled boundary** is undesigned; see `D-create-4`.

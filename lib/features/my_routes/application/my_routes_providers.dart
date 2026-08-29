@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers/api_client_provider.dart';
 import '../../../app/providers/session_provider.dart';
 import '../../../core/api/rm_failure.dart';
+import '../../../core/api/rm_retry.dart';
 import '../../../core/routes/published_route.dart';
 import '../data/my_routes_repository.dart';
 import '../domain/my_routes_page.dart';
@@ -31,9 +32,16 @@ final Provider<MyRoutesRepository> myRoutesRepositoryProvider =
       ),
     );
 
+/// The member's routes, loaded when the screen first asks.
+///
+/// `retry` is stated, not left to the default. Riverpod would otherwise retry a
+/// failed page ten times on a backoff, and the member would be shown a loading
+/// state throughout — told nothing, while the app asked a broken backend
+/// eleven times. See [noAutomaticRetry].
 final AsyncNotifierProvider<MyRoutesController, MyRoutesPage> myRoutesProvider =
     AsyncNotifierProvider<MyRoutesController, MyRoutesPage>(
       MyRoutesController.new,
+      retry: noAutomaticRetry,
     );
 
 class MyRoutesController extends AsyncNotifier<MyRoutesPage> {

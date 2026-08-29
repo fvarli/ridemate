@@ -27,10 +27,13 @@ void main() {
     );
     addTearDown(c.dispose);
 
-    // A live listener, the way the screen holds one. Without it the provider
-    // is disposed as soon as a read completes — Riverpod 3 auto-disposes by
-    // default — and a failing build would be thrown away before the test could
-    // observe it.
+    // A live listener, the way the screen holds one, so this container
+    // behaves like the running app rather than like a bare read.
+    //
+    // (An earlier comment here blamed auto-dispose. That was wrong —
+    // AsyncNotifierProvider defaults to `isAutoDispose: false`. What actually
+    // went wrong was the automatic retry this provider now declines; see
+    // test/app/backend_read_retry_test.dart.)
     c.listen<AsyncValue<MyRoutesPage>>(
       myRoutesProvider,
       (AsyncValue<MyRoutesPage>? _, AsyncValue<MyRoutesPage> _) {},
@@ -87,11 +90,10 @@ void main() {
 
     /// CARRIES WEIGHT, and note what is asserted.
     ///
-    /// The failure is observed through `hasError`, not by matching AsyncError,
-    /// because Riverpod retries a failed provider by itself: the state stays
-    /// loading and carries the error alongside. Awaiting `.future` here would
-    /// simply never return. The screen matches the same way, and would
-    /// otherwise show a spinner for ever.
+    /// Observed through `hasError`, which is true whether the provider settles
+    /// on AsyncError or — had it been left to retry — sat in a loading state
+    /// carrying the error. The screen matches the same way, so this asserts
+    /// what the screen actually reads.
     test('a transport failure surfaces, and retrying asks again', () async {
       final ProviderContainer c = container(
         <MyRoutesResult>[],

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers/api_client_provider.dart';
 import '../../../app/providers/session_provider.dart';
+import '../../../core/api/rm_retry.dart';
 import '../../../core/places/place.dart';
 import '../data/place_repository.dart';
 
@@ -27,10 +28,16 @@ final Provider<PlaceRepository> placeRepositoryProvider =
 /// OnboardingController).
 ///
 /// There is no cache and nothing is persisted: a retry asks the server again.
+///
+/// `retry` is stated, not left to the default. Riverpod would otherwise retry a
+/// failed catalogue ten times on a backoff — eleven requests, thirty-eight
+/// seconds, none of them asked for, all of them aimed at a backend that has
+/// just failed. See [noAutomaticRetry].
 final AsyncNotifierProvider<PlaceCatalogueController, List<Place>>
 placeCatalogueProvider =
     AsyncNotifierProvider<PlaceCatalogueController, List<Place>>(
       PlaceCatalogueController.new,
+      retry: noAutomaticRetry,
     );
 
 class PlaceCatalogueController extends AsyncNotifier<List<Place>> {

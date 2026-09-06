@@ -34,6 +34,26 @@ final Provider<MyRoutesRepository> myRoutesRepositoryProvider =
 
 /// The member's routes, loaded when the screen first asks.
 ///
+/// AUTO-DISPOSE, BECAUSE A CACHED LIST GOES STALE THE MOMENT ANYTHING PUBLISHES
+///
+/// This provider used to live for the whole process. Leaving My Routes kept the
+/// loaded page, so a driver who published a journey and then opened My Routes in
+/// the same session was shown the list as it had been BEFORE they published —
+/// their new route simply absent. Found on a physical device: published at
+/// 01:44, the screen still rendering a page read at 01:38. In a trust product
+/// the reasonable conclusion is that publishing failed.
+///
+/// Auto-disposing fixes it at the only place that owns the problem. When the
+/// screen is popped its `ref.watch` is the last listener to go, the provider is
+/// disposed, and the next entry reads the server again. The alternatives were
+/// worse: invalidating from the publication controller would wire Create Route
+/// into My Routes and break the feature boundary a guard enforces, and
+/// inserting the published route locally would show a journey the list endpoint
+/// had never confirmed.
+///
+/// The cost is one request per screen entry. That is the right price for a list
+/// whose whole purpose is to say what the server currently holds.
+///
 /// `retry` is stated, not left to the default. Riverpod would otherwise retry a
 /// failed page ten times on a backoff, and the member would be shown a loading
 /// state throughout — told nothing, while the app asked a broken backend
@@ -41,6 +61,7 @@ final Provider<MyRoutesRepository> myRoutesRepositoryProvider =
 final AsyncNotifierProvider<MyRoutesController, MyRoutesPage> myRoutesProvider =
     AsyncNotifierProvider<MyRoutesController, MyRoutesPage>(
       MyRoutesController.new,
+      isAutoDispose: true,
       retry: noAutomaticRetry,
     );
 

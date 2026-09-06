@@ -30,10 +30,11 @@ void main() {
     // A live listener, the way the screen holds one, so this container
     // behaves like the running app rather than like a bare read.
     //
-    // (An earlier comment here blamed auto-dispose. That was wrong —
-    // AsyncNotifierProvider defaults to `isAutoDispose: false`. What actually
-    // went wrong was the automatic retry this provider now declines; see
-    // test/app/backend_read_retry_test.dart.)
+    // Required, not decorative: the provider auto-disposes, so without a
+    // listener it would be torn down between reads and these tests would be
+    // measuring a different object each time. See
+    // test/features/my_routes/my_routes_lifecycle_test.dart for why it
+    // auto-disposes.
     c.listen<AsyncValue<MyRoutesPage>>(
       myRoutesProvider,
       (AsyncValue<MyRoutesPage>? _, AsyncValue<MyRoutesPage> _) {},

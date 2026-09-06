@@ -29,6 +29,26 @@ final Provider<PlaceRepository> placeRepositoryProvider =
 ///
 /// There is no cache and nothing is persisted: a retry asks the server again.
 ///
+/// AUTO-DISPOSE, BECAUSE A CACHED CATALOGUE OUTLIVES THE SERVER'S CONFIRMATION
+///
+/// This provider used to live for the whole process. Leaving Create Route kept
+/// the loaded catalogue, so re-entering the screen served places the server was
+/// no longer confirming — and with the backend unreachable the screen showed no
+/// failure at all: the previous endpoints still rendered, the picker still
+/// opened, and a member could work their way towards a publication that could
+/// not succeed. Found on a physical device, with the tunnel deliberately
+/// removed and `GET /places` never attempted.
+///
+/// A screen whose whole purpose is to choose server-owned endpoints must not
+/// present a list the server has not just confirmed. Auto-disposing fixes it at
+/// the only place that owns the problem: the screen's `ref.watch` is the last
+/// listener, so popping the screen tears the provider down and the next entry
+/// reads the server again — or fails honestly, with Retry, when it cannot.
+///
+/// Within one visit the catalogue stays cached, which is correct: the picker
+/// must not re-ask on every rebuild. This deliberately changes nothing while
+/// the member remains on the screen.
+///
 /// `retry` is stated, not left to the default. Riverpod would otherwise retry a
 /// failed catalogue ten times on a backoff — eleven requests, thirty-eight
 /// seconds, none of them asked for, all of them aimed at a backend that has
@@ -37,6 +57,7 @@ final AsyncNotifierProvider<PlaceCatalogueController, List<Place>>
 placeCatalogueProvider =
     AsyncNotifierProvider<PlaceCatalogueController, List<Place>>(
       PlaceCatalogueController.new,
+      isAutoDispose: true,
       retry: noAutomaticRetry,
     );
 

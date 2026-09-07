@@ -11,6 +11,7 @@ import 'package:ridemate/features/auth/presentation/phone_entry_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
 import '../../support/fakes.dart';
@@ -40,6 +41,7 @@ void main() {
             InMemoryOnboardingRepository(seen: true),
           ),
           rmSessionProvider.overrideWithValue(FakeSession()),
+          profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
         ],
       );
       addTearDown(container.dispose);
@@ -129,6 +131,9 @@ void main() {
           overrides: <Override>[
             onboardingRepositoryProvider.overrideWithValue(repo),
             rmSessionProvider.overrideWithValue(FakeSession.signedOut()),
+            profileRepositoryProvider.overrideWithValue(
+              FakeProfileRepository(),
+            ),
           ],
           child: MaterialApp.router(
             debugShowCheckedModeBanner: false,

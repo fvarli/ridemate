@@ -19,6 +19,7 @@ import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/app/router/app_router.dart';
 import 'package:ridemate/app/router/app_routes.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/features/safety/presentation/safety_screen.dart';
 import 'package:ridemate/features/safety/presentation/widgets/sos_card.dart';
 import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
@@ -39,6 +40,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       ],
       child: const RideMateApp(),
     ),

@@ -30,7 +30,9 @@ import '../../features/home/presentation/home_screen.dart';
 import '../../features/my_routes/presentation/my_routes_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/profile/application/profile_gate.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/safety/presentation/safety_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
@@ -55,14 +57,24 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
   ref.onDispose(refresh.dispose);
 
   // The session is already a ValueListenable, so it needs no bridge of its own.
-  // Merging keeps the two dimensions separate all the way to the redirect:
-  // either can change without the other, and neither is derived from the other.
+  // Merging keeps the dimensions separate all the way to the redirect: any can
+  // change without the others, and none is derived from another.
   final RmSession session = ref.read(rmSessionProvider);
+
+  // The third dimension. The gate owns the subscription to the profile so the
+  // redirect never performs I/O — see ProfileGate for why that matters. It
+  // subscribes only while signed in, so a signed-out app asks for no profile.
+  final ProfileGate profile = ProfileGate(ref: ref, session: session);
+  ref.onDispose(profile.dispose);
 
   return GoRouter(
     initialLocation: AppRoutes.startupPath,
     debugLogDiagnostics: false,
-    refreshListenable: Listenable.merge(<Listenable>[refresh, session.state]),
+    refreshListenable: Listenable.merge(<Listenable>[
+      refresh,
+      session.state,
+      profile,
+    ]),
     // go_router's default error page is unthemed, unlocalized, and prints the
     // exception and the attempted path to the member. The failure is recorded
     // instead, and the screen says only what a member can act on.
@@ -95,6 +107,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
       final bool atAuth =
           location == AppRoutes.authPhonePath ||
           location == AppRoutes.authPasscodePath;
+      final bool atProfileSetup = location == AppRoutes.profileSetupPath;
 
       // 1. Either dimension still resolving: decide nothing.
       //
@@ -112,13 +125,38 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         return atOnboarding ? null : AppRoutes.onboardingPath;
       }
 
-      // 3. Signed in. The launch surface, the intro and the sign-in screens
-      //    are all dead ends now — this is what stops a restored session being
-      //    sent back to a sign-in form by stale navigation history.
+      // 3. Signed in, and the profile is the THIRD dimension — not folded into
+      //    the session, for the same reason the session was never folded into
+      //    the intro flag. A credential says who somebody is; a profile says
+      //    whether they have told anyone what to call them, and the two change
+      //    independently.
       if (sessionState is RmSignedIn) {
-        return atLaunchSurface || atOnboarding || atAuth
-            ? AppRoutes.homePath
-            : null;
+        switch (profile.state) {
+          // Nothing has come back yet. Decide nothing: guessing here is what
+          // would flash a setup screen at a member who has a perfectly good
+          // name, or a sign-in form at one who is already signed in.
+          case ProfileGateState.undecided:
+            return atLaunchSurface ? null : AppRoutes.startupPath;
+
+          // The server said there is no profile. This is the only state that
+          // may send anyone to setup, and it can only be reached from a 404.
+          case ProfileGateState.missing:
+            return atProfileSetup ? null : AppRoutes.profileSetupPath;
+
+          // The read failed. NEVER setup — a member with a name would be asked
+          // to invent a second one because the network was down — and never a
+          // sign-out, which is Phase 9's and has nothing to do with this. The
+          // app proceeds; the Profile surface reports its own failure, which is
+          // a better product than holding the whole app hostage to one read.
+          case ProfileGateState.unavailable:
+          case ProfileGateState.ready:
+            // The launch surface, the intro, the sign-in screens and setup are
+            // all dead ends now. Setup being among them is what stops a member
+            // who has just finished it walking back into it.
+            return atLaunchSurface || atOnboarding || atAuth || atProfileSetup
+                ? AppRoutes.homePath
+                : null;
+        }
       }
 
       // 4. Signed out, and somewhere that needs an account.
@@ -281,6 +319,13 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.myRoutes,
         builder: (BuildContext context, GoRouterState state) =>
             const MyRoutesScreen(),
+      ),
+      // Above the shell, and reached only by redirect: nothing links here.
+      GoRoute(
+        path: AppRoutes.profileSetupPath,
+        name: AppRoutes.profileSetup,
+        builder: (BuildContext context, GoRouterState state) =>
+            const ProfileSetupScreen(),
       ),
       // Above the shell: the comp draws a back control and no tab bar.
       GoRoute(

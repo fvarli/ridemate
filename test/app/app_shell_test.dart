@@ -17,6 +17,7 @@ import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/gallery/presentation/gallery_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
@@ -37,6 +38,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       ],
       child: const RideMateApp(),
     ),

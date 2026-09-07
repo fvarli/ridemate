@@ -1488,6 +1488,36 @@ abstract class AppLocalizations {
   /// **'Çok fazla deneme yapıldı. Biraz sonra tekrar dene.'**
   String get errorRateLimited;
 
+  /// Profil kurulum ekranı başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sana nasıl hitap edelim?'**
+  String get profileSetupTitle;
+
+  /// Profil kurulum ekranı açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ad, yolculuk paylaştığın kişilere görünür.'**
+  String get profileSetupBody;
+
+  /// Profil kurulumundaki ad alanının etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adın'**
+  String get profileSetupFieldLabel;
+
+  /// Profil kurulumundaki ad alanının ipucu metni.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayşe Demir'**
+  String get profileSetupFieldHint;
+
+  /// Profil kurulumunu tamamlayan buton.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam et'**
+  String get profileSetupSubmit;
+
   /// Telefon giriş ekranı başlığı.
   ///
   /// In tr, this message translates to:

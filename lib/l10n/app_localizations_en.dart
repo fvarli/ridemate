@@ -886,6 +886,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorRateLimited => 'Too many attempts. Try again shortly.';
 
   @override
+  String get profileSetupTitle => 'What should we call you?';
+
+  @override
+  String get profileSetupBody =>
+      'This name is shown to the people you share journeys with.';
+
+  @override
+  String get profileSetupFieldLabel => 'Your name';
+
+  @override
+  String get profileSetupFieldHint => 'Ayşe Demir';
+
+  @override
+  String get profileSetupSubmit => 'Continue';
+
+  @override
   String get authPhoneTitle => 'Your phone number';
 
   @override

@@ -22,6 +22,7 @@ import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart'
 import 'package:ridemate/features/discovery/domain/search_draft.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
@@ -50,6 +51,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       ],
       child: const RideMateApp(),
     ),

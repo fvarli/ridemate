@@ -23,6 +23,7 @@ import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/my_routes/presentation/my_routes_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
 import 'package:ridemate/features/reviews/presentation/reviews_screen.dart';
 import 'package:ridemate/features/safety/presentation/safety_screen.dart';
@@ -66,6 +67,7 @@ void main() {
             InMemoryOnboardingRepository(seen: true),
           ),
           rmSessionProvider.overrideWithValue(FakeSession()),
+          profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
           // Create Route reads its endpoints from the server. A deterministic
           // catalogue keeps the capture stable — and keeps it honest, since
           // the screen has no fixture to fall back on.

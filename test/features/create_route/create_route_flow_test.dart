@@ -27,6 +27,7 @@ import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
@@ -56,6 +57,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
         // Create Route reads its endpoints from the server now, so the flow
         // needs a catalogue to choose from.
         placeRepositoryProvider.overrideWithValue(FakePlaceRepository()),

@@ -21,6 +21,7 @@ import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
 
 import '../../support/fakes.dart';
@@ -39,6 +40,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       ],
       child: const RideMateApp(),
     ),

@@ -375,9 +375,23 @@ void main() {
   });
 
   group('No gate was introduced that the design does not have', () {
-    /// Verification and profile completion gate nothing. Adding either would
-    /// be inventing a product rule the approved design does not contain.
-    test('the redirect mentions no verification or profile condition', () {
+    /// NARROWED IN PHASE 11.
+    ///
+    /// This banned `profile` alongside `verification`, on the reasoning that
+    /// gating on either would invent a product rule the design does not
+    /// contain. That was right for verification and is still right: it gates
+    /// nothing, has no backend behind it, and its screen is debug-only.
+    ///
+    /// Profile completion stopped being an invention when Phase 11 decided it:
+    /// a member who has not chosen a name has nothing another member could be
+    /// shown, so the app asks once and never again. The ban would now forbid
+    /// the decided behaviour while permitting the undecided one.
+    ///
+    /// What survives is the part that still protects something, and it is now
+    /// stricter than the old blanket ban — see the two tests below. The
+    /// redirect may know WHETHER a profile exists; it may not know what is in
+    /// one, and it may not go and find out.
+    test('the redirect gates on no verification or trust condition', () {
       final String source = File('lib/app/router/app_router.dart')
           .readAsLinesSync()
           .map((String line) {
@@ -398,13 +412,74 @@ void main() {
       for (final String banned in <String>[
         'verification',
         'Verification',
-        'profile',
-        'Profile',
         'trustScore',
+        'rating',
+        'tripCount',
+        // The redirect may know whether a profile EXISTS. What it says is none
+        // of its business: a router that read a display name would be one
+        // rename away from deciding where somebody lives.
         'displayName',
+        'display_name',
+        'initials',
       ]) {
         expect(redirect, isNot(contains(banned)), reason: banned);
       }
     });
+
+    /// CARRIES WEIGHT. The redirect reacts to profile state; it never fetches
+    /// it.
+    ///
+    /// `redirect` runs on every navigation, and `myProfileProvider` is
+    /// auto-dispose — reading it here would create the provider, start a
+    /// request, dispose it, and start another on the next redirect. A request
+    /// storm and a redirect loop from one line. ProfileGate owns the
+    /// subscription precisely so this stays impossible.
+    test('the redirect performs no profile I/O', () {
+      for (final String banned in <String>[
+        'myProfileProvider',
+        'profileRepositoryProvider',
+        'ProfileRepository',
+        'await',
+        'ref.watch',
+        'ref.read(myProfile',
+      ]) {
+        expect(redirectSource(), isNot(contains(banned)), reason: banned);
+      }
+    });
+
+    /// And the gate is genuinely a separate dimension, not folded into the
+    /// session — the mistake this file has warned about since the intro flag
+    /// was the only condition.
+    test('profile state is merged as its own refresh dimension', () {
+      final String source = File(
+        'lib/app/router/app_router.dart',
+      ).readAsStringSync();
+
+      expect(source, contains('ProfileGate('));
+      expect(source, contains('refreshListenable'));
+      // Three listenables, not two: onboarding, session, profile.
+      expect(source, contains('session.state,'));
+      expect(source, contains('profile,'));
+    });
   });
+}
+
+/// The redirect's own body, comments stripped.
+///
+/// Bounded to the redirect rather than the whole file: the route table below it
+/// legitimately names the verification and profile-setup routes.
+String redirectSource() {
+  final String source = File('lib/app/router/app_router.dart')
+      .readAsLinesSync()
+      .map((String line) {
+        final int comment = line.indexOf('//');
+
+        return comment == -1 ? line : line.substring(0, comment);
+      })
+      .join('\n');
+
+  final int start = source.indexOf('redirect:');
+  final int end = source.indexOf('\n    },', start);
+
+  return source.substring(start, end);
 }

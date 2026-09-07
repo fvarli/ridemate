@@ -1036,6 +1036,26 @@
   "@errorRateLimited": {
     "description": "Hız sınırına takıldı. Sunucu ne kadar beklenmesi gerektiğini bildirmez."
   },
+  "profileSetupTitle": "Sana nasıl hitap edelim?",
+  "@profileSetupTitle": {
+    "description": "Profil kurulum ekranı başlığı."
+  },
+  "profileSetupBody": "Bu ad, yolculuk paylaştığın kişilere görünür.",
+  "@profileSetupBody": {
+    "description": "Profil kurulum ekranı açıklaması."
+  },
+  "profileSetupFieldLabel": "Adın",
+  "@profileSetupFieldLabel": {
+    "description": "Profil kurulumundaki ad alanının etiketi."
+  },
+  "profileSetupFieldHint": "Ayşe Demir",
+  "@profileSetupFieldHint": {
+    "description": "Profil kurulumundaki ad alanının ipucu metni."
+  },
+  "profileSetupSubmit": "Devam et",
+  "@profileSetupSubmit": {
+    "description": "Profil kurulumunu tamamlayan buton."
+  },
   "authPhoneTitle": "Telefon numaran",
   "@authPhoneTitle": {
     "description": "Telefon giriş ekranı başlığı."

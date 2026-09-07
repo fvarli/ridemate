@@ -85,6 +85,15 @@ abstract final class AppRoutes {
   static const String myRoutes = 'myRoutes';
   static const String myRoutesPath = '/me/routes';
 
+  /// The one screen a signed-in member without a profile can reach.
+  ///
+  /// Above the shell and reachable only by redirect: nothing links to it,
+  /// because it is not somewhere a member chooses to go. The router sends them
+  /// here while the server says they have no profile, and takes them away the
+  /// moment it says they do — see the redirect and ProfileGate.
+  static const String profileSetup = 'profileSetup';
+  static const String profileSetupPath = '/profile/setup';
+
   /// A member's reputation in full, reached from Profile. Above the shell:
   /// the comp draws a back control and no tab bar.
   static const String reviews = 'reviews';

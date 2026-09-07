@@ -885,6 +885,22 @@ class AppLocalizationsTr extends AppLocalizations {
       'Çok fazla deneme yapıldı. Biraz sonra tekrar dene.';
 
   @override
+  String get profileSetupTitle => 'Sana nasıl hitap edelim?';
+
+  @override
+  String get profileSetupBody =>
+      'Bu ad, yolculuk paylaştığın kişilere görünür.';
+
+  @override
+  String get profileSetupFieldLabel => 'Adın';
+
+  @override
+  String get profileSetupFieldHint => 'Ayşe Demir';
+
+  @override
+  String get profileSetupSubmit => 'Devam et';
+
+  @override
   String get authPhoneTitle => 'Telefon numaran';
 
   @override

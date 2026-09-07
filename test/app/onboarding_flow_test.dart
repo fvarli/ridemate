@@ -11,6 +11,7 @@ import 'package:ridemate/core/session/rm_session.dart';
 import 'package:ridemate/features/auth/presentation/phone_entry_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 
 import '../support/fakes.dart';
 
@@ -34,6 +35,7 @@ Future<InMemoryOnboardingRepository> _pumpApp(
         // Signed out by default: this file is about the ONBOARDING dimension,
         // and the two are independent. Tests that need the other one say so.
         rmSessionProvider.overrideWithValue(session ?? FakeSession.signedOut()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       ],
       child: const RideMateApp(),
     ),
@@ -94,6 +96,9 @@ void main() {
           overrides: <Override>[
             onboardingRepositoryProvider.overrideWithValue(repo),
             rmSessionProvider.overrideWithValue(FakeSession.signedOut()),
+            profileRepositoryProvider.overrideWithValue(
+              FakeProfileRepository(),
+            ),
           ],
           child: const RideMateApp(),
         ),

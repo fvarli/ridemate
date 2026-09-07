@@ -15,6 +15,7 @@ import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/api/rm_response.dart';
 import 'package:ridemate/core/id/rm_uuid.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/profile/profile.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
@@ -25,6 +26,7 @@ import 'package:ridemate/features/create_route/data/route_repository.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
+import 'package:ridemate/features/profile/data/profile_repository.dart';
 
 /// In-memory [OnboardingRepository].
 ///
@@ -175,6 +177,59 @@ class FakeSession implements RmSession {
 /// Deliberately capable of failing. The Phase 10 invariant is that a failure
 /// leaves the picker empty rather than falling back to fixtures, and that can
 /// only be proven by a repository that actually refuses.
+/// A profile endpoint a test can steer.
+///
+/// Defaults to a member who HAS a profile, because that is the state most tests
+/// are not about: a signed-in app should reach its normal surfaces without every
+/// unrelated test having to say so. Tests that care drive the other outcomes.
+class FakeProfileRepository implements ProfileRepository {
+  FakeProfileRepository({Profile? profile, this.readError})
+    : profile =
+          profile ?? const Profile(displayName: 'Ayşe Demir', initials: 'AD');
+
+  /// A member who has not chosen a name yet.
+  factory FakeProfileRepository.missing() =>
+      FakeProfileRepository(readError: const ProfileNotFound());
+
+  /// A read that fails the way an unreachable backend does.
+  factory FakeProfileRepository.offline() =>
+      FakeProfileRepository(readError: const RmFailure.transport());
+
+  Profile profile;
+  Object? readError;
+  Object? saveError;
+
+  int readCount = 0;
+  int saveCount = 0;
+  final List<String> saved = <String>[];
+
+  @override
+  Future<Profile> read() async {
+    readCount++;
+
+    final Object? error = readError;
+    if (error != null) throw error;
+
+    return profile;
+  }
+
+  @override
+  Future<Profile> save(String displayName) async {
+    saveCount++;
+    saved.add(displayName);
+
+    final Object? error = saveError;
+    if (error != null) throw error;
+
+    // The server trims and derives the initials; this mirrors that so a test
+    // can tell the server's answer from the input.
+    profile = Profile(displayName: displayName.trim(), initials: 'SV');
+    readError = null;
+
+    return profile;
+  }
+}
+
 class FakePlaceRepository implements PlaceRepository {
   FakePlaceRepository({List<Place>? places, this.failure})
     : places = places ?? kFakePlaces;

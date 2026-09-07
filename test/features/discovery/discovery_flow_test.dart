@@ -29,6 +29,7 @@ import 'package:ridemate/features/discovery/presentation/route_details_screen.da
 import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
@@ -60,6 +61,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       ],
       child: const RideMateApp(),
     ),

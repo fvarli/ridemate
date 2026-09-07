@@ -7,6 +7,7 @@ import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/core/theme/tokens/rm_colors.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
 import '../support/fakes.dart';
@@ -19,6 +20,7 @@ Future<void> _pumpApp(WidgetTester tester) async {
           InMemoryOnboardingRepository(seen: true),
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       ],
       child: const RideMateApp(),
     ),
@@ -86,6 +88,9 @@ void main() {
                   InMemoryOnboardingRepository(seen: true),
                 ),
                 rmSessionProvider.overrideWithValue(FakeSession()),
+                profileRepositoryProvider.overrideWithValue(
+                  FakeProfileRepository(),
+                ),
               ],
               child: const RideMateApp(),
             ),

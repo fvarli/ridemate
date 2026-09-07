@@ -134,6 +134,24 @@ void main() {
       );
     });
 
+    /// NARROWED IN PHASE 11, AND THE NARROWING IS THE POINT.
+    ///
+    /// This list originally banned `ProfileRepository`, `Notifier` and `http`
+    /// alongside the scoring names. Those three were never about trust: they
+    /// were a proxy for "this feature has no backend", which was true when
+    /// every value on the screen was a figure copied out of the design.
+    ///
+    /// Phase 11 gave the feature a real backend for exactly two fields — a
+    /// display name and the initials the server derives from it — so that proxy
+    /// is now false, and keeping it would forbid the honest thing while
+    /// permitting the dishonest one.
+    ///
+    /// What the test actually protects is unchanged and still absolute: no
+    /// Trust Score, reputation, tier or verification value may be COMPUTED
+    /// here. RideMate has no engine behind any of them, and a formula would
+    /// turn a figure transcribed from a comp into a claim about a member.
+    /// `http` stays banned too — the transport boundary holds regardless of
+    /// whether a feature is server-backed.
     test('no trust, reputation or scoring machinery is introduced', () {
       for (final String path in profileSources()) {
         final String source = codeOf(path);
@@ -145,12 +163,30 @@ void main() {
           'pointsPerTrip',
           'TrustEngine',
           'TrustService',
-          'ProfileRepository',
-          'Notifier',
-          'http',
+          'ReputationService',
+          'ScoreCalculator',
+          'package:http',
         ]) {
           expect(source.contains(banned), isFalse, reason: '$path: $banned');
         }
+      }
+    });
+
+    /// The half of the old ban that still names something real: nothing
+    /// server-backed may reach the trust surface. A repository is allowed to
+    /// exist now, but not to feed a score, a rating or a badge count.
+    test('the trust surface is fed by the fixture and by nothing else', () {
+      final String snapshot = codeOf(
+        'lib/features/profile/domain/profile_snapshot.dart',
+      );
+
+      for (final String banned in <String>[
+        'ProfileRepository',
+        'RmSession',
+        'RmApiClient',
+        'Notifier',
+      ]) {
+        expect(snapshot.contains(banned), isFalse, reason: banned);
       }
     });
 

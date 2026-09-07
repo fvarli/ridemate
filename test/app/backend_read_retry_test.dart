@@ -85,6 +85,7 @@ void main() {
       expect(declaring..sort(), <String>[
         'lib/features/create_route/application/place_catalogue_providers.dart',
         'lib/features/my_routes/application/my_routes_providers.dart',
+        'lib/features/profile/application/my_profile_providers.dart',
       ]);
     });
 

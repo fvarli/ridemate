@@ -119,6 +119,30 @@ final class RmApiClient {
     ),
   );
 
+  /// Sends a body to a target-state endpoint.
+  ///
+  /// Identical to [post] but for the verb, deliberately: the difference between
+  /// the two is what the request MEANS, not how it is built, and giving `put`
+  /// its own header or encoding rules would eventually make the two disagree
+  /// about something neither of them decides.
+  ///
+  /// This exists because a PUT endpoint exists. The client carried only `get`
+  /// and `post` while every command was a create or a transition, and adding a
+  /// verb nothing called would have been the speculative surface this codebase
+  /// keeps refusing.
+  Future<RmResponse> put(
+    String path, {
+    Map<String, Object?>? json,
+    Map<String, String>? query,
+    Map<String, String>? headers,
+  }) => _send(
+    () => _transport.put(
+      _uri(path, query),
+      headers: _headers(headers, hasJsonBody: json != null),
+      body: json == null ? null : jsonEncode(json),
+    ),
+  );
+
   void close() => _transport.close();
 
   /// Joins a request path onto the configured base, preserving both.

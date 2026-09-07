@@ -239,6 +239,43 @@ void main() {
     });
   });
 
+  group('Initials belong to the server', () {
+    /// CARRIES WEIGHT. The client renders initials; it never derives them.
+    ///
+    /// `RmTextConventions.initials` exists and is correct, which is exactly
+    /// what makes this worth guarding: reaching for it here would create a
+    /// second implementation of a deterministic rule, and Turkish casing is
+    /// precisely where the two would drift. The server sends the letters and
+    /// this feature prints them.
+    test('nothing under features/profile computes initials', () {
+      final List<String> offenders = <String>[
+        for (final File file in dartFilesIn('lib/features/profile'))
+          if (code(file).contains('RmTextConventions.initials') ||
+              code(file).contains('toUpperCase') ||
+              code(file).contains('upperTr'))
+            file.path,
+      ];
+
+      expect(
+        offenders,
+        isEmpty,
+        reason: 'initials are read from the response, never recomputed',
+      );
+    });
+
+    /// And the profile model holds them as a field rather than a getter, so
+    /// there is no place for a derivation to hide.
+    test(
+      'the shared profile model stores initials rather than deriving them',
+      () {
+        final String source = code(File('lib/core/profile/profile.dart'));
+
+        expect(source, contains('final String initials;'));
+        expect(source, isNot(contains('RmTextConventions')));
+      },
+    );
+  });
+
   group('My Routes depends inward, never sideways', () {
     /// CARRIES WEIGHT. Two features, one shared model, no arrow between them.
     ///

@@ -247,6 +247,23 @@ void main() {
     /// second implementation of a deterministic rule, and Turkish casing is
     /// precisely where the two would drift. The server sends the letters and
     /// this feature prints them.
+    /// Discovery renders another member's initials, which is the surface where
+    /// deriving them would be least visible and most wrong.
+    test('nothing under features/discovery computes initials', () {
+      final List<String> offenders = <String>[
+        for (final File file in dartFilesIn('lib/features/discovery'))
+          if (code(file).contains('RmTextConventions.initials') ||
+              code(file).contains('upperTr'))
+            file.path,
+      ];
+
+      expect(
+        offenders,
+        isEmpty,
+        reason: 'initials are read from the response, never recomputed',
+      );
+    });
+
     test('nothing under features/profile computes initials', () {
       final List<String> offenders = <String>[
         for (final File file in dartFilesIn('lib/features/profile'))

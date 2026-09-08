@@ -713,95 +713,9 @@
     "description": "Gönder düğmesine basıldığında gösterilen geçici bilgi. Mesajın gönderilmediğini açıkça söylemelidir; yazılan metin alanda kalır ve konuşmaya hiçbir şey eklenmez."
   },
 
-  "profileMemberBadge": "Doğrulanmış üye · 2024'ten beri",
-  "@profileMemberBadge": {
-    "description": "Profil başlığındaki üyelik rozeti. Yıl bilerek parametre DEĞİLDİR: Türkçede ekin biçimi sayının okunuşuna bağlıdır ve değişkene ek yapıştırmak yanlış sonuç verir. Mock sunum verisidir; hiçbir hesap veya doğrulama sistemi yoktur."
-  },
-  "profileTrustScoreTitle": "Güven Puanı",
-  "@profileTrustScoreTitle": {
-    "description": "Güven Puanı kartının başlığı."
-  },
-  "profileTrustScoreOutOf": "/ 100",
-  "@profileTrustScoreOutOf": {
-    "description": "Halkanın ortasında puanın altında görünen ölçek."
-  },
-  "profileTrustTier": "Üst {percentile} · Güvenilir",
-  "@profileTrustTier": {
-    "description": "Yüzdelik dilim rozeti. Gerçek bir üye kitlesi olmadığı için tamamen sunum verisidir; hiçbir sıralama hesaplanmaz.",
-    "placeholders": {
-      "percentile": {"type": "String", "example": "%8"}
-    }
-  },
-  "profileTrustNextStep": "100'e ulaşmak için 1 yolculuk daha",
-  "@profileTrustNextStep": {
-    "description": "Tasarımdaki cümle, olduğu gibi. PARAMETRE EKLEMEYİN: '1 yolculuk' sayısını değişkene çevirmek, yolculuk başına puan diye bir kural olduğunu varsaymak olur. Böyle bir kural yok."
-  },
-  "profileTrustFactorIdentity": "Kimlik",
-  "@profileTrustFactorIdentity": {
-    "description": "Güven Puanı dökümü satırı."
-  },
-  "profileTrustFactorCommunity": "Topluluk",
-  "@profileTrustFactorCommunity": {
-    "description": "Güven Puanı dökümü satırı."
-  },
-  "profileTrustFactorReliability": "Güvenilirlik",
-  "@profileTrustFactorReliability": {
-    "description": "Güven Puanı dökümü satırı."
-  },
-  "profileTrustFactorActivity": "Aktiflik",
-  "@profileTrustFactorActivity": {
-    "description": "Güven Puanı dökümü satırı."
-  },
-  "profileStatTrips": "Yolculuk",
-  "@profileStatTrips": {
-    "description": "İstatistik kutusu etiketi."
-  },
-  "profileStatRating": "Puan",
-  "@profileStatRating": {
-    "description": "İstatistik kutusu etiketi."
-  },
-  "profileStatSavings": "Tasarruf",
-  "@profileStatSavings": {
-    "description": "İstatistik kutusu etiketi. Masraf paylaşımı sunumudur; uygulamada ödeme yoktur."
-  },
-  "profileVerificationBadges": "Doğrulama rozetleri",
-  "@profileVerificationBadges": {
-    "description": "Profil listesi satırı. Tasarımda dokunulabilir değildir ve bir yere gitmez."
-  },
   "profileMyReviews": "Değerlendirmelerim",
   "@profileMyReviews": {
     "description": "Profil listesi satırı; değerlendirmeler ekranını açar."
-  },
-  "profileTrustScoreSemanticLabel": "Güven Puanı: {score}, 100 üzerinden",
-  "@profileTrustScoreSemanticLabel": {
-    "description": "Halkanın ekran okuyucu metni. Puanın nasıl oluştuğunu ima eden hiçbir ifade EKLEMEYİN; bir hesap yöntemi yoktur.",
-    "placeholders": {
-      "score": {"type": "String", "example": "92"}
-    }
-  },
-  "profileTrustFactorSemanticLabel": "{label}: {value}",
-  "@profileTrustFactorSemanticLabel": {
-    "description": "Döküm satırının ekran okuyucu metni.",
-    "placeholders": {
-      "label": {"type": "String", "example": "Kimlik"},
-      "value": {"type": "String", "example": "100"}
-    }
-  },
-  "profileTrustFactorAttentionSemanticLabel": "{label}: {value}, dikkat",
-  "@profileTrustFactorAttentionSemanticLabel": {
-    "description": "Amber satırın ekran okuyucu metni. Uyarıyı yalnızca renk taşımasın diye vardır (WCAG 1.4.1).",
-    "placeholders": {
-      "label": {"type": "String", "example": "Aktiflik"},
-      "value": {"type": "String", "example": "82"}
-    }
-  },
-  "profileVerificationBadgesSemanticLabel": "Doğrulama rozetleri: {total} adımdan {done} tanesi tamamlandı",
-  "@profileVerificationBadgesSemanticLabel": {
-    "description": "Rozet sayısı yalnızca trailing rozette yazdığı için satırın etiketi elle verilir; yoksa sayı hiç okunmaz.",
-    "placeholders": {
-      "done": {"type": "String", "example": "4"},
-      "total": {"type": "String", "example": "5"}
-    }
   },
   "reviewsTitle": "Değerlendirmeler",
   "@reviewsTitle": {
@@ -1118,6 +1032,18 @@
   "myRoutesTitle": "Rotalarım",
   "@myRoutesTitle": {
     "description": "Yayınlanan rotalar ekranının başlığı."
+  },
+  "profileEditName": "Adını düzenle",
+  "@profileEditName": {
+    "description": "Profildeki ad düzenleme satırı ve ekran başlığı."
+  },
+  "profileEditSave": "Kaydet",
+  "@profileEditSave": {
+    "description": "Ad düzenleme ekranındaki kaydetme butonu."
+  },
+  "profileNoProfileYet": "Henüz bir adın yok.",
+  "@profileNoProfileYet": {
+    "description": "Profil ekranında profil bulunamadığında görünen metin."
   },
   "profileMyRoutes": "Rotalarım",
   "@profileMyRoutes": {

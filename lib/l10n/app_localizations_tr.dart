@@ -616,68 +616,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.';
 
   @override
-  String get profileMemberBadge => 'Doğrulanmış üye · 2024\'ten beri';
-
-  @override
-  String get profileTrustScoreTitle => 'Güven Puanı';
-
-  @override
-  String get profileTrustScoreOutOf => '/ 100';
-
-  @override
-  String profileTrustTier(String percentile) {
-    return 'Üst $percentile · Güvenilir';
-  }
-
-  @override
-  String get profileTrustNextStep => '100\'e ulaşmak için 1 yolculuk daha';
-
-  @override
-  String get profileTrustFactorIdentity => 'Kimlik';
-
-  @override
-  String get profileTrustFactorCommunity => 'Topluluk';
-
-  @override
-  String get profileTrustFactorReliability => 'Güvenilirlik';
-
-  @override
-  String get profileTrustFactorActivity => 'Aktiflik';
-
-  @override
-  String get profileStatTrips => 'Yolculuk';
-
-  @override
-  String get profileStatRating => 'Puan';
-
-  @override
-  String get profileStatSavings => 'Tasarruf';
-
-  @override
-  String get profileVerificationBadges => 'Doğrulama rozetleri';
-
-  @override
   String get profileMyReviews => 'Değerlendirmelerim';
-
-  @override
-  String profileTrustScoreSemanticLabel(String score) {
-    return 'Güven Puanı: $score, 100 üzerinden';
-  }
-
-  @override
-  String profileTrustFactorSemanticLabel(String label, String value) {
-    return '$label: $value';
-  }
-
-  @override
-  String profileTrustFactorAttentionSemanticLabel(String label, String value) {
-    return '$label: $value, dikkat';
-  }
-
-  @override
-  String profileVerificationBadgesSemanticLabel(String done, String total) {
-    return 'Doğrulama rozetleri: $total adımdan $done tanesi tamamlandı';
-  }
 
   @override
   String get reviewsTitle => 'Değerlendirmeler';
@@ -944,6 +883,15 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get myRoutesTitle => 'Rotalarım';
+
+  @override
+  String get profileEditName => 'Adını düzenle';
+
+  @override
+  String get profileEditSave => 'Kaydet';
+
+  @override
+  String get profileNoProfileYet => 'Henüz bir adın yok.';
 
   @override
   String get profileMyRoutes => 'Rotalarım';

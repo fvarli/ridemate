@@ -1,8 +1,14 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — Profile navigation
 //
-// The one edge the design draws out of Profile, and the one it deliberately
-// does not.
+// Three rows now, all of them links: edit the name, My Routes, Reviews.
+//
+// The comp's fourth row — `Doğrulama rozetleri`, with a `4 / 5` count and no
+// chevron — is gone, and the test that pinned its deliberate inertness went
+// with it. It counted verification steps nobody has taken, which was a harmless
+// fixture beside other fixtures and is not harmless beside a real account's
+// real name. There is no verification system to make the number true, so the
+// row was removed rather than relabelled.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -17,6 +23,7 @@ import 'package:ridemate/app/router/app_routes.dart';
 import 'package:ridemate/core/widgets/rm_card.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/profile/application/my_profile_providers.dart';
+import 'package:ridemate/features/profile/presentation/profile_edit_screen.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
 import 'package:ridemate/features/profile/presentation/widgets/profile_links.dart';
 import 'package:ridemate/features/reviews/presentation/reviews_screen.dart';
@@ -53,7 +60,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
   return container;
 }
 
-/// The two Profile rows, in the order the design draws them.
+/// The Profile rows, in the order they are drawn.
 Finder get _profileRows => find.descendant(
   of: find.byType(ProfileLinks),
   matching: find.byType(RmCard),
@@ -80,22 +87,25 @@ void main() {
     expect(find.byType(ProfileScreen), findsOneWidget);
   });
 
-  testWidgets('the verification row goes nowhere, as drawn', (
+  /// The row the phase added, and the only one that changes something.
+  testWidgets('the first row opens the name editor and comes back', (
     WidgetTester tester,
   ) async {
     final ProviderContainer container = await _pumpApp(tester);
     container.read(routerProvider).goNamed(AppRoutes.profile);
     await tester.pumpAndSettle();
 
-    // The comp gives it a count and no chevron. It counts the five steps
-    // /verification models but does not link to them — probably an oversight,
-    // raised in docs/design-system.md §8 rather than invented here.
     await tester.ensureVisible(_profileRows.first);
     await tester.pumpAndSettle();
     await tester.tap(_profileRows.first);
     await tester.pumpAndSettle();
+
+    expect(find.byType(ProfileEditScreen), findsOneWidget);
+
+    container.read(routerProvider).pop();
+    await tester.pumpAndSettle();
+
     expect(find.byType(ProfileScreen), findsOneWidget);
-    expect(find.byType(ReviewsScreen), findsNothing);
   });
 
   testWidgets('reviews is reachable in release builds', (

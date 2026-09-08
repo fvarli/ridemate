@@ -616,68 +616,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Message was not sent. Messaging is not available yet.';
 
   @override
-  String get profileMemberBadge => 'Verified member · since 2024';
-
-  @override
-  String get profileTrustScoreTitle => 'Trust Score';
-
-  @override
-  String get profileTrustScoreOutOf => '/ 100';
-
-  @override
-  String profileTrustTier(String percentile) {
-    return 'Top $percentile · Trusted';
-  }
-
-  @override
-  String get profileTrustNextStep => '1 more journey to reach 100';
-
-  @override
-  String get profileTrustFactorIdentity => 'Identity';
-
-  @override
-  String get profileTrustFactorCommunity => 'Community';
-
-  @override
-  String get profileTrustFactorReliability => 'Reliability';
-
-  @override
-  String get profileTrustFactorActivity => 'Activity';
-
-  @override
-  String get profileStatTrips => 'Journeys';
-
-  @override
-  String get profileStatRating => 'Rating';
-
-  @override
-  String get profileStatSavings => 'Saved';
-
-  @override
-  String get profileVerificationBadges => 'Verification badges';
-
-  @override
   String get profileMyReviews => 'My reviews';
-
-  @override
-  String profileTrustScoreSemanticLabel(String score) {
-    return 'Trust Score: $score out of 100';
-  }
-
-  @override
-  String profileTrustFactorSemanticLabel(String label, String value) {
-    return '$label: $value';
-  }
-
-  @override
-  String profileTrustFactorAttentionSemanticLabel(String label, String value) {
-    return '$label: $value, needs attention';
-  }
-
-  @override
-  String profileVerificationBadgesSemanticLabel(String done, String total) {
-    return 'Verification badges: $done of $total steps complete';
-  }
 
   @override
   String get reviewsTitle => 'Reviews';
@@ -944,6 +883,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get myRoutesTitle => 'My routes';
+
+  @override
+  String get profileEditName => 'Edit your name';
+
+  @override
+  String get profileEditSave => 'Save';
+
+  @override
+  String get profileNoProfileYet => 'You haven\'t chosen a name yet.';
 
   @override
   String get profileMyRoutes => 'My routes';

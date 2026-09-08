@@ -31,6 +31,7 @@ import '../../features/my_routes/presentation/my_routes_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/application/profile_gate.dart';
+import '../../features/profile/presentation/profile_edit_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/reviews/presentation/reviews_screen.dart';
@@ -326,6 +327,13 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.profileSetup,
         builder: (BuildContext context, GoRouterState state) =>
             const ProfileSetupScreen(),
+      ),
+      // Above the shell, reached from Profile — the My Routes shape.
+      GoRoute(
+        path: AppRoutes.profileEditPath,
+        name: AppRoutes.profileEdit,
+        builder: (BuildContext context, GoRouterState state) =>
+            const ProfileEditScreen(),
       ),
       // Above the shell: the comp draws a back control and no tab bar.
       GoRoute(

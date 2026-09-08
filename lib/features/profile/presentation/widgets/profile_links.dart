@@ -1,70 +1,55 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — Profile list rows
 //
-// Source: "PROFILE · TRUST" (immutable). Two rows.
+// Source: "PROFILE · TRUST" (immutable).
 //
-// `Doğrulama rozetleri` carries a `4 / 5` count and NO chevron, so it is not
-// tappable — and it therefore announces no button. The comp draws it that
-// way; it counts the five steps /verification already models but does not
-// link to them, which is raised in docs/design-system.md §8 rather than
-// invented here.
+// The comp draws three rows. `Doğrulama rozetleri` carried a `4 / 5` count and
+// is GONE: the number counted verification steps nobody has taken, on a screen
+// that now shows a real account. A count of completed checks, beside a real
+// name, reads as a fact about that member — and there is no verification
+// system to make it one.
 //
-// The count only exists in the trailing badge, which emits no semantics of
-// its own, so the row's announcement is spelled out explicitly. Without that
-// a screen-reader user hears the title and never learns the number that is
-// the entire point of the row.
+// What remains is navigation, which promises only what it delivers.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/format/rm_formatters.dart';
 import '../../../../core/icons/rm_icons.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
-import '../../../../core/widgets/rm_chip.dart';
 import '../../../../core/widgets/rm_list_row.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/profile_snapshot.dart';
 
-/// The navigation rows below the stats.
+/// The navigation rows below the header.
 class ProfileLinks extends StatelessWidget {
   const ProfileLinks({
-    required this.snapshot,
+    required this.onEditProfile,
     required this.onOpenReviews,
     required this.onOpenMyRoutes,
     super.key,
   });
 
-  final ProfileSnapshot snapshot;
+  final VoidCallback onEditProfile;
   final VoidCallback onOpenReviews;
   final VoidCallback onOpenMyRoutes;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final RmFormatters f = RmFormatters.of(context);
-
-    final String done = f.count(snapshot.verifiedBadgeCount);
-    final String total = f.count(snapshot.verifiedBadgeTotal);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
+        // First, because it is the only row that changes something a member
+        // owns rather than opening a list.
         RmListRow(
-          title: l10n.profileVerificationBadges,
-          icon: RmIcons.shieldCheck,
-          tone: RmRowTone.success,
+          title: l10n.profileEditName,
+          icon: RmIcons.person,
+          tone: RmRowTone.primary,
           tintedIcon: false,
-          trailing: RmBadge(label: '$done / $total'),
-          semanticLabel: l10n.profileVerificationBadgesSemanticLabel(
-            done,
-            total,
-          ),
+          onTap: onEditProfile,
         ),
         const SizedBox(height: RmSpacing.sm),
-        // The one row on this screen backed by a real endpoint. Everything
-        // above it is still fixture-backed, which is why it sits here rather
-        // than being dressed up as a headline.
         RmListRow(
           title: l10n.profileMyRoutes,
           icon: RmIcons.car,
@@ -73,6 +58,8 @@ class ProfileLinks extends StatelessWidget {
           onTap: onOpenMyRoutes,
         ),
         const SizedBox(height: RmSpacing.sm),
+        // Still fixture-backed, and still only a link. It opens a screen that
+        // makes its own claims; this row makes none.
         RmListRow(
           title: l10n.profileMyReviews,
           icon: RmIcons.star,

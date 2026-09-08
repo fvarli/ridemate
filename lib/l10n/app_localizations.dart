@@ -1080,113 +1080,11 @@ abstract class AppLocalizations {
   /// **'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.'**
   String get chatSendUnavailable;
 
-  /// Profil başlığındaki üyelik rozeti. Yıl bilerek parametre DEĞİLDİR: Türkçede ekin biçimi sayının okunuşuna bağlıdır ve değişkene ek yapıştırmak yanlış sonuç verir. Mock sunum verisidir; hiçbir hesap veya doğrulama sistemi yoktur.
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğrulanmış üye · 2024\'ten beri'**
-  String get profileMemberBadge;
-
-  /// Güven Puanı kartının başlığı.
-  ///
-  /// In tr, this message translates to:
-  /// **'Güven Puanı'**
-  String get profileTrustScoreTitle;
-
-  /// Halkanın ortasında puanın altında görünen ölçek.
-  ///
-  /// In tr, this message translates to:
-  /// **'/ 100'**
-  String get profileTrustScoreOutOf;
-
-  /// Yüzdelik dilim rozeti. Gerçek bir üye kitlesi olmadığı için tamamen sunum verisidir; hiçbir sıralama hesaplanmaz.
-  ///
-  /// In tr, this message translates to:
-  /// **'Üst {percentile} · Güvenilir'**
-  String profileTrustTier(String percentile);
-
-  /// Tasarımdaki cümle, olduğu gibi. PARAMETRE EKLEMEYİN: '1 yolculuk' sayısını değişkene çevirmek, yolculuk başına puan diye bir kural olduğunu varsaymak olur. Böyle bir kural yok.
-  ///
-  /// In tr, this message translates to:
-  /// **'100\'e ulaşmak için 1 yolculuk daha'**
-  String get profileTrustNextStep;
-
-  /// Güven Puanı dökümü satırı.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kimlik'**
-  String get profileTrustFactorIdentity;
-
-  /// Güven Puanı dökümü satırı.
-  ///
-  /// In tr, this message translates to:
-  /// **'Topluluk'**
-  String get profileTrustFactorCommunity;
-
-  /// Güven Puanı dökümü satırı.
-  ///
-  /// In tr, this message translates to:
-  /// **'Güvenilirlik'**
-  String get profileTrustFactorReliability;
-
-  /// Güven Puanı dökümü satırı.
-  ///
-  /// In tr, this message translates to:
-  /// **'Aktiflik'**
-  String get profileTrustFactorActivity;
-
-  /// İstatistik kutusu etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yolculuk'**
-  String get profileStatTrips;
-
-  /// İstatistik kutusu etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Puan'**
-  String get profileStatRating;
-
-  /// İstatistik kutusu etiketi. Masraf paylaşımı sunumudur; uygulamada ödeme yoktur.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tasarruf'**
-  String get profileStatSavings;
-
-  /// Profil listesi satırı. Tasarımda dokunulabilir değildir ve bir yere gitmez.
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğrulama rozetleri'**
-  String get profileVerificationBadges;
-
   /// Profil listesi satırı; değerlendirmeler ekranını açar.
   ///
   /// In tr, this message translates to:
   /// **'Değerlendirmelerim'**
   String get profileMyReviews;
-
-  /// Halkanın ekran okuyucu metni. Puanın nasıl oluştuğunu ima eden hiçbir ifade EKLEMEYİN; bir hesap yöntemi yoktur.
-  ///
-  /// In tr, this message translates to:
-  /// **'Güven Puanı: {score}, 100 üzerinden'**
-  String profileTrustScoreSemanticLabel(String score);
-
-  /// Döküm satırının ekran okuyucu metni.
-  ///
-  /// In tr, this message translates to:
-  /// **'{label}: {value}'**
-  String profileTrustFactorSemanticLabel(String label, String value);
-
-  /// Amber satırın ekran okuyucu metni. Uyarıyı yalnızca renk taşımasın diye vardır (WCAG 1.4.1).
-  ///
-  /// In tr, this message translates to:
-  /// **'{label}: {value}, dikkat'**
-  String profileTrustFactorAttentionSemanticLabel(String label, String value);
-
-  /// Rozet sayısı yalnızca trailing rozette yazdığı için satırın etiketi elle verilir; yoksa sayı hiç okunmaz.
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğrulama rozetleri: {total} adımdan {done} tanesi tamamlandı'**
-  String profileVerificationBadgesSemanticLabel(String done, String total);
 
   /// Değerlendirmeler ekranının başlığı.
   ///
@@ -1601,6 +1499,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Rotalarım'**
   String get myRoutesTitle;
+
+  /// Profildeki ad düzenleme satırı ve ekran başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adını düzenle'**
+  String get profileEditName;
+
+  /// Ad düzenleme ekranındaki kaydetme butonu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get profileEditSave;
+
+  /// Profil ekranında profil bulunamadığında görünen metin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bir adın yok.'**
+  String get profileNoProfileYet;
 
   /// Profil listesi satırı; yayınlanan rotalar ekranını açar.
   ///

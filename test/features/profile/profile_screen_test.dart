@@ -1,258 +1,203 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — Profile screen
 //
-// The trust card is the densest row set in the app: a ring, a badge, two
-// lines of prose and four measured columns, inside a card that overlaps the
-// header. Most of what follows is about it surviving 360dp at the maximum
-// text scale, which the goldens at 1.0 would never catch.
+// WHAT THIS FILE USED TO TEST, AND WHY IT NO LONGER DOES
+//
+// It measured the trust card: a ring, a tier badge, two lines of prose and
+// four columns, surviving 360dp at the maximum text scale. That card is gone,
+// and with it the assertions about a Trust Score of 92, a rating of 4,9, 73
+// trips, ₺2.1k of savings and 4 / 5 verification badges. None of those numbers
+// had a source. They were harmless beside other fixtures and stopped being
+// harmless the moment a real account's real name appeared above them.
+//
+// What is tested now is smaller and load-bearing: the screen renders the
+// server's identity, invents none when it cannot, and never falls back to the
+// name it used to show.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ridemate/core/widgets/rm_card.dart';
-import 'package:ridemate/core/widgets/rm_meters.dart';
-import 'package:ridemate/features/profile/domain/profile_fixtures.dart';
+import 'package:ridemate/core/api/rm_error_code.dart';
+import 'package:ridemate/core/api/rm_failure.dart';
+import 'package:ridemate/core/profile/profile.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
 import 'package:ridemate/features/profile/presentation/widgets/profile_links.dart';
-import 'package:ridemate/features/profile/presentation/widgets/profile_stats.dart';
-import 'package:ridemate/features/profile/presentation/widgets/trust_factor_row.dart';
-import 'package:ridemate/features/profile/presentation/widgets/trust_score_card.dart';
 
+import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/pump.dart';
 
 const Size kNarrowPhone = Size(360, 780);
 const Size kWidePhone = Size(393, 852);
 
+/// The name the fixture used to show. It must never appear again — a screen
+/// that fell back to it would be inventing an identity at the exact moment it
+/// could not confirm one.
+const String kRetiredFixtureName = 'Elif Çelik';
+
 void main() {
   setUpAll(loadRideMateFonts);
 
-  testBothThemes('renders the header, the trust card, the stats and the rows', (
-    WidgetTester tester,
-    Brightness brightness,
-  ) async {
+  Future<void> pumpProfile(
+    WidgetTester tester, {
+    required FakeProfileRepository profiles,
+    Brightness brightness = Brightness.light,
+    Size surfaceSize = kWidePhone,
+    TextScaler textScaler = TextScaler.noScaling,
+    TextDirection textDirection = TextDirection.ltr,
+  }) async {
     await tester.pumpRmScreen(
       const ProfileScreen(),
       brightness: brightness,
-      surfaceSize: kWidePhone,
+      surfaceSize: surfaceSize,
+      textScaler: textScaler,
+      textDirection: textDirection,
+      overrides: <Override>[
+        profileRepositoryProvider.overrideWithValue(profiles),
+      ],
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testBothThemes('renders the server identity and the navigation rows', (
+    WidgetTester tester,
+    Brightness brightness,
+  ) async {
+    await pumpProfile(
+      tester,
+      brightness: brightness,
+      profiles: FakeProfileRepository(
+        profile: const Profile(displayName: 'İrem Yılmaz', initials: 'İY'),
+      ),
     );
 
-    expect(find.text('Elif Çelik'), findsOneWidget);
-    expect(find.text("Doğrulanmış üye · 2024'ten beri"), findsOneWidget);
-    expect(find.text('Güven Puanı'), findsOneWidget);
-    expect(find.text('92'), findsOneWidget);
-    expect(find.text('/ 100'), findsOneWidget);
-    expect(find.text('Üst %8 · Güvenilir'), findsOneWidget);
-    expect(find.text("100'e ulaşmak için 1 yolculuk daha"), findsOneWidget);
-    expect(find.text('Kimlik'), findsOneWidget);
-    expect(find.text('Aktiflik'), findsOneWidget);
-    expect(find.text('73'), findsOneWidget);
-    expect(find.text('4,9'), findsOneWidget);
-    expect(find.text('₺2.1k'), findsOneWidget);
-    expect(find.text('4 / 5'), findsOneWidget);
+    expect(find.text('İrem Yılmaz'), findsOneWidget);
+    // The server's letters, rendered as they arrived.
+    expect(find.text('İY'), findsOneWidget);
+    expect(find.text('Adını düzenle'), findsOneWidget);
+    expect(find.text('Rotalarım'), findsOneWidget);
     expect(find.text('Değerlendirmelerim'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the ring is drawn from the score, not from the factors', (
+  /// CARRIES WEIGHT. Everything the screen may no longer claim.
+  ///
+  /// Listed as literals rather than by widget type, because the failure worth
+  /// catching is a number reappearing somewhere new — in a header, a row, a
+  /// badge — not a particular widget coming back.
+  testWidgets('no unsupported claim survives anywhere on the screen', (
     WidgetTester tester,
   ) async {
-    await tester.pumpRmScreen(const ProfileScreen(), surfaceSize: kWidePhone);
+    await pumpProfile(tester, profiles: FakeProfileRepository());
 
-    final RmTrustRing ring = tester.widget<RmTrustRing>(
-      find.descendant(
-        of: find.byType(TrustScoreCard),
-        matching: find.byType(RmTrustRing),
-      ),
-    );
-    expect(ring.progress, 0.92);
-
-    // The four bars carry their own declared fills.
-    final Iterable<double> bars = tester
-        .widgetList<RmLinearMeter>(
-          find.descendant(
-            of: find.byType(TrustBreakdown),
-            matching: find.byType(RmLinearMeter),
-          ),
-        )
-        .map((RmLinearMeter m) => m.progress);
-    expect(bars, <double>[1, 0.9, 0.94, 0.82]);
+    for (final String gone in <String>[
+      // Trust Score, its tier and its next step.
+      'Güven Puanı', '92', '/ 100', 'Üst %8 · Güvenilir',
+      "100'e ulaşmak için 1 yolculuk daha",
+      // The four factors.
+      'Kimlik', 'Topluluk', 'Güvenilirlik', 'Aktiflik',
+      // The stat tiles.
+      'Yolculuk', 'Puan', 'Tasarruf', '73', '4,9', '₺2.1k',
+      // Verification: the row, its count, and the membership claim.
+      'Doğrulama rozetleri', '4 / 5', "Doğrulanmış üye · 2024'ten beri",
+    ]) {
+      expect(find.text(gone), findsNothing, reason: gone);
+    }
   });
 
-  testWidgets('the star in the tier badge is an icon, not a glyph', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpRmScreen(const ProfileScreen(), surfaceSize: kWidePhone);
+  group('When the profile cannot be read', () {
+    /// CARRIES WEIGHT. An honest failure, and no invented identity.
+    testWidgets('an unreachable backend says so and offers a retry', (
+      WidgetTester tester,
+    ) async {
+      await pumpProfile(tester, profiles: FakeProfileRepository.offline());
 
-    // U+2605 is absent from both bundled families and renders as tofu.
-    expect(find.textContaining('★'), findsNothing);
+      expect(
+        find.text('Bağlantı kurulamadı. İnternet bağlantını kontrol et.'),
+        findsOneWidget,
+      );
+      expect(find.text('Yeniden dene'), findsOneWidget);
+      expect(find.byType(ProfileLinks), findsNothing);
+    });
+
+    /// CARRIES WEIGHT. The fixture is not a fallback.
+    testWidgets('no failure brings the old fixture name back', (
+      WidgetTester tester,
+    ) async {
+      for (final RmFailure failure in <RmFailure>[
+        const RmFailure.transport(),
+        const RmFailure.fromBackend(
+          status: 500,
+          code: RmErrorCode.internalError,
+        ),
+        const RmFailure.fromBackend(status: 200, code: RmErrorCode.unexpected),
+      ]) {
+        await pumpProfile(
+          tester,
+          profiles: FakeProfileRepository(readError: failure),
+        );
+
+        expect(find.text(kRetiredFixtureName), findsNothing);
+      }
+    });
+
+    testWidgets('pressing Retry asks exactly once more', (
+      WidgetTester tester,
+    ) async {
+      final FakeProfileRepository profiles = FakeProfileRepository.offline();
+      await pumpProfile(tester, profiles: profiles);
+
+      expect(profiles.readCount, 1);
+
+      profiles.readError = null;
+      await tester.tap(find.text('Yeniden dene'));
+      await tester.pumpAndSettle();
+
+      expect(profiles.readCount, 2, reason: 'one deliberate action, one read');
+      expect(find.text('Ayşe Demir'), findsOneWidget);
+    });
   });
 
-  group('Accessibility', () {
-    testWidgets('the ring announces a score out of 100 and nothing more', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpRmScreen(const ProfileScreen(), surfaceSize: kWidePhone);
+  /// Normally intercepted by the router. If it is ever reached here it must
+  /// still invent nothing.
+  testWidgets('a missing profile names nobody', (WidgetTester tester) async {
+    await pumpProfile(tester, profiles: FakeProfileRepository.missing());
 
-      expect(
-        find.bySemanticsLabel('Güven Puanı: 92, 100 üzerinden'),
-        findsOneWidget,
-      );
-      // Never a percentage: the score is not a proportion of anything.
-      expect(find.bySemanticsLabel(RegExp('%92')), findsNothing);
-    });
-
-    testWidgets('each factor announces once, and the amber one says why', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpRmScreen(const ProfileScreen(), surfaceSize: kWidePhone);
-
-      expect(find.bySemanticsLabel('Kimlik: 100'), findsOneWidget);
-      expect(find.bySemanticsLabel('Güvenilirlik: 94'), findsOneWidget);
-      // Colour is otherwise the only thing marking this row (WCAG 1.4.1).
-      expect(find.bySemanticsLabel('Aktiflik: 82, dikkat'), findsOneWidget);
-      // And the meters do not announce their fills a second time.
-      expect(find.bySemanticsLabel('82'), findsNothing);
-    });
-
-    testWidgets('the verification row announces its count', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpRmScreen(const ProfileScreen(), surfaceSize: kWidePhone);
-
-      // The count lives only in a trailing badge, which emits no semantics.
-      expect(
-        find.bySemanticsLabel(
-          'Doğrulama rozetleri: 5 adımdan 4 tanesi tamamlandı',
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('the verification row is not a button, the reviews row is', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpRmScreen(const ProfileScreen(), surfaceSize: kWidePhone);
-
-      final Iterable<RmCard> rows = tester.widgetList<RmCard>(
-        find.descendant(
-          of: find.byType(ProfileLinks),
-          matching: find.byType(RmCard),
-        ),
-      );
-      // Three since F5 added My Routes. An exact count on purpose: a fourth
-      // row is a deliberate edit, not something that appears unnoticed.
-      expect(rows.length, 3);
-      // The comp gives the first row no chevron, so it does nothing — and it
-      // therefore must not announce itself as actionable.
-      expect(rows.first.onTap, isNull);
-      // Both navigation rows do go somewhere.
-      expect(rows.elementAt(1).onTap, isNotNull);
-      expect(rows.last.onTap, isNotNull);
-
-      final SemanticsNode node = tester.getSemantics(
-        find
-            .descendant(
-              of: find.byType(ProfileLinks),
-              matching: find.byType(RmCard),
-            )
-            .first,
-      );
-      expect(node.flagsCollection.isButton, isFalse);
-    });
+    expect(find.text('Henüz bir adın yok.'), findsOneWidget);
+    expect(find.text(kRetiredFixtureName), findsNothing);
+    expect(find.byType(ProfileLinks), findsNothing);
   });
 
   group('Layout', () {
-    for (final Size size in <Size>[kNarrowPhone, kWidePhone]) {
-      testWidgets('the trust card survives 1.6x at ${size.width}dp', (
-        WidgetTester tester,
-      ) async {
-        await tester.pumpRmScreen(
-          const ProfileScreen(),
-          surfaceSize: size,
-          textScaler: const TextScaler.linear(1.6),
-        );
-
-        expect(tester.takeException(), isNull);
-        // The rows must still be laid out, not merely not throwing.
-        expect(find.byType(TrustFactorRow), findsNWidgets(4));
-      });
-    }
-
-    testWidgets('the breakdown shares one label column across all four rows', (
+    /// The screen is far lighter than the trust card made it, but a long name
+    /// at the largest scale the app allows is still the case that overflows.
+    testWidgets('a long name survives 360dp at the maximum text scale', (
       WidgetTester tester,
     ) async {
-      await tester.pumpRmScreen(const ProfileScreen(), surfaceSize: kWidePhone);
-
-      // The comp fixes the label column at 74px, which `Güvenilirlik` alone
-      // outgrows once the text scales. The column is measured instead, and
-      // every row must get the same one or the bars stop sharing an axis.
-      final Iterable<TrustFactorRow> rows = tester.widgetList<TrustFactorRow>(
-        find.byType(TrustFactorRow),
-      );
-      final Set<double?> widths = rows
-          .map((TrustFactorRow r) => r.labelWidth)
-          .toSet();
-      expect(widths.length, 1);
-      expect(widths.single, isNotNull);
-    });
-
-    testWidgets('the breakdown stacks rather than crushing the bar', (
-      WidgetTester tester,
-    ) async {
-      // Squeezed past the point where a label, a usable bar and a figure fit
-      // on one line. The bar is the only part of the row that has to be wide
-      // — below a floor it stops reading as a proportion at all — so the row
-      // breaks instead of shrinking it. Pumped in isolation because this is
-      // narrower than any supported screen: it is the breakdown's own floor,
-      // not a layout the app ships.
-      await tester.pumpRm(
-        const SizedBox(
-          width: 160,
-          child: TrustBreakdown(factors: kMockProfileFactors),
+      await pumpProfile(
+        tester,
+        surfaceSize: kNarrowPhone,
+        textScaler: const TextScaler.linear(1.3),
+        profiles: FakeProfileRepository(
+          profile: const Profile(
+            displayName: 'Ayşegül Hümeyra Kadıoğlu Yılmaztürk',
+            initials: 'AY',
+          ),
         ),
-        textScaler: const TextScaler.linear(1.6),
       );
 
       expect(tester.takeException(), isNull);
-      for (final TrustFactorRow row in tester.widgetList<TrustFactorRow>(
-        find.byType(TrustFactorRow),
-      )) {
-        expect(row.labelWidth, isNull, reason: 'stacked');
-      }
-      // The label and its figure are still both present, just on their own
-      // line above the bar.
-      expect(find.text('Güvenilirlik'), findsOneWidget);
-      expect(find.text('94'), findsOneWidget);
-    });
-
-    testWidgets('the stat tiles stack rather than shrink at 1.6x', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpRmScreen(
-        const ProfileScreen(),
-        surfaceSize: kNarrowPhone,
-        textScaler: const TextScaler.linear(1.6),
-      );
-
-      // `₺2.1k` is the whole content of its tile; three of them across a
-      // 360dp screen would have to shrink the figure to nothing (D-profile-3).
-      final Finder stats = find.byType(ProfileStats);
-      expect(
-        find.descendant(of: stats, matching: find.byType(Row)),
-        findsNothing,
-        reason: 'stacked into a column',
-      );
     });
 
     testWidgets('lays out under RTL without overflow', (
       WidgetTester tester,
     ) async {
-      await tester.pumpRmScreen(
-        const ProfileScreen(),
+      await pumpProfile(
+        tester,
         textDirection: TextDirection.rtl,
-        surfaceSize: kWidePhone,
+        profiles: FakeProfileRepository(),
       );
 
       expect(tester.takeException(), isNull);

@@ -94,6 +94,11 @@ abstract final class AppRoutes {
   static const String profileSetup = 'profileSetup';
   static const String profileSetupPath = '/profile/setup';
 
+  /// Changing the one thing a profile holds. Above the shell, reached from
+  /// Profile — the My Routes shape exactly.
+  static const String profileEdit = 'profileEdit';
+  static const String profileEditPath = '/profile/edit';
+
   /// A member's reputation in full, reached from Profile. Above the shell:
   /// the comp draws a back control and no tab bar.
   static const String reviews = 'reviews';

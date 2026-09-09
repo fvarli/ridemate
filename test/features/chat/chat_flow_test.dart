@@ -18,7 +18,6 @@ import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/discovery/application/discovery_providers.dart';
-import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/domain/search_draft.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
@@ -106,10 +105,6 @@ void main() {
 
       expect(find.byType(ChatScreen), findsOneWidget);
       expect(container.read(searchDraftProvider), before);
-      expect(
-        container.read(routeOffersProvider),
-        MockRouteOffers.orderedFor(before.sort),
-      );
       // Nothing anywhere claims a journey is under way.
       expect(find.textContaining('CANLI'), findsNothing);
     });

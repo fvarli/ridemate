@@ -198,49 +198,51 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchSwapSemanticLabel => 'Kalkış ve varış noktalarını değiştir';
 
   @override
-  String get searchWhenLabel => 'NE ZAMAN';
-
-  @override
-  String get searchWhenValue => 'Yarın · 08:30';
-
-  @override
-  String get searchSeatsLabel => 'KOLTUK';
-
-  @override
-  String searchSeatsValue(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count kişi',
-      one: '1 kişi',
-    );
-    return '$_temp0';
+  String matchesMetaSharedRoutes(String count) {
+    return '$count ortak rota';
   }
 
   @override
-  String get searchFiltersTitle => 'GÜVEN FİLTRELERİ';
+  String get discoveryTitle => 'Yolculuklar';
 
   @override
-  String get searchFilterVerifiedOnly => 'Sadece doğrulanmış';
+  String get searchSubmit => 'Yolculukları ara';
 
   @override
-  String get searchFilterMinRating => '4.5+ puan';
+  String get searchIncomplete => 'İki farklı yer seç.';
 
   @override
-  String get searchFilterFemaleDriver => 'Kadın sürücü';
+  String get discoveryIdle => 'Nereden nereye gittiğini seç.';
 
   @override
-  String get searchFilterNoSmoking => 'Sigara yok';
+  String get discoveryEmpty => 'Bu iki yer arasında yayınlanmış yolculuk yok.';
 
   @override
-  String get searchFilterMutualConnection => 'Ortak bağlantı';
+  String get discoveryEmptyBody =>
+      'Daha sonra tekrar bak ya da başka bir güzergah dene.';
 
   @override
-  String get searchRecentTitle => 'SON ARAMALAR';
+  String get discoveryOrdering => 'En son yayınlananlar önce';
 
   @override
-  String searchSubmit(String count) {
-    return 'Eşleşmeleri gör · $count sonuç';
+  String discoverySeatsOffered(int count) {
+    return '$count koltuk sunuluyor';
+  }
+
+  @override
+  String get discoveryLoadMore => 'Daha fazla göster';
+
+  @override
+  String get discoveryLoadMoreFailed => 'Daha fazlası alınamadı.';
+
+  @override
+  String discoveryCardSemanticLabel(
+    String driver,
+    String journey,
+    String departure,
+    String seats,
+  ) {
+    return '$driver, $journey, $departure, $seats';
   }
 
   @override
@@ -248,84 +250,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get searchPlacePickerDestinationTitle => 'Nereye gidiyorsun?';
-
-  @override
-  String matchesTitle(String count) {
-    return '$count eşleşme';
-  }
-
-  @override
-  String matchesSubtitle(String route, String when) {
-    return '$route · $when';
-  }
-
-  @override
-  String get matchesWhenSummary => 'Yarın 08:30';
-
-  @override
-  String get matchesSortBest => 'En uyumlu';
-
-  @override
-  String get matchesSortNearest => 'En yakın';
-
-  @override
-  String get matchesSortCheapest => 'En ucuz';
-
-  @override
-  String get matchesCompatibilityLabel => 'Rota uyumu';
-
-  @override
-  String get matchesInspect => 'İncele';
-
-  @override
-  String get matchesMetaVerified => 'Doğrulanmış';
-
-  @override
-  String matchesMetaTrips(String count) {
-    return '$count yolculuk';
-  }
-
-  @override
-  String matchesMetaSharedRoutes(String count) {
-    return '$count ortak rota';
-  }
-
-  @override
-  String matchesMetaDeparture(String time) {
-    return 'Kalkış $time';
-  }
-
-  @override
-  String matchesMetaSeats(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count koltuk',
-      one: '1 koltuk',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String matchesMetaWalk(String minutes) {
-    return '~$minutes dk yürüme';
-  }
-
-  @override
-  String matchesMetaCompatibilityShort(String value) {
-    return '$value uyum';
-  }
-
-  @override
-  String matchesCardSemanticLabel(
-    String name,
-    String rating,
-    String compatibility,
-    String time,
-    String costShare,
-  ) {
-    return '$name, $rating puan. $compatibility rota uyumu. Kalkış $time. Kişi başı $costShare.';
-  }
 
   @override
   String get routeDetailsStatTrustScore => 'Güven Puanı';

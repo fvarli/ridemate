@@ -7,12 +7,15 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
+import 'package:ridemate/features/discovery/application/discovery_search_providers.dart';
+import 'package:ridemate/features/discovery/data/discovery_repository.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
@@ -54,6 +57,7 @@ void main() {
     required Brightness brightness,
     TextDirection textDirection = TextDirection.ltr,
     bool disableAnimations = false,
+    List<Override> overrides = const <Override>[],
   }) async {
     // A representative modern phone.
     await tester.binding.setSurfaceSize(const Size(393, 852));
@@ -114,6 +118,10 @@ void main() {
               ],
             ),
           ),
+          // Screen-specific doubles, appended so a surface can be captured in
+          // the state that represents it. Only the group that passes them is
+          // affected; every other baseline sees the scope above, unchanged.
+          ...overrides,
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -210,9 +218,68 @@ void main() {
   });
 
   group('Match results', () {
+    // Results, not the idle placeholder.
+    //
+    // The screen reads the discovery endpoint, so with no repository and no
+    // query it captures its emptiest state — which would freeze the one screen
+    // that has to show real journeys as a screen showing none. These doubles
+    // put it in the state a member actually arrives at.
+    //
+    // The page is deliberately a single one with no next cursor: the load-more
+    // control is a behaviour the widget tests own, and a button captured
+    // mid-list tells the baseline nothing a pixel diff could defend.
+    //
+    // Between the two routes this exercises everything the card can say — a
+    // recurring commute and a one-off with a date, rules chosen and rules left
+    // alone, the server's own Turkish initials. There is nothing else to add:
+    // a rating, a badge, a trip count, a trust score, a compatibility figure or
+    // a cost cannot be passed here because no such field exists on the wire.
+    List<Override> results() => <Override>[
+      discoveryQueryProvider.overrideWith(SearchedQueryController.new),
+      discoveryRepositoryProvider.overrideWithValue(
+        FakeDiscoveryRepository(
+          pages: <DiscoveryResult>[
+            DiscoveryResult(
+              routes: <DiscoveredRoute>[
+                fakeDiscoveredRoute(
+                  originLabel: 'Kadıköy, Vapur İskelesi',
+                  destinationLabel: 'Levent, Metro İstasyonu',
+                  displayName: 'İrem Yılmaz',
+                  initials: 'İY',
+                  rules: const <RideRuleId>{
+                    RideRuleId.noSmoking,
+                    RideRuleId.quiet,
+                  },
+                ),
+                fakeDiscoveredRoute(
+                  id: '01991c00-0000-7000-8000-000000000002',
+                  originLabel: 'Kadıköy, Vapur İskelesi',
+                  destinationLabel: 'Levent, Metro İstasyonu',
+                  recurrence: Recurrence.once,
+                  departureDate: '2026-09-14',
+                  departureTime: '18:10',
+                  seatsOffered: 1,
+                  // Absent, not empty: this driver chose no rules.
+                  rules: const <RideRuleId>{},
+                  displayName: 'Ayşe Nur Demir',
+                  initials: 'AD',
+                ),
+              ],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      ),
+    ];
+
     for (final Brightness brightness in Brightness.values) {
       testWidgets(brightness.name, (WidgetTester tester) async {
-        await pump(tester, const MatchResultsScreen(), brightness: brightness);
+        await pump(
+          tester,
+          const MatchResultsScreen(),
+          brightness: brightness,
+          overrides: results(),
+        );
         await expectLater(
           find.byType(MatchResultsScreen),
           matchesGoldenFile('goldens/matches_${brightness.name}.png'),
@@ -221,12 +288,14 @@ void main() {
     }
 
     testWidgets('right-to-left', (WidgetTester tester) async {
-      // The densest Phase 3 screen: three card tiers, a meter and a sort row.
+      // Mirrored with the same real results, so this proves the discovered
+      // card lays out under RTL — not that a placeholder centres either way.
       await pump(
         tester,
         const MatchResultsScreen(),
         brightness: Brightness.light,
         textDirection: TextDirection.rtl,
+        overrides: results(),
       );
       await expectLater(
         find.byType(MatchResultsScreen),

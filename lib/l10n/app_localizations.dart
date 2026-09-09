@@ -428,77 +428,82 @@ abstract class AppLocalizations {
   /// **'Kalkış ve varış noktalarını değiştir'**
   String get searchSwapSemanticLabel;
 
-  /// Tarih/saat seçicisinin üst etiketi.
+  /// Rota detayındaki ortak rota sayısı. Fixture ekranına ait.
   ///
   /// In tr, this message translates to:
-  /// **'NE ZAMAN'**
-  String get searchWhenLabel;
+  /// **'{count} ortak rota'**
+  String matchesMetaSharedRoutes(String count);
 
-  /// Seçili yolculuk zamanı. Mock sunum verisidir; Phase 3'te tarih seçici yoktur.
+  /// Sonuç listesinin başlığı. Sayı iddiası içermez.
   ///
   /// In tr, this message translates to:
-  /// **'Yarın · 08:30'**
-  String get searchWhenValue;
+  /// **'Yolculuklar'**
+  String get discoveryTitle;
 
-  /// Koltuk seçicisinin üst etiketi.
+  /// Aramayı başlatan buton.
   ///
   /// In tr, this message translates to:
-  /// **'KOLTUK'**
-  String get searchSeatsLabel;
+  /// **'Yolculukları ara'**
+  String get searchSubmit;
 
-  /// Seçili koltuk sayısı.
+  /// İki uç nokta seçilmeden arama yapılamayacağını söyleyen metin.
   ///
   /// In tr, this message translates to:
-  /// **'{count, plural, =1{1 kişi} other{{count} kişi}}'**
-  String searchSeatsValue(int count);
+  /// **'İki farklı yer seç.'**
+  String get searchIncomplete;
 
-  /// Güven filtreleri bölüm başlığı.
+  /// Henüz arama yapılmadığında görünen metin.
   ///
   /// In tr, this message translates to:
-  /// **'GÜVEN FİLTRELERİ'**
-  String get searchFiltersTitle;
+  /// **'Nereden nereye gittiğini seç.'**
+  String get discoveryIdle;
 
-  /// Filtre: yalnızca kimliği doğrulanmış üyeler.
+  /// Arama sonucu boş olduğunda görünen metin.
   ///
   /// In tr, this message translates to:
-  /// **'Sadece doğrulanmış'**
-  String get searchFilterVerifiedOnly;
+  /// **'Bu iki yer arasında yayınlanmış yolculuk yok.'**
+  String get discoveryEmpty;
 
-  /// Filtre: belirli puanın üzerindeki üyeler.
+  /// Boş sonuç açıklaması.
   ///
   /// In tr, this message translates to:
-  /// **'4.5+ puan'**
-  String get searchFilterMinRating;
+  /// **'Daha sonra tekrar bak ya da başka bir güzergah dene.'**
+  String get discoveryEmptyBody;
 
-  /// Filtre: kadın sürücü tercihi. Phase 3'te yalnızca sunum tercihidir; sonuçları etkilemez. Gerçek eşleştirmeye bağlanmadan önce hukuk, güvenlik ve ürün onayı gerekir.
+  /// Listenin sırasını dürüstçe anlatan başlık. Puan ya da uyum sıralaması değildir.
   ///
   /// In tr, this message translates to:
-  /// **'Kadın sürücü'**
-  String get searchFilterFemaleDriver;
+  /// **'En son yayınlananlar önce'**
+  String get discoveryOrdering;
 
-  /// Filtre: sigara içilmeyen yolculuk.
+  /// Sürücünün sunduğu koltuk sayısı. Kalan koltuk DEĞİLDİR.
   ///
   /// In tr, this message translates to:
-  /// **'Sigara yok'**
-  String get searchFilterNoSmoking;
+  /// **'{count} koltuk sunuluyor'**
+  String discoverySeatsOffered(int count);
 
-  /// Filtre: ortak bağlantısı olan üyeler.
+  /// Sonraki sonuç sayfasını getiren buton.
   ///
   /// In tr, this message translates to:
-  /// **'Ortak bağlantı'**
-  String get searchFilterMutualConnection;
+  /// **'Daha fazla göster'**
+  String get discoveryLoadMore;
 
-  /// Son aramalar bölüm başlığı.
+  /// Sonraki sayfa alınamadığında görünen metin.
   ///
   /// In tr, this message translates to:
-  /// **'SON ARAMALAR'**
-  String get searchRecentTitle;
+  /// **'Daha fazlası alınamadı.'**
+  String get discoveryLoadMoreFailed;
 
-  /// Eşleşmeleri açan ana eylem. Sayı mock sunum verisidir.
+  /// Bir sonuç kartının ekran okuyucu için tek parça okunuşu.
   ///
   /// In tr, this message translates to:
-  /// **'Eşleşmeleri gör · {count} sonuç'**
-  String searchSubmit(String count);
+  /// **'{driver}, {journey}, {departure}, {seats}'**
+  String discoveryCardSemanticLabel(
+    String driver,
+    String journey,
+    String departure,
+    String seats,
+  );
 
   /// Kalkış noktası seçim sayfasının başlığı.
   ///
@@ -511,108 +516,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Nereye gidiyorsun?'**
   String get searchPlacePickerDestinationTitle;
-
-  /// Eşleşme sonuçları başlığı.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} eşleşme'**
-  String matchesTitle(String count);
-
-  /// Sonuç başlığının altındaki yolculuk özeti.
-  ///
-  /// In tr, this message translates to:
-  /// **'{route} · {when}'**
-  String matchesSubtitle(String route, String when);
-
-  /// Sonuç başlığındaki kısa zaman özeti. Mock sunum verisidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yarın 08:30'**
-  String get matchesWhenSummary;
-
-  /// Sıralama seçeneği: rota uyumuna göre.
-  ///
-  /// In tr, this message translates to:
-  /// **'En uyumlu'**
-  String get matchesSortBest;
-
-  /// Sıralama seçeneği: mesafeye göre.
-  ///
-  /// In tr, this message translates to:
-  /// **'En yakın'**
-  String get matchesSortNearest;
-
-  /// Sıralama seçeneği: maliyet payına göre.
-  ///
-  /// In tr, this message translates to:
-  /// **'En ucuz'**
-  String get matchesSortCheapest;
-
-  /// Uyum ölçeğinin etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rota uyumu'**
-  String get matchesCompatibilityLabel;
-
-  /// Rota ayrıntılarını açan eylem.
-  ///
-  /// In tr, this message translates to:
-  /// **'İncele'**
-  String get matchesInspect;
-
-  /// Kart üzerindeki doğrulanmış üye ifadesi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğrulanmış'**
-  String get matchesMetaVerified;
-
-  /// Tamamlanan yolculuk sayısı. Mock sunum verisidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} yolculuk'**
-  String matchesMetaTrips(String count);
-
-  /// Ortak rota sayısı. Mock sunum verisidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} ortak rota'**
-  String matchesMetaSharedRoutes(String count);
-
-  /// Kalkış saati.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kalkış {time}'**
-  String matchesMetaDeparture(String time);
-
-  /// Boş koltuk sayısı.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count, plural, =1{1 koltuk} other{{count} koltuk}}'**
-  String matchesMetaSeats(int count);
-
-  /// Alış noktasına yürüme süresi.
-  ///
-  /// In tr, this message translates to:
-  /// **'~{minutes} dk yürüme'**
-  String matchesMetaWalk(String minutes);
-
-  /// Sıkıştırılmış kartta gösterilen kısa uyum ifadesi.
-  ///
-  /// In tr, this message translates to:
-  /// **'{value} uyum'**
-  String matchesMetaCompatibilityShort(String value);
-
-  /// Eşleşme kartı için ekran okuyucu etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'{name}, {rating} puan. {compatibility} rota uyumu. Kalkış {time}. Kişi başı {costShare}.'**
-  String matchesCardSemanticLabel(
-    String name,
-    String rating,
-    String compatibility,
-    String time,
-    String costShare,
-  );
 
   /// İstatistik başlığı: Güven Puanı. Değer backend'e aittir, istemcide hesaplanmaz.
   ///

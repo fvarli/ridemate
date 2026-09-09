@@ -37,8 +37,11 @@ class FromToCard extends StatelessWidget {
     super.key,
   });
 
-  final Place origin;
-  final Place destination;
+  /// Null until the member picks from the server's catalogue. There is no
+  /// honest default: a made-up place matches no route, and choosing one from
+  /// the catalogue would be deciding where somebody is travelling from.
+  final Place? origin;
+  final Place? destination;
   final VoidCallback onEditOrigin;
   final VoidCallback onEditDestination;
   final VoidCallback onSwap;
@@ -63,14 +66,14 @@ class FromToCard extends StatelessWidget {
               _EndpointRow(
                 point: RmJourneyPoint.origin,
                 label: l10n.searchFieldOriginLabel,
-                value: origin.label,
+                value: origin?.label ?? l10n.createRouteOriginEmpty,
                 onTap: onEditOrigin,
               ),
               Divider(height: 1, thickness: 1, color: c.divider),
               _EndpointRow(
                 point: RmJourneyPoint.destination,
                 label: l10n.searchFieldDestinationLabel,
-                value: destination.label,
+                value: destination?.label ?? l10n.createRouteDestinationEmpty,
                 onTap: onEditDestination,
               ),
             ],

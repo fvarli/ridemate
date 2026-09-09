@@ -17,6 +17,7 @@ import 'package:ridemate/core/id/rm_uuid.dart';
 import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/core/profile/profile.dart';
 import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/routes/route_decoder.dart';
@@ -24,6 +25,8 @@ import 'package:ridemate/core/session/rm_session.dart';
 import 'package:ridemate/features/create_route/data/place_repository.dart';
 import 'package:ridemate/features/create_route/data/route_repository.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
+import 'package:ridemate/features/discovery/application/discovery_search_providers.dart';
+import 'package:ridemate/features/discovery/data/discovery_repository.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 import 'package:ridemate/features/profile/data/profile_repository.dart';
@@ -182,6 +185,51 @@ class FakeSession implements RmSession {
 /// Defaults to a member who HAS a profile, because that is the state most tests
 /// are not about: a signed-in app should reach its normal surfaces without every
 /// unrelated test having to say so. Tests that care drive the other outcomes.
+/// A discovery endpoint a test can steer.
+///
+/// Pages are consumed in order, so a test can describe a multi-page traversal
+/// by listing what each request should answer.
+class FakeDiscoveryRepository implements DiscoveryRepository {
+  FakeDiscoveryRepository({List<DiscoveryResult>? pages, this.failure})
+    : pages = pages ?? <DiscoveryResult>[];
+
+  /// A search that fails the way an unreachable backend does.
+  factory FakeDiscoveryRepository.offline() =>
+      FakeDiscoveryRepository(failure: const RmFailure.transport());
+
+  List<DiscoveryResult> pages;
+  RmFailure? failure;
+
+  int callCount = 0;
+  final List<String?> cursors = <String?>[];
+
+  @override
+  Future<DiscoveryResult> between({
+    required String originPlaceId,
+    required String destinationPlaceId,
+    String? cursor,
+    int limit = kDiscoveryPageSize,
+  }) async {
+    callCount++;
+    cursors.add(cursor);
+
+    final RmFailure? failure = this.failure;
+    if (failure != null) throw failure;
+
+    return pages.isEmpty
+        ? const DiscoveryResult(routes: <DiscoveredRoute>[], nextCursor: null)
+        : pages.removeAt(0);
+  }
+}
+
+/// A query controller that starts already searched, for screens that assume a
+/// search has happened.
+class SearchedQueryController extends DiscoveryQueryController {
+  @override
+  DiscoveryQuery? build() =>
+      const DiscoveryQuery(originPlaceId: 'p1', destinationPlaceId: 'p2');
+}
+
 class FakeProfileRepository implements ProfileRepository {
   FakeProfileRepository({Profile? profile, this.readError})
     : profile =
@@ -490,4 +538,44 @@ PublishedRoute fakeRoute({
   'status': status.name,
   'published_at': '2026-08-28T09:41:00+00:00',
   'cancelled_at': cancelledAt,
+}, 200);
+
+/// A discovered route shaped exactly as the discovery endpoint sends one.
+///
+/// Decoder-backed for the same reason [fakeRoute] is: a double that skipped the
+/// decoder could carry a shape the API cannot produce. The fields are the whole
+/// of what the endpoint returns — there is deliberately no rating, badge, trip
+/// count, trust score or cost to pass, because none of them exists on the wire.
+DiscoveredRoute fakeDiscoveredRoute({
+  String id = '01991c00-0000-7000-8000-000000000001',
+  String originId = '01991a00-0000-7000-8000-00000000000a',
+  String originLabel = 'Sunucu Yeri Bir',
+  String destinationId = '01991a00-0000-7000-8000-00000000000b',
+  String destinationLabel = 'Sunucu Yeri İki',
+  Recurrence recurrence = Recurrence.weekdays,
+  String? departureDate,
+  String departureTime = '08:25',
+  DepartureState departureState = DepartureState.upcoming,
+  int seatsOffered = 3,
+  Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
+  String displayName = 'Ayşe Demir',
+  String initials = 'AD',
+}) => RouteDecoder.discovered(<String, Object?>{
+  'id': id,
+  'origin': <String, Object?>{'id': originId, 'label': originLabel},
+  'destination': <String, Object?>{
+    'id': destinationId,
+    'label': destinationLabel,
+  },
+  'recurrence': recurrence.name,
+  'departure_date': departureDate,
+  'departure_time': departureTime,
+  'timezone': 'Europe/Istanbul',
+  'departure_state': departureState.name,
+  'seats_offered': seatsOffered,
+  'rules': rideRulesToJson(rules),
+  'driver': <String, Object?>{
+    'display_name': displayName,
+    'initials': initials,
+  },
 }, 200);

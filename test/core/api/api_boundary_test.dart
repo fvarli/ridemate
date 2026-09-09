@@ -145,17 +145,28 @@ void main() {
       );
     });
 
-    /// And Search still does, deliberately.
+    /// INVERTED IN PHASE 12, AND THE INVERSION IS THE POINT.
     ///
-    /// Search stays wholly fixture-backed in Phase 10 — it has no real query
-    /// to run — so its picker keeps the mock list. This asserts the split is
-    /// intentional rather than something half-migrated.
-    test('search still chooses from fixtures', () {
-      final File screen = File(
-        'lib/features/discovery/presentation/search_screen.dart',
+    /// This asserted that Search still chose from `mock_places`, deliberately:
+    /// Phase 10 gave it no real query to run, so a fixture picker was the
+    /// honest arrangement and the guard recorded that the split was intentional
+    /// rather than half-migrated.
+    ///
+    /// Phase 12 gave it a real query. An endpoint chosen from the fixture would
+    /// now be an id the discovery endpoint has never heard of, so the same
+    /// concern — a picker whose places the backend does not recognise — points
+    /// the other way. The guard follows it.
+    test('search chooses from the server catalogue, never the fixture', () {
+      final String screen = code(
+        File('lib/features/discovery/presentation/search_screen.dart'),
       );
 
-      expect(code(screen), contains('mock_places'));
+      expect(
+        screen,
+        isNot(contains('mock_places')),
+        reason: 'a fixture place is an id discovery would refuse',
+      );
+      expect(screen, contains('place_catalogue_providers'));
     });
 
     test('the feature reaches the network only through core/api', () {

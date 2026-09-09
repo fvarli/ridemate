@@ -198,49 +198,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchSwapSemanticLabel => 'Swap origin and destination';
 
   @override
-  String get searchWhenLabel => 'WHEN';
-
-  @override
-  String get searchWhenValue => 'Tomorrow · 08:30';
-
-  @override
-  String get searchSeatsLabel => 'SEATS';
-
-  @override
-  String searchSeatsValue(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count people',
-      one: '1 person',
-    );
-    return '$_temp0';
+  String matchesMetaSharedRoutes(String count) {
+    return '$count shared routes';
   }
 
   @override
-  String get searchFiltersTitle => 'TRUST FILTERS';
+  String get discoveryTitle => 'Journeys';
 
   @override
-  String get searchFilterVerifiedOnly => 'Verified only';
+  String get searchSubmit => 'Search journeys';
 
   @override
-  String get searchFilterMinRating => '4.5+ rating';
+  String get searchIncomplete => 'Choose two different places.';
 
   @override
-  String get searchFilterFemaleDriver => 'Female driver';
+  String get discoveryIdle => 'Choose where you\'re travelling between.';
 
   @override
-  String get searchFilterNoSmoking => 'No smoking';
+  String get discoveryEmpty =>
+      'No published journeys between these two places.';
 
   @override
-  String get searchFilterMutualConnection => 'Mutual connection';
+  String get discoveryEmptyBody => 'Check back later, or try another route.';
 
   @override
-  String get searchRecentTitle => 'RECENT SEARCHES';
+  String get discoveryOrdering => 'Most recently published first';
 
   @override
-  String searchSubmit(String count) {
-    return 'See matches · $count results';
+  String discoverySeatsOffered(int count) {
+    return '$count seats offered';
+  }
+
+  @override
+  String get discoveryLoadMore => 'Show more';
+
+  @override
+  String get discoveryLoadMoreFailed => 'Couldn\'t load more.';
+
+  @override
+  String discoveryCardSemanticLabel(
+    String driver,
+    String journey,
+    String departure,
+    String seats,
+  ) {
+    return '$driver, $journey, $departure, $seats';
   }
 
   @override
@@ -248,84 +250,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchPlacePickerDestinationTitle => 'Where are you going?';
-
-  @override
-  String matchesTitle(String count) {
-    return '$count matches';
-  }
-
-  @override
-  String matchesSubtitle(String route, String when) {
-    return '$route · $when';
-  }
-
-  @override
-  String get matchesWhenSummary => 'Tomorrow 08:30';
-
-  @override
-  String get matchesSortBest => 'Best match';
-
-  @override
-  String get matchesSortNearest => 'Nearest';
-
-  @override
-  String get matchesSortCheapest => 'Lowest share';
-
-  @override
-  String get matchesCompatibilityLabel => 'Route match';
-
-  @override
-  String get matchesInspect => 'View';
-
-  @override
-  String get matchesMetaVerified => 'Verified';
-
-  @override
-  String matchesMetaTrips(String count) {
-    return '$count trips';
-  }
-
-  @override
-  String matchesMetaSharedRoutes(String count) {
-    return '$count shared routes';
-  }
-
-  @override
-  String matchesMetaDeparture(String time) {
-    return 'Departs $time';
-  }
-
-  @override
-  String matchesMetaSeats(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count seats',
-      one: '1 seat',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String matchesMetaWalk(String minutes) {
-    return '~$minutes min walk';
-  }
-
-  @override
-  String matchesMetaCompatibilityShort(String value) {
-    return '$value match';
-  }
-
-  @override
-  String matchesCardSemanticLabel(
-    String name,
-    String rating,
-    String compatibility,
-    String time,
-    String costShare,
-  ) {
-    return '$name, rated $rating. $compatibility route match. Departs $time. $costShare per person.';
-  }
 
   @override
   String get routeDetailsStatTrustScore => 'Trust Score';

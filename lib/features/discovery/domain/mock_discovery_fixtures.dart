@@ -16,33 +16,10 @@
 // chips genuinely working while inventing nothing.
 // ─────────────────────────────────────────────────────────────
 
-import '../../../core/places/mock_places.dart';
-import '../../../core/places/place.dart';
 import '../../../core/widgets/rm_avatar.dart';
 import 'route_offer.dart';
-import 'search_draft.dart';
 
 /// The journey the design shows already filled in.
-const SearchDraft kInitialSearchDraft = SearchDraft(
-  origin: MockPlaces.kadikoy,
-  destination: MockPlaces.levent,
-  seats: 1,
-  // The design shows only "Sadece doğrulanmış" selected.
-  filters: <SearchFilterId>{SearchFilterId.verifiedOnly},
-  sort: MatchSortOption.bestMatch,
-);
-
-/// One previously-run search, as the design's `SON ARAMALAR` row shows.
-///
-/// Display only — there is no search history storage and no management UI.
-abstract final class MockRecentSearch {
-  const MockRecentSearch._();
-
-  static const Place origin = MockPlaces.kadikoy;
-  static const Place destination = MockPlaces.maslak;
-}
-
-/// The three offers the design draws, with every figure it displays.
 abstract final class MockRouteOffers {
   const MockRouteOffers._();
 
@@ -140,35 +117,6 @@ abstract final class MockRouteOffers {
   /// DECLARED, NOT COMPUTED. These lists are presentation fixtures chosen so
   /// each chip visibly does something. They are not a RideMate ranking rule,
   /// and no code derives them from the offers' figures.
-  static const Map<MatchSortOption, List<String>> orderBySort =
-      <MatchSortOption, List<String>>{
-        MatchSortOption.bestMatch: <String>[
-          'offer-selin-kadikoy-levent',
-          'offer-mert-kadikoy-levent',
-          'offer-emre-kadikoy-levent',
-        ],
-        MatchSortOption.nearest: <String>[
-          'offer-selin-kadikoy-levent',
-          'offer-mert-kadikoy-levent',
-          'offer-emre-kadikoy-levent',
-        ],
-        MatchSortOption.cheapest: <String>[
-          'offer-emre-kadikoy-levent',
-          'offer-mert-kadikoy-levent',
-          'offer-selin-kadikoy-levent',
-        ],
-      };
-
-  /// The offers in the order declared for [sort].
-  ///
-  /// A lookup, not a sort: it reads the declared list and returns those
-  /// offers. Nothing is compared or ranked.
-  static List<RouteOffer> orderedFor(MatchSortOption sort) {
-    final List<String> ids = orderBySort[sort]!;
-    return <RouteOffer>[for (final String id in ids) byId(id)!];
-  }
-
-  /// The offer with [id], or null.
   static RouteOffer? byId(String id) {
     for (final RouteOffer offer in all) {
       if (offer.id == id) return offer;

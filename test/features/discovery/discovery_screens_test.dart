@@ -1,34 +1,47 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — Discovery screen tests
 //
-// The three screens are checked in both themes, both locales, RTL, at the
-// maximum text scale the app allows, and at 360dp as well as 393dp — the
-// narrow width is where Phase 2's overflows first appeared.
+// Checked in both themes, both locales, RTL, at the maximum text scale the app
+// allows, and at 360dp as well as 393dp — the narrow width is where Phase 2's
+// overflows first appeared.
 //
-// The behavioural assertions guard the phase's honesty rules: filters change
-// no results, sort follows the fixture's declared order, and requesting a seat
-// creates no "sent" state.
+// WHAT THESE NOW GUARD
 //
-// The real fonts are loaded. Without them every glyph rasterizes as a square
-// em box, which is far wider than Manrope — so a width assertion would be
-// measuring Ahem rather than the product, and would both fail spuriously and
-// miss real overflows. Phase 2's truncated Home row proved that the hard way.
+// Search and Match Results are server-backed. The honesty rules they carry are
+// no longer "a filter changes no results" — the filters are gone — but that the
+// screens claim nothing the backend does not provide, and that a failure never
+// falls back to a fixture.
+//
+// Route Details is unchanged and still openly a fixture. Phase 12 does not
+// migrate it, and nothing real navigates into it.
+//
+// The real fonts are loaded. Without them every glyph rasterizes as a square em
+// box, far wider than Manrope, so a width assertion would measure Ahem rather
+// than the product.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/a11y/rm_a11y.dart';
+import 'package:ridemate/core/api/rm_failure.dart';
+import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/discovered_route.dart';
+import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/widgets/rm_button.dart';
-import 'package:ridemate/core/widgets/rm_chip.dart';
-import 'package:ridemate/core/widgets/rm_selector_tile.dart';
+import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
+import 'package:ridemate/features/discovery/application/discovery_search_providers.dart';
+import 'package:ridemate/features/discovery/data/discovery_repository.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/domain/route_offer.dart';
-import 'package:ridemate/features/discovery/domain/search_draft.dart';
 import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/discovery/presentation/search_screen.dart';
-import 'package:ridemate/features/discovery/presentation/widgets/match_card.dart';
+import 'package:ridemate/features/discovery/presentation/widgets/discovered_route_card.dart';
 
+import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/pump.dart';
 
@@ -38,12 +51,50 @@ const Size kNarrowPhone = Size(360, 800);
 /// The reference device the design targets.
 const Size kStandardPhone = Size(393, 852);
 
+/// Every claim the old fixture card made that no endpoint can support. None of
+/// these may appear on a server-backed discovery surface again.
+const List<String> kRetiredClaims = <String>[
+  '%94 uyum',
+  '4,9',
+  '128 yolculuk',
+  '2 ortak rota',
+  '₺18',
+  '5 dk yürüme',
+  'Doğrulanmış',
+  'En iyi eşleşme',
+  'En yakın',
+  'En ucuz',
+  '92',
+];
+
+DiscoveredRoute _route({
+  String id = 'r1',
+  String driver = 'İrem Yılmaz',
+  String initials = 'İY',
+  Recurrence recurrence = Recurrence.weekdays,
+}) => DiscoveredRoute(
+  id: id,
+  origin: const Place(id: 'p1', label: 'Kadıköy, Vapur İskelesi'),
+  destination: const Place(id: 'p2', label: 'Levent, Metro İstasyonu'),
+  recurrence: recurrence,
+  departureDate: recurrence == Recurrence.once
+      ? const DepartureDate(year: 2026, month: 9, day: 14)
+      : null,
+  departureTime: const DepartureTime(hour: 8, minute: 25),
+  timezone: 'Europe/Istanbul',
+  departureState: DepartureState.upcoming,
+  seatsOffered: 3,
+  rules: const <RideRuleId>{RideRuleId.noSmoking},
+  driver: DiscoveredDriver(displayName: driver, initials: initials),
+);
+
 void main() {
   setUpAll(loadRideMateFonts);
 
   group('SearchScreen', () {
     Future<void> pump(
       WidgetTester tester, {
+      FakePlaceRepository? places,
       Brightness brightness = Brightness.light,
       TextDirection textDirection = TextDirection.ltr,
       Locale locale = kDefaultTestLocale,
@@ -57,183 +108,129 @@ void main() {
         locale: locale,
         surfaceSize: size,
         textScaler: TextScaler.linear(textScale),
+        overrides: <Override>[
+          placeRepositoryProvider.overrideWithValue(
+            places ?? FakePlaceRepository(),
+          ),
+        ],
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
     }
 
-    testBothThemes('renders the approved copy', (
+    testBothThemes('renders the endpoints and the search action', (
       WidgetTester tester,
       Brightness brightness,
     ) async {
       await pump(tester, brightness: brightness);
 
-      expect(tester.takeException(), isNull);
       expect(find.text('Rota ara'), findsOneWidget);
-      expect(find.text('NEREDEN'), findsOneWidget);
-      expect(find.text('NEREYE'), findsOneWidget);
-      expect(find.text('Kadıköy, İskele Meydanı'), findsOneWidget);
-      expect(find.text('Levent, Metro İstasyonu'), findsOneWidget);
-      expect(find.text('GÜVEN FİLTRELERİ'), findsOneWidget);
-      expect(find.text('SON ARAMALAR'), findsOneWidget);
-      expect(find.text('Eşleşmeleri gör · 3 sonuç'), findsOneWidget);
+      expect(find.text('Kalkış noktası seç'), findsOneWidget);
+      expect(find.text('Varış noktası seç'), findsOneWidget);
+      expect(find.text('Yolculukları ara'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
-    testBothThemes('renders every designed filter', (
+    /// CARRIES WEIGHT. Every control that implied a server filter is gone.
+    ///
+    /// Not hidden behind a flag and not collected then ignored: absent, because
+    /// the endpoint accepts two place ids and refuses everything else.
+    testWidgets('offers no filter, sort, seat or date control', (
       WidgetTester tester,
-      Brightness brightness,
     ) async {
-      await pump(tester, brightness: brightness);
+      await pump(tester);
 
-      for (final String label in <String>[
-        'Sadece doğrulanmış',
-        '4.5+ puan',
+      for (final String gone in <String>[
+        'Filtreler',
+        'Doğrulanmış',
+        'Min. puan',
         'Kadın sürücü',
-        'Sigara yok',
+        'Sigara içilmez',
         'Ortak bağlantı',
+        'Son aramalar',
+        'NE ZAMAN',
+        'KOLTUK',
+        'Bugün',
       ]) {
-        expect(find.text(label), findsOneWidget, reason: label);
+        expect(find.text(gone), findsNothing, reason: gone);
       }
-      expect(find.byType(RmChip), findsNWidgets(5));
-      // The design selects exactly one.
-      expect(
-        tester
-            .widgetList<RmChip>(find.byType(RmChip))
-            .where((RmChip chip) => chip.selected)
-            .length,
-        1,
+    });
+
+    testWidgets('the search action is disabled until two places are chosen', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester);
+
+      final RmButton cta = tester.widget<RmButton>(
+        find.widgetWithText(RmButton, 'Yolculukları ara'),
       );
+      expect(cta.onPressed, isNull, reason: 'nothing to ask about yet');
+      expect(find.text('İki farklı yer seç.'), findsOneWidget);
     });
 
-    testWidgets('shows the when and seats selectors', (
+    testWidgets('choosing both endpoints enables the search', (
       WidgetTester tester,
     ) async {
       await pump(tester);
 
-      expect(find.byType(RmSelectorTile), findsNWidgets(2));
-      expect(find.text('NE ZAMAN'), findsOneWidget);
-      expect(find.text('Yarın · 08:30'), findsOneWidget);
-      expect(find.text('KOLTUK'), findsOneWidget);
-      expect(find.text('1 kişi'), findsOneWidget);
-    });
-
-    testWidgets('tapping an endpoint opens the place picker', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-
-      await tester.tap(find.text('Kadıköy, İskele Meydanı'));
+      await tester.tap(find.text('Kalkış noktası seç'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kFakePlaces[0].label).last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Nereden yola çıkıyorsun?'), findsOneWidget);
-      // The deterministic fixture list, not a search result.
-      expect(find.text('Maslak, 42 Maslak'), findsOneWidget);
-      expect(find.text('Üniversite'), findsOneWidget);
-    });
-
-    testWidgets('selecting a place updates the draft', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-
-      await tester.tap(find.text('Levent, Metro İstasyonu'));
+      await tester.tap(find.text('Varış noktası seç'));
       await tester.pumpAndSettle();
-      expect(find.text('Nereye gidiyorsun?'), findsOneWidget);
-
-      await tester.tap(find.text('Maslak, 42 Maslak').last);
+      await tester.tap(find.text(kFakePlaces[1].label).last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Maslak, 42 Maslak'), findsOneWidget);
-      expect(find.text('Levent, Metro İstasyonu'), findsNothing);
+      final RmButton cta = tester.widget<RmButton>(
+        find.widgetWithText(RmButton, 'Yolculukları ara'),
+      );
+      expect(cta.onPressed, isNotNull);
     });
 
-    testWidgets('swapping exchanges the endpoints', (
+    /// CARRIES WEIGHT. No fixture list stands in for the catalogue.
+    testWidgets('an unreachable catalogue says so and offers nothing', (
       WidgetTester tester,
     ) async {
-      await pump(tester);
+      await pump(tester, places: FakePlaceRepository.offline());
 
-      await tester.tap(
-        find.bySemanticsLabel('Kalkış ve varış noktalarını değiştir'),
-      );
-      await tester.pump();
+      expect(find.text('Yer listesi alınamadı.'), findsOneWidget);
+      expect(find.text('Yeniden dene'), findsOneWidget);
 
-      // Both are still shown, but under the opposite eyebrow.
-      expect(
-        find.bySemanticsLabel('NEREDEN: Levent, Metro İstasyonu'),
-        findsOneWidget,
-      );
-      expect(
-        find.bySemanticsLabel('NEREYE: Kadıköy, İskele Meydanı'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('toggling a filter changes only the chip', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-
-      final Finder chip = find.ancestor(
-        of: find.text('Kadın sürücü'),
-        matching: find.byType(RmChip),
-      );
-      expect(tester.widget<RmChip>(chip).selected, isFalse);
-
-      await tester.tap(find.text('Kadın sürücü'));
-      await tester.pump();
-
-      expect(tester.widget<RmChip>(chip).selected, isTrue);
-      // The result count in the CTA is untouched: filters narrow nothing.
-      // discovery_domain_test.dart carries the full guarantee.
-      expect(find.text('Eşleşmeleri gör · 3 sonuç'), findsOneWidget);
-    });
-
-    testWidgets('the recent search fills the draft', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-      expect(find.text('Kadıköy → Maslak'), findsOneWidget);
-      expect(find.text('Dün'), findsOneWidget);
-
-      await tester.tap(find.text('Kadıköy → Maslak'));
-      await tester.pump();
-
-      expect(
-        find.bySemanticsLabel('NEREYE: Maslak, 42 Maslak'),
-        findsOneWidget,
-      );
+      // And the picker offers nothing rather than something invented.
+      await tester.tap(find.text('Kalkış noktası seç'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nereden yola çıkıyorsun?'), findsNothing);
     });
 
     testWidgets('renders in English, RTL and at the narrow width', (
       WidgetTester tester,
     ) async {
-      await pump(tester, textDirection: TextDirection.rtl);
-      expect(tester.takeException(), isNull, reason: 'TR RTL');
+      await pump(
+        tester,
+        locale: const Locale('en'),
+        textDirection: TextDirection.rtl,
+        size: kNarrowPhone,
+      );
 
-      await pump(tester, locale: const Locale('en'));
-      expect(tester.takeException(), isNull, reason: 'EN');
-      expect(find.text('Search routes'), findsOneWidget);
-      expect(find.text('See matches · 3 results'), findsOneWidget);
-
-      await pump(tester, locale: const Locale('en'), size: kNarrowPhone);
-      expect(tester.takeException(), isNull, reason: 'EN at 360dp');
-
-      await pump(tester, size: kNarrowPhone);
-      expect(tester.takeException(), isNull, reason: 'TR at 360dp');
+      expect(find.text('Search journeys'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('survives the maximum text scale at the narrow width', (
       WidgetTester tester,
     ) async {
-      await pump(tester, size: kNarrowPhone, textScale: RmA11y.maxTextScale);
+      await pump(tester, size: kNarrowPhone, textScale: 1.3);
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Rota ara'), findsOneWidget);
     });
   });
 
   group('MatchResultsScreen', () {
     Future<void> pump(
       WidgetTester tester, {
+      required FakeDiscoveryRepository discovery,
+      bool searched = true,
       Brightness brightness = Brightness.light,
       TextDirection textDirection = TextDirection.ltr,
       Locale locale = kDefaultTestLocale,
@@ -247,128 +244,261 @@ void main() {
         locale: locale,
         surfaceSize: size,
         textScaler: TextScaler.linear(textScale),
+        overrides: <Override>[
+          discoveryRepositoryProvider.overrideWithValue(discovery),
+          if (searched)
+            discoveryQueryProvider.overrideWith(
+              () => SearchedQueryController(),
+            ),
+        ],
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
     }
 
-    testBothThemes('renders the three matches', (
+    testBothThemes('renders the server identity and the journey', (
       WidgetTester tester,
       Brightness brightness,
     ) async {
-      await pump(tester, brightness: brightness);
+      await pump(
+        tester,
+        brightness: brightness,
+        discovery: FakeDiscoveryRepository(
+          pages: <DiscoveryResult>[
+            DiscoveryResult(
+              routes: <DiscoveredRoute>[_route()],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
 
-      expect(tester.takeException(), isNull);
-      expect(find.byType(MatchCard), findsNWidgets(3));
-      expect(find.text('3 eşleşme'), findsOneWidget);
-      // The header echoes the draft that produced them.
-      expect(find.text('Kadıköy → Levent · Yarın 08:30'), findsOneWidget);
-      expect(find.text('Selin K.'), findsOneWidget);
-      expect(find.text('Mert A.'), findsOneWidget);
-      expect(find.text('Emre Y.'), findsOneWidget);
+      expect(find.text('İrem Yılmaz'), findsOneWidget);
+      // The server's letters, rendered as received.
+      expect(find.text('İY'), findsOneWidget);
+      expect(find.textContaining('Kadıköy'), findsWidgets);
+      expect(find.text('3 koltuk sunuluyor'), findsOneWidget);
+      expect(find.text('En son yayınlananlar önce'), findsOneWidget);
     });
 
-    testWidgets('the three tiers are visually distinct', (
+    /// CARRIES WEIGHT. Not one retired claim survives.
+    testWidgets('no unsupported claim appears on a real result', (
       WidgetTester tester,
     ) async {
-      await pump(tester);
-      final List<MatchCard> cards = tester
-          .widgetList<MatchCard>(find.byType(MatchCard))
-          .toList();
+      await pump(
+        tester,
+        discovery: FakeDiscoveryRepository(
+          pages: <DiscoveryResult>[
+            DiscoveryResult(
+              routes: <DiscoveredRoute>[_route()],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
 
-      expect(cards[0].tier, MatchCardTier.highlighted);
-      expect(cards[1].tier, MatchCardTier.standard);
-      expect(cards[2].tier, MatchCardTier.condensed);
-      // The condensed tier has no CTA and no meter, so there are exactly two.
-      expect(find.text('İncele'), findsNWidgets(2));
-      expect(find.text('Rota uyumu'), findsNWidgets(2));
+      for (final String gone in kRetiredClaims) {
+        expect(find.textContaining(gone), findsNothing, reason: gone);
+      }
     });
 
-    testBothThemes('formats every figure for the Turkish locale', (
+    /// CARRIES WEIGHT. A real result leads nowhere, because Route Details is
+    /// still a fixture.
+    testWidgets('a result is not tappable and offers no seat request', (
       WidgetTester tester,
-      Brightness brightness,
     ) async {
-      await pump(tester, brightness: brightness);
+      await pump(
+        tester,
+        discovery: FakeDiscoveryRepository(
+          pages: <DiscoveryResult>[
+            DiscoveryResult(
+              routes: <DiscoveredRoute>[_route()],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
 
-      expect(find.text('₺18'), findsOneWidget);
-      expect(find.text('₺16'), findsOneWidget);
-      expect(find.text('₺14'), findsOneWidget);
-      expect(find.text('%94'), findsOneWidget);
-      expect(find.text('%88'), findsOneWidget);
-      expect(find.text('4,9'), findsOneWidget);
-      expect(find.text('4.9'), findsNothing);
+      expect(find.byType(DiscoveredRouteCard), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(DiscoveredRouteCard),
+          matching: find.byType(InkWell),
+        ),
+        findsNothing,
+        reason: 'tapping would open a fixture-backed Route Details',
+      );
+      expect(find.byType(RouteDetailsScreen), findsNothing);
+      // Asking for a seat is Phase 13.
+      for (final String cta in <String>['Koltuk iste', 'Katıl', 'Rezerve et']) {
+        expect(find.text(cta), findsNothing, reason: cta);
+      }
     });
 
-    testWidgets('changing sort reorders per the fixture', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-      List<String> ids() => tester
-          .widgetList<MatchCard>(find.byType(MatchCard))
-          .map((MatchCard card) => card.offer.id)
-          .toList();
+    /// Nothing asked is a different sentence from nothing found.
+    ///
+    /// Two tests rather than two pumps: Riverpod refuses a changing number of
+    /// overrides within one scope, and collapsing them would need a controller
+    /// that pretends to be both.
+    testWidgets('idle says nobody has searched', (WidgetTester tester) async {
+      await pump(tester, searched: false, discovery: FakeDiscoveryRepository());
 
-      expect(ids(), MockRouteOffers.orderBySort[MatchSortOption.bestMatch]);
-
-      await tester.tap(find.text('En ucuz'));
-      await tester.pump();
-
-      // The declared order, verbatim — nothing was compared to produce it.
-      expect(ids(), MockRouteOffers.orderBySort[MatchSortOption.cheapest]);
+      expect(find.text('Nereden nereye gittiğini seç.'), findsOneWidget);
+      expect(find.textContaining('yayınlanmış yolculuk yok'), findsNothing);
     });
 
-    testWidgets('each card reads as one node carrying its key facts', (
+    testWidgets('an empty result says the server found none', (
       WidgetTester tester,
     ) async {
-      await pump(tester);
+      await pump(tester, discovery: FakeDiscoveryRepository());
 
       expect(
-        find.bySemanticsLabel(
-          'Selin K., 4,9 puan. %94 rota uyumu. Kalkış 08:25. Kişi başı ₺18.',
-        ),
+        find.text('Bu iki yer arasında yayınlanmış yolculuk yok.'),
         findsOneWidget,
       );
-      // The CTA stays a separate, actionable node.
-      expect(find.bySemanticsLabel('İncele'), findsWidgets);
+      expect(
+        find.text('Nereden nereye gittiğini seç.'),
+        findsNothing,
+        reason: 'the question was asked and answered',
+      );
     });
 
-    testWidgets('the list scrolls, as the design implies', (
+    /// CARRIES WEIGHT. A failure is a failure, never an empty list and never a
+    /// fixture.
+    testWidgets('a failure shows an honest retry and no fixture', (
       WidgetTester tester,
     ) async {
-      // The comp clips its third card on purpose.
-      await pump(tester, size: kNarrowPhone);
+      await pump(tester, discovery: FakeDiscoveryRepository.offline());
 
-      await tester.drag(find.byType(MatchCard).first, const Offset(0, -240));
-      await tester.pump();
+      expect(
+        find.text('Bağlantı kurulamadı. İnternet bağlantını kontrol et.'),
+        findsOneWidget,
+      );
+      expect(find.text('Yeniden dene'), findsOneWidget);
+      expect(find.byType(DiscoveredRouteCard), findsNothing);
+      for (final RouteOffer offer in MockRouteOffers.all) {
+        expect(find.text(offer.driverName), findsNothing);
+      }
+      expect(
+        find.text('Bu iki yer arasında yayınlanmış yolculuk yok.'),
+        findsNothing,
+        reason: 'a failure is not an empty result',
+      );
+    });
 
-      expect(tester.takeException(), isNull);
-      expect(find.byType(MatchCard), findsNWidgets(3));
+    testWidgets('retry performs exactly one more read', (
+      WidgetTester tester,
+    ) async {
+      final FakeDiscoveryRepository discovery =
+          FakeDiscoveryRepository.offline();
+      await pump(tester, discovery: discovery);
+
+      expect(discovery.callCount, 1);
+
+      discovery
+        ..failure = null
+        ..pages = <DiscoveryResult>[
+          DiscoveryResult(
+            routes: <DiscoveredRoute>[_route()],
+            nextCursor: null,
+          ),
+        ];
+
+      await tester.tap(find.text('Yeniden dene'));
+      await tester.pumpAndSettle();
+
+      expect(discovery.callCount, 2);
+      expect(find.text('İrem Yılmaz'), findsOneWidget);
+    });
+
+    testWidgets('load more appends the next page', (WidgetTester tester) async {
+      final FakeDiscoveryRepository discovery = FakeDiscoveryRepository(
+        pages: <DiscoveryResult>[
+          DiscoveryResult(
+            routes: <DiscoveredRoute>[_route(driver: 'Ayşe Demir')],
+            nextCursor: 'opaque',
+          ),
+          DiscoveryResult(
+            routes: <DiscoveredRoute>[_route(id: 'r2', driver: 'Ali Can')],
+            nextCursor: null,
+          ),
+        ],
+      );
+      await pump(tester, discovery: discovery);
+
+      expect(find.text('Daha fazla göster'), findsOneWidget);
+
+      await tester.tap(find.text('Daha fazla göster'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ayşe Demir'), findsOneWidget);
+      expect(find.text('Ali Can'), findsOneWidget);
+      expect(discovery.cursors, <String?>[null, 'opaque']);
+      expect(find.text('Daha fazla göster'), findsNothing);
+    });
+
+    /// Page two failing does not take page one off the screen.
+    testWidgets('a failed load more keeps the results and offers a retry', (
+      WidgetTester tester,
+    ) async {
+      final FakeDiscoveryRepository discovery = FakeDiscoveryRepository(
+        pages: <DiscoveryResult>[
+          DiscoveryResult(
+            routes: <DiscoveredRoute>[_route(driver: 'Ayşe Demir')],
+            nextCursor: 'opaque',
+          ),
+        ],
+      );
+      await pump(tester, discovery: discovery);
+
+      discovery.failure = const RmFailure.transport();
+      await tester.tap(find.text('Daha fazla göster'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ayşe Demir'), findsOneWidget);
+      expect(find.text('Daha fazlası alınamadı.'), findsOneWidget);
+      expect(find.text('Yeniden dene'), findsOneWidget);
     });
 
     testWidgets('renders in English, RTL and at the narrow width', (
       WidgetTester tester,
     ) async {
-      await pump(tester, textDirection: TextDirection.rtl);
-      expect(tester.takeException(), isNull, reason: 'TR RTL');
+      await pump(
+        tester,
+        locale: const Locale('en'),
+        textDirection: TextDirection.rtl,
+        size: kNarrowPhone,
+        discovery: FakeDiscoveryRepository(
+          pages: <DiscoveryResult>[
+            DiscoveryResult(
+              routes: <DiscoveredRoute>[_route()],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
 
-      await pump(tester, size: kNarrowPhone);
-      expect(tester.takeException(), isNull, reason: 'TR at 360dp');
-
-      await pump(tester, locale: const Locale('en'), size: kNarrowPhone);
-      expect(tester.takeException(), isNull, reason: 'EN at 360dp');
-      expect(find.text('Best match'), findsOneWidget);
-      expect(find.text('3 matches'), findsOneWidget);
+      expect(find.text('Most recently published first'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('survives the maximum text scale at the narrow width', (
       WidgetTester tester,
     ) async {
-      await pump(tester, size: kNarrowPhone, textScale: RmA11y.maxTextScale);
+      await pump(
+        tester,
+        size: kNarrowPhone,
+        textScale: 1.3,
+        discovery: FakeDiscoveryRepository(
+          pages: <DiscoveryResult>[
+            DiscoveryResult(
+              routes: <DiscoveredRoute>[_route()],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
 
       expect(tester.takeException(), isNull);
-      // Fewer cards are built: the list is lazy and the rows are taller. What
-      // matters is that the ones on screen laid out without overflowing.
-      expect(find.byType(MatchCard), findsWidgets);
-      expect(find.text('3 eşleşme'), findsOneWidget);
     });
   });
 

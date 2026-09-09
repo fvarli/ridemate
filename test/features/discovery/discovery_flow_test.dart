@@ -1,14 +1,21 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — Discovery navigation
 //
-// The whole passenger slice through the real router: Home → Search → Match
-// Results → Route Details, and back again.
+// The passenger slice through the real router: Home → Search → Match Results,
+// and back again.
 //
-// Back behaviour is as much a product decision as the pixels, so it is
-// asserted rather than assumed: Matches and Details push OVER the shell (no
-// tab bar), popping Matches returns to the Search tab with its draft intact,
-// and a system back on any secondary tab returns to Home instead of leaving
-// the app.
+// IT NOW STOPS AT THE RESULTS
+//
+// Match Results is server-backed and Route Details is still a fixture, so a
+// real result deliberately leads nowhere: opening those details would put a
+// real member's name above an invented vehicle, plate and cost. Route Details
+// is still reachable from Home, which is still openly a fixture, and that path
+// is asserted below so the screen does not quietly become unreachable.
+//
+// Back behaviour is as much a product decision as the pixels: Matches pushes
+// OVER the shell (no tab bar), popping it returns to the Search tab with its
+// draft intact, and a system back on any secondary tab returns to Home rather
+// than leaving the app.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -19,11 +26,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
-import 'package:ridemate/core/places/mock_places.dart';
+import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/discovered_route.dart';
+import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
+import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
 import 'package:ridemate/features/discovery/application/discovery_providers.dart';
+import 'package:ridemate/features/discovery/application/discovery_search_providers.dart';
+import 'package:ridemate/features/discovery/data/discovery_repository.dart';
 import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
-import 'package:ridemate/features/discovery/domain/search_draft.dart';
 import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/discovery/presentation/search_screen.dart';
@@ -62,6 +74,34 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
         profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+        placeRepositoryProvider.overrideWithValue(FakePlaceRepository()),
+        discoveryRepositoryProvider.overrideWithValue(
+          FakeDiscoveryRepository(
+            pages: <DiscoveryResult>[
+              DiscoveryResult(
+                routes: <DiscoveredRoute>[
+                  DiscoveredRoute(
+                    id: 'r1',
+                    origin: kFakePlaces[0],
+                    destination: kFakePlaces[1],
+                    recurrence: Recurrence.weekdays,
+                    departureDate: null,
+                    departureTime: const DepartureTime(hour: 8, minute: 25),
+                    timezone: 'Europe/Istanbul',
+                    departureState: DepartureState.upcoming,
+                    seatsOffered: 3,
+                    rules: const <RideRuleId>{RideRuleId.noSmoking},
+                    driver: const DiscoveredDriver(
+                      displayName: 'İrem Yılmaz',
+                      initials: 'İY',
+                    ),
+                  ),
+                ],
+                nextCursor: null,
+              ),
+            ],
+          ),
+        ),
       ],
       child: const RideMateApp(),
     ),
@@ -85,7 +125,7 @@ void main() {
   setUpAll(loadRideMateFonts);
 
   group('Passenger discovery flow', () {
-    testWidgets('runs from Search all the way to Route Details and back', (
+    testWidgets('runs from Search to the results and back', (
       WidgetTester tester,
     ) async {
       await _pumpApp(tester);
@@ -98,20 +138,31 @@ void main() {
       // deviation D-search-1.
       expect(find.byType(RmNavBar), findsOneWidget);
 
-      await tester.tap(find.text('Eşleşmeleri gör · 3 sonuç'));
+      // Two endpoints from the server's catalogue, which is what the query
+      // needs; there is nothing else to fill in.
+      await tester.tap(find.text('Kalkış noktası seç'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kFakePlaces[0].label).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Varış noktası seç'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kFakePlaces[1].label).last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Yolculukları ara'));
       await tester.pumpAndSettle();
       expect(find.byType(MatchResultsScreen), findsOneWidget);
       // Pushed over the shell: the design draws no tab bar here.
       expect(find.byType(RmNavBar), findsNothing);
+      expect(find.text('İrem Yılmaz'), findsOneWidget);
 
-      await tester.tap(find.text('İncele').first);
+      /// CARRIES WEIGHT. A real result goes nowhere.
+      ///
+      /// Route Details is fixture-backed and Phase 12 does not migrate it, so
+      /// tapping through would show a real name above invented details.
+      await tester.tap(find.text('İrem Yılmaz'));
       await tester.pumpAndSettle();
-      expect(find.byType(RouteDetailsScreen), findsOneWidget);
-      expect(find.text('Selin K.'), findsOneWidget);
-      expect(find.text('Güven Puanı'), findsOneWidget);
-
-      await tester.tap(find.bySemanticsLabel('Geri').first);
-      await tester.pumpAndSettle();
+      expect(find.byType(RouteDetailsScreen), findsNothing);
       expect(find.byType(MatchResultsScreen), findsOneWidget);
 
       await tester.tap(find.bySemanticsLabel('Geri').first);
@@ -161,10 +212,9 @@ void main() {
       await tester.tap(_navTab('Ara'));
       await tester.pumpAndSettle();
 
-      // Edit the journey, then leave the tab entirely.
-      await tester.tap(find.text('Levent, Metro İstasyonu'));
+      await tester.tap(find.text('Varış noktası seç'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Ataşehir, Palladium').last);
+      await tester.tap(find.text(kFakePlaces[1].label).last);
       await tester.pumpAndSettle();
 
       await tester.tap(_navTab('Profil'));
@@ -172,34 +222,35 @@ void main() {
       await tester.tap(_navTab('Ara'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Ataşehir, Palladium'), findsOneWidget);
-      expect(
-        container.read(searchDraftProvider).destination,
-        MockPlaces.atasehir,
-      );
+      expect(find.text(kFakePlaces[1].label), findsOneWidget);
+      expect(container.read(searchDraftProvider).destination, kFakePlaces[1]);
     });
 
-    testWidgets('the results screen echoes the edited draft', (
+    /// The results reflect the query that was submitted, not the draft as it
+    /// stands. Editing the draft afterwards changes nothing until the member
+    /// searches again — the alternative is a list that silently disagrees with
+    /// the request that produced it.
+    testWidgets('the results reflect the submitted query', (
       WidgetTester tester,
     ) async {
       final ProviderContainer container = await _pumpApp(tester);
-      container
-          .read(searchDraftProvider.notifier)
-          .setSort(MatchSortOption.cheapest);
 
       await tester.tap(_navTab('Ara'));
       await tester.pumpAndSettle();
-      await tester.tap(
-        find.bySemanticsLabel('Kalkış ve varış noktalarını değiştir'),
-      );
+      await tester.tap(find.text('Kalkış noktası seç'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Eşleşmeleri gör · 3 sonuç'));
+      await tester.tap(find.text(kFakePlaces[0].label).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Varış noktası seç'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kFakePlaces[1].label).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Yolculukları ara'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Levent → Kadıköy · Yarın 08:30'), findsOneWidget);
-      // The sort chosen before navigating is still the one in effect.
-      expect(find.text('₺14'), findsOneWidget);
-      expect(container.read(routeOffersProvider).first, MockRouteOffers.emre);
+      final DiscoveryQuery? query = container.read(discoveryQueryProvider);
+      expect(query?.originPlaceId, kFakePlaces[0].id);
+      expect(query?.destinationPlaceId, kFakePlaces[1].id);
     });
   });
 

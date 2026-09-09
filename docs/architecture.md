@@ -1,14 +1,15 @@
 # RideMate — Architecture
 
-> **Status:** Phase 10 complete. Every approved screen is built, the repository has a
+> **Status:** Phase 12 complete. Every approved screen is built, the repository has a
 > production floor — CI, fail-closed release signing, application error handling, persisted
-> preferences — and two things are now genuinely server-backed: **signing in** (Phase 9) and
-> **publishing a journey, listing your own and cancelling one** (Phase 10).
+> preferences — and four things are now genuinely server-backed: **signing in** (Phase 9),
+> **publishing a journey, listing your own and cancelling one** (Phase 10), **the member's own
+> name and initials** (Phase 11), and **finding somebody else's journey** (Phase 12).
 >
-> Home, Search, Match Results and Route Details remain **fixture-backed**, and this document
-> says which is which rather than letting real data next door imply coverage. Active Trip and
-> the Safety Center are debug-only. Messages remains the one placeholder, because the design
-> has no conversation list.
+> Home and Route Details remain **fixture-backed**, and this document says which is which
+> rather than letting real data next door imply coverage. Active Trip and the Safety Center
+> are debug-only. Messages remains the one placeholder, because the design has no conversation
+> list.
 >
 > **Production sign-in is not operational until an SMS adapter is configured** — a beta
 > blocker, not a phase.
@@ -24,9 +25,10 @@ blocking, trip sharing, and SOS.
 All values visible in the **design reference** (amounts, Trust Scores, names, routes) are
 **mock data**. No backend or business rule is inferred from them — that rule has not moved.
 
-What changed in Phase 10 is that some screens no longer read from fixtures at all: Create
-Route's places, departure and publication, and the whole of My Routes, come from the server.
-Everything a *fixture* still feeds is named in *Backend boundary* below.
+What changed from Phase 10 onward is that some screens no longer read from fixtures at all:
+Create Route's places, departure and publication, the whole of My Routes, the member's own
+Profile identity, and — since Phase 12 — Search and Match Results. Everything a *fixture*
+still feeds is named in *Backend boundary* below.
 
 ## Current structure
 
@@ -45,7 +47,7 @@ lib/
 │   ├── format/                     # RmFormatters, RmTextConventions
 │   ├── icons/rm_icons.dart         # 25-icon registry
 │   ├── id/rm_uuid.dart             # RmUuidGenerator — the only UUID seam
-│   ├── places/                     # Place + the İstanbul fixtures Search still uses
+│   ├── places/                     # Place + İstanbul fixtures no real path reads
 │   ├── routes/                     # the server's route projection, shared by two features
 │   ├── session/                    # RmSession, credential store
 │   ├── theme/
@@ -70,18 +72,25 @@ lib/
 └── l10n/                           # ARBs + committed generated localizations
 ```
 
-`core/places/` holds `Place` and the İstanbul fixtures **Search** still chooses from. Create
-Route stopped using them in Phase 10: its endpoints come from `GET /api/v1/places`, and a
-guard asserts the feature never mentions `mock_places` — a fixture there would be a list the
-server has never heard of.
+`core/places/` holds `Place`, and the İstanbul fixtures that no longer feed any real path.
+Create Route stopped using them in Phase 10 and **Search in Phase 12**: both take their
+endpoints from `GET /api/v1/places`, and a guard asserts neither feature mentions
+`mock_places` — a fixture there would be an id the server has never heard of, so discovery
+would find nothing and publishing would fail on a place nobody has.
+
+The Phase 10 guard asserting Search *did* still choose from fixtures was inverted rather than
+deleted. It was true and deliberate while Search had no query to run; once it had one, the
+same concern — a picker offering places the backend does not recognise — pointed the other
+way.
 
 `core/routes/` is the server's route projection — `PublishedRoute`, `Recurrence`, the
 departure value types, `RideRuleId` and the decoder that reads all of them. It is
 **source-neutral** because two features consume it.
 
-`discovery/` is one slice rather than three features: `RouteOffer` feeds both the match
-card and the details screen, and splitting them would force a cross-feature domain
-import for no gain.
+`discovery/` is one slice rather than three features. It is now **mixed**: Search and Match
+Results read the server, while Route Details is still fixture-backed and `RouteOffer` exists
+only to feed it. That boundary runs inside a feature, so it is stated rather than implied —
+see *Route Details is still a fixture, and nothing real walks into it* below.
 
 **Features never import each other.** When Create Route needed the same İstanbul places
 and the same picker sheet as Search, the shared vocabulary moved to `core/places/` and
@@ -297,24 +306,31 @@ no `aggregateRatings`, no `ratingFromDistribution` and no bucket-count derivatio
 ### Matching, ranking and cost sharing are never computed here
 
 The same rule as the Trust Score, applied to discovery. There is no
-`calculateCompatibility`, `calculateFare` or `rankMatches`, and no comparator anywhere.
-`RouteOffer` carries every figure the UI shows — compatibility, cost share, trust score,
-approval rate — and the widgets render what they are handed.
+`calculateCompatibility`, `calculateFare` or `rankMatches`, and no comparator anywhere. The
+one screen that shows real journeys renders them in the order the server sent them.
 
-Sorting is the case worth spelling out. A sort chip that visibly does nothing reads as
-broken, but sorting "most compatible" in code would mean the client had authored the
-ranking rule for a matching engine that does not exist and will be backend-owned. So
-`MockRouteOffers.orderBySort` **declares** an order per option and `orderedFor` is a
-lookup, not a sort. Tests assert it echoes the declared list verbatim.
+Sorting and filtering were the cases worth spelling out, and Phase 12 settled them by
+**removing the controls rather than keeping them inert**. While results were a fixture, a
+sort chip that reordered a declared list and a filter that changed nothing were honest
+enough — there was nothing to be wrong about. Once the results came from the server the same
+controls became claims: `Doğrulanmış` beside journeys the backend returned reads as a filter
+the backend applied, and `En iyi eşleşme` reads as a ranking. The endpoint accepts two place
+ids and refuses everything else, so both readings would have been false.
 
-The search filters change no results at all. Filtering even a mock list would define how
-RideMate applies these preferences, which is a backend, legal and product decision.
+Collecting a preference and discarding it is how a member learns to trust a filter that does
+not exist, so the seat count, the five trust filters, the date control and the sort order left
+the real search path with the fixture. What remains says only what is true: *En son
+yayınlananlar önce*.
 
-**`Kadın sürücü` needs legal, safety and product review for Türkiye before it is ever
-connected to a matching engine.** Gender-based matching in transport is regulated. The
-chip renders and toggles as designed and is flagged in code as
-`kFilterNeedingPolicyReview`; a test asserts in particular that it filters and reorders
-nothing.
+**`Kadın sürücü` still needs legal, safety and product review for Türkiye before any form of
+it is connected to matching.** Gender-based matching in transport is regulated. The control no
+longer exists on the real search path, so nothing collects or applies the preference today —
+which is a stronger position than the Phase 3 chip that rendered and did nothing, not a
+resolution of the question. The review requirement stands, and this states it without
+asserting how any particular law applies.
+
+Route Details still renders `RouteOffer`'s figures — compatibility, cost share, trust score,
+approval rate — because it is still a fixture screen and reaches no server. See below.
 
 ### Presence is not verification
 
@@ -465,7 +481,7 @@ Back behaviour is asserted, not assumed:
 
 | From | Back goes to | Mechanism |
 |---|---|---|
-| Route Details | Match Results | `pop` |
+| Route Details | Match Results | `pop` — reached from Home, not from a discovered result |
 | Match Results | Search, draft intact | `pop` — the shell stayed mounted underneath |
 | any secondary tab | **Home**, then exits | `PopScope` in `AppShell` |
 
@@ -618,13 +634,14 @@ tunnel, on evidence the app never had. Those outcomes sign the PROCESS out and l
 alone, and the next launch tries again from the same credential. Only a 401 or a 403 removes
 it, because only the server can say it is unusable.
 
-**Still fixtures, and honestly so:** Profile including Trust Score, tier and factors; Home;
-Search, Match Results and Route Details, with their offers, people and amounts; Active Trip;
-Reviews; Safety. Email, identity, selfie and licence verification do not exist on either side.
+**Still fixtures, and honestly so:** the Trust Score, its tier and its factors on Profile;
+Home; Route Details, with its offer, its person and its amounts; Active Trip; Reviews; Safety.
+Email, identity, selfie and licence verification do not exist on either side.
 
-Those four discovery surfaces make **no server claim at all**, which is what keeps their
-fixture amounts honest. Create Route is no longer among them — see below — and the boundary
-now runs *through* the product rather than around it, so this list is worth keeping exact.
+Those surfaces make **no server claim at all**, which is what keeps their fixture amounts
+honest. Create Route left the list in Phase 10, the member's own name and initials in Phase 11,
+and Search and Match Results in Phase 12. The boundary now runs *through* the product — and,
+inside Discovery, *through a single feature* — so this list is worth keeping exact.
 
 **Authentication being implemented is not the same as sign-in being operational.** A
 production SMS adapter is not configured; until one is, nobody outside a test receives a
@@ -722,6 +739,52 @@ truth.
 **`seats_offered` means offered seats, never currently available.** Nothing has requested a
 seat — there is no seat-request model to subtract from — so the copy says *offered* and a test
 asserts the Create Route wording (`BOŞ KOLTUK`) does not leak onto the server-backed card.
+
+### What Phase 12 made real, and the rules it runs on
+
+One endpoint: `GET /api/v1/routes/discover`. Search sends an origin id and a destination id;
+Match Results renders what comes back. **Why the server matches exact endpoints, orders by
+recency and exposes only a name and two letters is the backend's decision to hold** — it is
+recorded once, in the backend repository's `docs/decisions/0008-discovery-v1.md`, and is not
+restated here. What follows is what the *client* is bound to.
+
+**There is no fixture fallback on a failed search.** A failed discovery read shows the failure
+and a Retry, never `MockRouteOffers`. Substituting invented people for a network error is
+worse here than anywhere else in the app: the fixtures are strangers with ratings and trust
+scores, and the screen exists to help somebody decide whether to get into a car.
+
+**The ordering copy states recency and nothing else** — *En son yayınlananlar önce*. Never
+best, recommended, closest, soonest or most compatible. The client does not sort, and the
+words on the screen must not describe an ordering the server did not perform.
+
+**The driver's initials are the server's**, rendered exactly as received. Turkish casing makes
+them a rule rather than a formatting detail (`i` → `İ`, `ı` → `I`), so deriving them here would
+be authoring a rule the backend owns. A guard asserts nothing under `features/discovery`
+computes them.
+
+**`seats_offered` is offered, not available.** Nothing can request a seat yet, so there is
+nothing to subtract, and the copy never says remaining, free or available.
+
+**The card shows nothing else.** No rating, verified badge, trip count, shared-route count,
+trust score, approval rate, compatibility percentage, walking minutes, distance, savings or
+cost. The design's match card drew eleven such figures; each names a phase that has not
+happened. `MatchCard` was **replaced rather than narrowed**, because a trimmed class keeps
+every withdrawn field alive in its type, waiting for some later widget to read one again.
+
+**There is no join or request-seat action.** Asking for a seat is Phase 13, and a button that
+did nothing would be worse than no button.
+
+### Route Details is still a fixture, and nothing real walks into it
+
+A discovered route card is deliberately **not tappable**. Route Details reads
+`MockRouteOffers.byId`, so opening a real result there would put a real member's real name
+above an invented vehicle, an invented plate, an invented rating and an invented cost — the
+exact hybrid every other rule in this document exists to prevent.
+
+So the boundary is named rather than assumed: **`RouteOffer` and `MockRouteOffers` survive for
+Route Details alone**, and that screen stays fixture-only until its own migration. A truthful
+card that goes nowhere is a better answer than a tap into fabricated details, and the missing
+navigation is a decision recorded here, not an unfinished edge.
 
 The base URL is **build-time configuration** — `--dart-define=RIDEMATE_API_BASE_URL` — with no
 default and no production URL in the repository. An absent or unusable value fails at startup
@@ -824,29 +887,35 @@ distance, duration, seats, recurrence, route or vehicle, and **no total is displ
 anywhere**: `seats × costShare` would be both a formula this layer may not author and a
 driver-earnings claim the product does not make.
 
-Fixture amounts survive only on Home, Match Results and Route Details, which make no server
-claim.
+Fixture amounts survive only on Home and Route Details, which make no server claim. Match
+Results left that list in Phase 12: the card shows no amount at all, because a cost beside a
+real member's real journey would be the product quoting a price.
 
 Vocabulary inside `create_route/` stays on the design's own words — `KİŞİ BAŞI`,
 `maliyet paylaşımı` — and never becomes fare, price, earnings, income, payout or revenue.
 
 ### Ride rules are published rules, not eligibility
 
-A driver's `RideRuleId` and a passenger's `SearchFilterId` carry some of the same words
-(`Sigara yok`) from opposite sides of the same conversation. They stay separate types in
-separate features; reconciling them is a backend concern.
+A driver's `RideRuleId` and a passenger's search preferences carried some of the same words
+(`Sigara yok`) from opposite sides of the same conversation. They were separate types in
+separate features, because reconciling them is a backend concern — and Phase 12 removed the
+passenger side entirely rather than send it to an endpoint that does not accept it. A
+published route's rules are shown on a discovered card; nothing filters by them.
 
-Neither drives any behaviour. `kRuleNeedingPolicyReview` marks `Evcil hayvan yok` the way
-`kFilterNeedingPolicyReview` marks `Kadın sürücü`: it is a policy-sensitive preference,
-the client enforces no eligibility from it, and connecting it to real matching requires
-legal, accessibility and product review first. Those markers record a review requirement
-and assert nothing about how any particular law applies.
+Rules drive no behaviour on either side. `kRuleNeedingPolicyReview` marks `Evcil hayvan yok`:
+it is a policy-sensitive preference, the client enforces no eligibility from it, and
+connecting it to real matching requires legal, accessibility and product review first. The
+`Kadın sürücü` marker went with the filter set it annotated; the review requirement it
+recorded does not disappear with the control, and is restated in *Matching, ranking and cost
+sharing* above. These markers record a review requirement and assert nothing about how any
+particular law applies.
 
 ## Actions that do not exist yet say so
 
 `İstek gönder` on Route Details shows a localized *"Yolculuk isteği özelliği yakında
 eklenecek."* and creates **no** sent state: it does not flip the button, mutate the offer
-or start a request lifecycle. Nothing was sent anywhere, and claiming otherwise is the
+or start a request lifecycle. A discovered result offers no such control at all — that screen
+is server-backed, so an inert button on it would be the server appearing to accept something. Nothing was sent anywhere, and claiming otherwise is the
 wrong thing to encode in a trust product. When a backend exists the flow becomes
 request → server acknowledgement → pending → accepted/declined, and only then may the UI
 claim anything was sent.
@@ -891,20 +960,20 @@ correct, and Phase 10 found no consumer for one.
 
 ## Roadmap
 
-Phase 11 onward, in dependency order. The ordering is not a preference: **Discovery cannot
+Phase 13 onward, in dependency order. The ordering was not a preference: **Discovery could not
 come next**, and finding that out is what shaped Phase 10.
 
-A match card renders eleven data points and only four could be backend-owned today. The rest
-name a driver, a rating, a verified badge, a trip count, an approval rate and a Trust Score —
-each of which names a phase that must come first. Migrating Discovery earlier would mean
-inventing people and putting them on the one screen whose whole purpose is to suggest a
-stranger worth travelling with.
+The design's match card renders eleven data points and only four could be backend-owned at the
+time. The rest named a driver, a rating, a verified badge, a trip count, an approval rate and a
+Trust Score — each naming a phase that had to come first. Phase 11 supplied the driver's name;
+Phase 12 then shipped discovery with the four honest fields and **withdrew the other seven from
+the screen** rather than inventing them.
 
 | Phase | Scope | Unblocks |
 |---|---|---|
-| 11 | **Profile minimum** | a name and initials — another member can finally be named honestly |
-| 12 | **Discovery & corridor matching** | route occurrences, the first PostGIS corridor query and its index, the first real feed, and a reduced but truthful card |
-| 13 | **Seat requests** | seat availability finally changes; approval rate gets a source |
+| 11 | **Profile minimum** ✅ | a name and initials — another member can finally be named honestly |
+| 12 | **Discovery** ✅ | a real search over published journeys, and a card reduced to what the server knows |
+| 13 | **Seat requests** | seat availability becomes a real quantity; a discovered route gains something to do; approval rate gets a source |
 | 14 | **Trip lifecycle** | trip counts |
 | 15 | **Reviews** | ratings |
 | 16 | **Verification** | the verified state and its badge |
@@ -914,9 +983,13 @@ stranger worth travelling with.
 maps vendor — added when a real map or routing consumer exists — and the **production SMS
 adapter**, which is a beta blocker rather than a phase.
 
-Phase 12 is also when `searchSubmit` must change: *"Eşleşmeleri gör · {count} sonuç"* renders
-a live result count **before** the search runs, which is honest only while the results are a
-fixture.
+Phase 12 did change `searchSubmit`: *"Eşleşmeleri gör · {count} sonuç"* rendered a live result
+count **before** the search ran, which was honest only while the results were a fixture. It
+takes no count now, and the CTA stays disabled until two different endpoints are chosen.
+
+**Route Details is the discovery migration that remains.** It needs a vehicle, a cost-sharing
+figure with a real provenance, and most of the trust surface — so it is not one phase's work,
+and until it is done a real discovered route deliberately does not open it.
 
 ## Testing
 

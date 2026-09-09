@@ -9,15 +9,20 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 9 — members can sign in.**
+**Phase 12 — members can find a journey.**
 The design system (Phase 1) is done, and Onboarding, Home, Search, Match Results, Route
-Details, Create route, Chat, Profile and Reviews are implemented. Phase 9 adds the two
-screens the design implies and never draws: phone entry and passcode entry.
+Details, Create route, Chat, Profile and Reviews are implemented, plus the two screens the
+design implies and never draws: phone entry and passcode entry, and one it does not draw at
+all — My Routes.
 
 **Signing in is real.** Phone number → one-time passcode → a session that survives a restart,
 rotates its credential, detects a stolen refresh token, and can be revoked. Registration and
 sign-in are one flow, because a verified number either belongs to an account or does not and
 the server decides which — so asking cannot reveal who is already a member.
+
+**Publishing, listing and cancelling a journey are real** (Phase 10), **the member's own name
+and initials are real** (Phase 11), and **discovery is real** (Phase 12): Search sends two
+catalogue endpoints and Match Results renders the journeys the server returns, newest first.
 
 Active Trip, the Safety Center and now **Verification** are built and tested but reachable
 **only in debug builds**. Verification joined them because its email step reads `Doğrulandı`
@@ -29,20 +34,21 @@ return.
 
 Messages is the one remaining placeholder, because the design has no conversation list.
 
-**Everything except authentication is still mock presentation data** — Profile including
-Trust Score, Home, Search, route offers, Create Route, Active Trip, Reviews and Safety. There
-is no identity-verification provider, no payments, no location and no maps vendor, and no
-matching, ranking or scoring logic anywhere in the client.
+**Still mock presentation data** — the Trust Score with its tier and factors, Home, Route
+Details, Active Trip, Reviews and Safety. There is no identity-verification provider, no
+payments, no location and no maps vendor.
 
 **Production sign-in is not operational until an SMS adapter is configured.**
 
 Nothing is computed from that data either: there is no matching, ranking, pricing or
-Trust Score logic anywhere in the client. The search filters change no results, and
-**`Kadın sürücü` and `Evcil hayvan yok` are presentation only, pending legal, safety and
-product review.** The Create route cost share is read-only for the same reason.
-`İstek gönder` and `Rotayı yayınla` show honest messages and create no sent or published
-state, because nothing was sent or published. See
-[`docs/architecture.md`](docs/architecture.md).
+Trust Score logic anywhere in the client, and a real discovered journey is rendered in the
+order the server sent it. Phase 12 **removed** Search's seat, date, sort and trust filters
+rather than collecting values the endpoint does not accept — a control whose preference never
+reaches the server teaches a member to trust a filter that does not exist. `Evcil hayvan yok`
+remains presentation only, pending legal, safety and product review. The Create route cost
+share is read-only for the same reason. `İstek gönder` on the fixture-backed Route Details
+shows an honest message and creates no sent state; a discovered result offers no such control
+at all. See [`docs/architecture.md`](docs/architecture.md).
 
 Chat sends nothing. There is no messaging backend, no delivery or read state and no
 typing indicator, so the send button says plainly that the message was not sent and adds
@@ -187,4 +193,6 @@ iOS requires macOS with Xcode.
 All twelve are now implemented.
 
 All values visible in it — amounts, Trust Scores, names, routes — are **mock data**.
-No backend or business rule is inferred from them.
+No backend or business rule is inferred from them, and the file is not authoritative for
+facts the backend does not know: where a comp draws a figure no service can supply, the
+figure is removed rather than simulated. `docs/design-system.md` records each such case.

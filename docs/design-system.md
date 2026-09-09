@@ -63,6 +63,16 @@ claimed a capability that does not exist (`D-chat-3`), and its emoji were *kept*
 missing glyph in the bundled fonts is a technical problem, not a licence to reword approved
 copy (`D-chat-2`).
 
+**The prototype is not authoritative for facts the backend does not know.** It is authoritative
+for layout, vocabulary, colour, spacing and interaction — everything it is actually a design
+of. It is not evidence that a rating, a trust score, a compatibility percentage or a cost can
+be shown, because a comp can draw any figure and a service cannot return one it has no source
+for. Where the two collide, **the unsupported density is removed, not simulated**: a plausible
+number rendered in the approved position is indistinguishable from a real one, and the member
+cannot tell which they are looking at. `D-create-6` applied this to a cost tile in Phase 10 and
+`D-matches-1` to seven fields in Phase 12; the design file keeps every one of them, and they
+return when something can supply them.
+
 ### 2.2 Deviations recorded during implementation
 
 | # | Deviation | Reason |
@@ -102,6 +112,10 @@ copy (`D-chat-2`).
 | **D-profile-2** | The tier badge's `★` is an **icon**, never text | `Üst %8 · Güvenilir` opens with U+2605, which is absent from both bundled families. `D-icon-4` applies verbatim. |
 | **D-profile-3** | Profile's **three stat tiles stack** at large text scales instead of sharing a row | `₺2.1k` is five mono glyphs and is the entire content of its tile. Three of them across a 360dp screen at 1.6 would have to shrink the figure until it is unreadable, and the figure is the tile. Same trade as `D-trip-3`. |
 | **D-profile-4** | The breakdown's label and value columns are **measured**, not fixed at the comp's 74px and 30px | Those are artboard measurements of one Turkish string set at one size; `Güvenilirlik` outgrows 74px before the maximum text scale. One shared width is measured across the four rows so the bars still start on a common axis, and the rows stack once the bar can no longer hold a readable width. |
+| **D-matches-1** | The match card **drops seven of its eleven fields**: rating, verified badge, trip count, shared-route count, trust score, approval rate and compatibility percentage — along with walking minutes, distance and cost | Phase 12 made these results real people. The comp's density was harmless while the whole card was invented; beside a member's actual name it is the app vouching for a stranger it knows nothing about, on the one screen whose purpose is deciding whether to travel with them. Each field names a phase that has not happened (13–17). What remains is what the endpoint returns: name, server initials, endpoints, departure, offered seats and the driver's own rules. The card was **rebuilt, not thinned** — narrowing the old widget would have left every withdrawn field alive in its type. |
+| **D-matches-2** | The card is **not tappable**, and there is **no seat-request action** on it | Route Details is still fixture-backed, so opening a real result would put a real name above an invented vehicle, plate and cost. A truthful card that goes nowhere beats a tap into fabricated details, and a request button that sends nothing would be the screen claiming the server accepted something. Both return in Phase 13. |
+| **D-matches-3** | The **sort row is removed**, not disabled | The comp offers *En iyi eşleşme · En yakın · En ucuz*. Each names a ranking, and the service performs none: results arrive newest-first and the header says so. A disabled or inert sort row still tells the member a ranking exists. |
+| **D-search-3** | Search **loses its seat stepper, its five trust filters, its date tile and its recent searches** | The endpoint accepts two place ids and refuses everything else. A `Doğrulanmış` chip beside real results reads as a filter the server applied; collecting the value and discarding it is how a member learns to trust a control that does nothing. `NE ZAMAN` goes with them — discovery searches published plans, not dates. The from/to card, the swap control and the docked CTA are untouched. |
 | **D-reviews-1** | The five-star row is **five icons under one semantics node** | The comp prints `★★★★★` literally. Beyond `D-icon-4`, five separate announcements say nothing the rating does not, so the row announces once as `5 üzerinden 4,9`. |
 | **D-safety-1** | The Safety Center has **no back control**, and its route is **absent from release builds** | Its comp has no back control, and `D-trip-1`'s reasoning applies: it is pushed from Active Trip in debug builds and there is nothing beneath a cold deep link. Withholding the route is separate and stronger — see §8. |
 | **D-safety-2** | Dark **keeps the block/report row and the full SOS promise** that the dark comp drops | The dark artboard omits `Kullanıcı engelle / bildir` entirely and shortens the SOS sentence. `D-home-1` already settled this class: dark re-palettes a screen, it never removes information from it — and a safety affordance that disappears at night is a regression. One ARB message also cannot be theme-dependent, so the light superset ships in both. |
@@ -214,7 +228,8 @@ Effective scale after ×1.4239 and snapping to 4: **4 / 8 / 12 / 16 / 20 / 24 / 
 x-small, outline small, outline full-width w/ icon, destructive (SOS), icon-only
 (48/40/34), FAB, stepper ±.
 
-**Cards** — match card in **three ranked density tiers** (best / default / condensed),
+**Cards** — match card in **three ranked density tiers** (best / default / condensed; the
+shipped discovered-route card is one untiered density — see `D-matches-1`),
 trust-score card, trust-ring hero, stat tile, route-timeline, vehicle, mutual-connection,
 review, rating-summary, quick-action tile, location-share message, from/to, selector tile.
 
@@ -265,7 +280,7 @@ Each was promoted to `core/` only because two or more approved screens use it.
 |---|---|
 | `RmJourneyMarker` | The hollow brand ring (origin) and solid ink teardrop (destination): Search's from/to card and Route Details' timeline, and the same vocabulary Home's map pins draw by hand. |
 | `RmCtaDock` | The docked action bar over a scrim fading from the background: Search and Route Details. |
-| `RmSelectorTile` | Search's `NE ZAMAN` and `KOLTUK` tiles. |
+| `RmSelectorTile` | Create Route's departure date and time tiles (`D-create-5`). It entered the design system for Search's `NE ZAMAN` and `KOLTUK` tiles; those left with `D-search-3`, and the primitive stayed because a second real consumer already had it. |
 | `RmStatTile` | Route Details' 3-up trust figures. |
 
 Layout notes worth keeping:

@@ -26,6 +26,8 @@ final class RmFailure implements Exception {
     required int this.status,
     required this.code,
     this.requestId,
+    this.reason,
+    this.currentStatus,
   });
 
   /// The backend never answered: no connection, a dropped socket, a timeout.
@@ -36,7 +38,9 @@ final class RmFailure implements Exception {
   const RmFailure.transport()
     : status = null,
       code = RmErrorCode.unexpected,
-      requestId = null;
+      requestId = null,
+      reason = null,
+      currentStatus = null;
 
   /// The HTTP status, or `null` when nothing was received.
   final int? status;
@@ -51,6 +55,25 @@ final class RmFailure implements Exception {
   /// this" affordance — which is what makes a screenshot enough to find the
   /// matching server log line.
   final String? requestId;
+
+  /// The stable machine string at `error.details.reason`, when one was sent.
+  ///
+  /// The API contract reserves exactly two scalar keys inside `details` —
+  /// `reason` and `current_status` — alongside the field-keyed arrays that
+  /// validation errors use. Both are preserved verbatim here and interpreted
+  /// nowhere in `core/`: which values exist, and what any of them means,
+  /// belongs to the feature that asked. This layer only refuses to lose them.
+  ///
+  /// A domain that needs one reads it from here. **Nothing may infer it from
+  /// `message`, which is developer-facing English no client displays, or from
+  /// the status alone, which several distinct outcomes share.**
+  final String? reason;
+
+  /// The state a resource is actually in, at `error.details.current_status`.
+  ///
+  /// Sent only where the backend judged the caller entitled to see it, so its
+  /// absence is meaningful and is never filled in from somewhere else.
+  final String? currentStatus;
 
   /// Whether the request never reached the backend.
   ///

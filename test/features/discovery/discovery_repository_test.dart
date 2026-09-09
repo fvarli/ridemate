@@ -58,6 +58,7 @@ void main() {
     String id = '01991b00-0000-7000-8000-0000000000a1',
     String recurrence = 'weekdays',
     Object? departureDate,
+    Map<String, Object?>? mySeatRequest,
   }) => <String, Object?>{
     'id': id,
     'origin': <String, Object?>{'id': 'p1', 'label': 'Kadıköy'},
@@ -78,6 +79,10 @@ void main() {
       'display_name': 'İrem Yılmaz',
       'initials': 'İY',
     },
+    // Required on the wire from Phase 13, null when the caller has not asked
+    // about this journey. Absent is not the same as null — the missing-field
+    // loop below proves that.
+    'my_seat_request': mySeatRequest,
   };
 
   Map<String, Object?> page(List<Object?> routes, {String? nextCursor}) =>
@@ -320,6 +325,7 @@ void main() {
       'seats_offered',
       'rules',
       'driver',
+      'my_seat_request',
     ]) {
       test('a row missing $field fails the response', () async {
         final Map<String, Object?> row = result()..remove(field);

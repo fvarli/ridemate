@@ -223,13 +223,35 @@ final class RmApiClient {
         ? error
         : null;
 
+    final Map<String, Object?>? details =
+        fields?['details'] is Map<String, Object?>
+        ? fields!['details'] as Map<String, Object?>
+        : null;
+
     return throw RmFailure.fromBackend(
       status: status,
       // Total by construction: a missing, malformed or unknown code all become
       // `unexpected` rather than throwing while handling a failure.
       code: RmErrorCode.fromWire(fields?['code']),
       requestId: _requestId(fields) ?? _requestIdHeader(response),
+      // The two reserved scalar keys, carried through verbatim and interpreted
+      // nowhere here. Anything else in `details` is a field-keyed array of
+      // validation messages and is not this layer's to surface. A non-string
+      // value is dropped rather than coerced: a caller matching on it must be
+      // matching on something the contract actually sent.
+      reason: _scalar(details, 'reason'),
+      currentStatus: _scalar(details, 'current_status'),
     );
+  }
+
+  /// One reserved scalar out of `details`, or null.
+  ///
+  /// A non-string value is dropped rather than coerced: a caller matching on
+  /// one of these must be matching on something the contract actually sent.
+  static String? _scalar(Map<String, Object?>? details, String key) {
+    final Object? value = details?[key];
+
+    return value is String ? value : null;
   }
 
   /// Decodes a JSON object body, or `null` if there is not one.

@@ -240,13 +240,28 @@ void main() {
     });
 
     /// And the enum is only ever built by name, from a response.
-    test('a departure state is only ever constructed by the decoder', () {
+    ///
+    /// Two decoders now do it — a discovered journey and the one a seat
+    /// request is about — and the list stays exact so a third is a decision.
+    /// The second assertion is the part that carries the invariant: whatever
+    /// is on this list must be a decoder in `core/`, so a feature cannot join
+    /// it by being added to the list, and business logic cannot build a
+    /// departure state by calling itself a decoder somewhere else.
+    test('a departure state is only ever constructed by a core decoder', () {
       final List<String> builders = <String>[
         for (final File file in dartFilesIn('lib'))
           if (code(file).contains('DepartureState.values')) file.path,
       ];
 
-      expect(builders, <String>['lib/core/routes/route_decoder.dart']);
+      expect(builders..sort(), <String>[
+        'lib/core/routes/route_decoder.dart',
+        'lib/core/seat_requests/seat_request_decoder.dart',
+      ]);
+
+      for (final String path in builders) {
+        expect(path, startsWith('lib/core/'));
+        expect(path, endsWith('_decoder.dart'));
+      }
     });
   });
 

@@ -86,6 +86,7 @@ DiscoveredRoute _route({
   seatsOffered: 3,
   rules: const <RideRuleId>{RideRuleId.noSmoking},
   driver: DiscoveredDriver(displayName: driver, initials: initials),
+  mySeatRequest: null,
 );
 
 void main() {

@@ -29,6 +29,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../places/place.dart';
+import '../seat_requests/seat_request.dart';
 import 'departure.dart';
 import 'published_route.dart';
 import 'ride_rule.dart';
@@ -74,6 +75,7 @@ final class DiscoveredRoute {
     required this.seatsOffered,
     required this.rules,
     required this.driver,
+    required this.mySeatRequest,
   });
 
   final String id;
@@ -100,6 +102,18 @@ final class DiscoveredRoute {
   final Set<RideRuleId> rules;
 
   final DiscoveredDriver driver;
+
+  /// The caller's own asking about this journey, or null if they have not.
+  ///
+  /// The one per-viewer field on an otherwise identical projection, and never
+  /// anybody else's. It is here so a card reloaded after a restart knows it
+  /// cannot ask again — without it the screen would offer an action the server
+  /// has already ruled out, and the member would find out by tapping.
+  ///
+  /// At most one exists: a member may create one seat request per journey for
+  /// that journey's lifetime, so a terminal status here never becomes
+  /// requestable again.
+  final MySeatRequestSummary? mySeatRequest;
 
   @override
   bool operator ==(Object other) =>

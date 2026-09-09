@@ -87,6 +87,13 @@ void main() {
         'lib/features/discovery/application/discovery_search_providers.dart',
         'lib/features/my_routes/application/my_routes_providers.dart',
         'lib/features/profile/application/my_profile_providers.dart',
+        // Two paginated READ surfaces in one file: a member's own askings and
+        // the ones on a journey they published. Asking, withdrawing, accepting
+        // and declining are commands and are deliberately not here — they are
+        // not provider reads, so there is nothing for `retry` to govern, and a
+        // command silently repeated ten times is a different and worse
+        // problem than a read that was.
+        'lib/features/seat_requests/application/seat_request_providers.dart',
       ]);
     });
 

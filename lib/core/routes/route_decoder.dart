@@ -20,6 +20,7 @@
 import '../api/rm_error_code.dart';
 import '../api/rm_failure.dart';
 import '../places/place.dart';
+import '../seat_requests/seat_request_decoder.dart';
 import 'departure.dart';
 import 'discovered_route.dart';
 import 'published_route.dart';
@@ -122,6 +123,8 @@ abstract final class RouteDecoder {
       seatsOffered: seats,
       rules: rules(value['rules'], status),
       driver: driver(value['driver'], status),
+      // Required on the wire, nullable in value. See SeatRequestDecoder.
+      mySeatRequest: SeatRequestDecoder.summary(value, status),
     );
   }
 

@@ -95,6 +95,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
                       displayName: 'İrem Yılmaz',
                       initials: 'İY',
                     ),
+                    mySeatRequest: null,
                   ),
                 ],
                 nextCursor: null,

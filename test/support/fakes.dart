@@ -560,6 +560,7 @@ DiscoveredRoute fakeDiscoveredRoute({
   Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
   String displayName = 'Ayşe Demir',
   String initials = 'AD',
+  Map<String, Object?>? mySeatRequest,
 }) => RouteDecoder.discovered(<String, Object?>{
   'id': id,
   'origin': <String, Object?>{'id': originId, 'label': originLabel},
@@ -578,4 +579,6 @@ DiscoveredRoute fakeDiscoveredRoute({
     'display_name': displayName,
     'initials': initials,
   },
+  // Required on the wire; null is the ordinary case.
+  'my_seat_request': mySeatRequest,
 }, 200);

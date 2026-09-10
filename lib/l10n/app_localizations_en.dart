@@ -270,6 +270,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get seatRequestUnavailable => 'This journey is no longer available';
 
   @override
+  String get myRequestsTitle => 'My requests';
+
+  @override
+  String get myRequestsSubtitle => 'Most recently sent first';
+
+  @override
+  String get myRequestsEmpty => 'You have not requested a seat yet';
+
+  @override
+  String get myRequestsEmptyBody =>
+      'Find a journey and request a seat, and it will appear here.';
+
+  @override
+  String get myRequestsLoadMore => 'Show more';
+
+  @override
+  String get myRequestsLoadMoreFailed =>
+      'The next requests could not be loaded';
+
+  @override
+  String get myRequestsWithdraw => 'Withdraw request';
+
+  @override
+  String get myRequestsWithdrawn => 'Request withdrawn';
+
+  @override
+  String get myRequestsWithdrawFailed => 'The request could not be withdrawn';
+
+  @override
+  String get myRequestsRouteCancelled => 'This journey was cancelled';
+
+  @override
+  String get myRequestsRouteDeparted => 'This journey has departed';
+
+  @override
+  String get myRequestsOpen => 'My requests';
+
+  @override
   String discoveryCardSemanticLabel(
     String driver,
     String journey,

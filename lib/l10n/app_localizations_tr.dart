@@ -270,6 +270,43 @@ class AppLocalizationsTr extends AppLocalizations {
   String get seatRequestUnavailable => 'Bu yolculuk artık geçerli değil';
 
   @override
+  String get myRequestsTitle => 'İsteklerim';
+
+  @override
+  String get myRequestsSubtitle => 'En son gönderilenler önce';
+
+  @override
+  String get myRequestsEmpty => 'Henüz koltuk istemedin';
+
+  @override
+  String get myRequestsEmptyBody =>
+      'Bir yolculuk bulup koltuk istediğinde burada görünür.';
+
+  @override
+  String get myRequestsLoadMore => 'Daha fazla göster';
+
+  @override
+  String get myRequestsLoadMoreFailed => 'Sonraki istekler yüklenemedi';
+
+  @override
+  String get myRequestsWithdraw => 'İsteği geri çek';
+
+  @override
+  String get myRequestsWithdrawn => 'İstek geri çekildi';
+
+  @override
+  String get myRequestsWithdrawFailed => 'İstek geri çekilemedi';
+
+  @override
+  String get myRequestsRouteCancelled => 'Bu yolculuk iptal edildi';
+
+  @override
+  String get myRequestsRouteDeparted => 'Bu yolculuk geçti';
+
+  @override
+  String get myRequestsOpen => 'İsteklerim';
+
+  @override
   String discoveryCardSemanticLabel(
     String driver,
     String journey,

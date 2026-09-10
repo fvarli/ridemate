@@ -25,12 +25,14 @@ class ProfileLinks extends StatelessWidget {
     required this.onEditProfile,
     required this.onOpenReviews,
     required this.onOpenMyRoutes,
+    required this.onOpenMyRequests,
     super.key,
   });
 
   final VoidCallback onEditProfile;
   final VoidCallback onOpenReviews;
   final VoidCallback onOpenMyRoutes;
+  final VoidCallback onOpenMyRequests;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +58,16 @@ class ProfileLinks extends StatelessWidget {
           tone: RmRowTone.primary,
           tintedIcon: false,
           onTap: onOpenMyRoutes,
+        ),
+        const SizedBox(height: RmSpacing.sm),
+        // The passenger side of the same history: what this member asked for,
+        // beside what they published.
+        RmListRow(
+          title: l10n.myRequestsOpen,
+          icon: RmIcons.check,
+          tone: RmRowTone.primary,
+          tintedIcon: false,
+          onTap: onOpenMyRequests,
         ),
         const SizedBox(height: RmSpacing.sm),
         // Still fixture-backed, and still only a link. It opens a screen that

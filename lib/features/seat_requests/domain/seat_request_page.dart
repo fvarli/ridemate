@@ -25,6 +25,7 @@ final class SeatRequestPage<T extends SeatRequestRow> {
     required this.nextCursor,
     this.isLoadingMore = false,
     this.loadMoreFailure,
+    this.withdrawing = const <String>{},
   });
 
   final List<T> requests;
@@ -33,6 +34,12 @@ final class SeatRequestPage<T extends SeatRequestRow> {
   final String? nextCursor;
 
   final bool isLoadingMore;
+
+  /// The rows whose withdrawal is in flight.
+  ///
+  /// Kept on the page rather than in a widget so the control stays disabled
+  /// while the member scrolls past it and back.
+  final Set<String> withdrawing;
 
   /// Why the page after this one did not arrive, if it did not.
   ///
@@ -44,17 +51,33 @@ final class SeatRequestPage<T extends SeatRequestRow> {
 
   bool get isEmpty => requests.isEmpty;
 
+  bool isWithdrawing(String requestId) => withdrawing.contains(requestId);
+
   SeatRequestPage<T> copyWith({
+    List<T>? requests,
     bool? isLoadingMore,
     RmFailure? loadMoreFailure,
     bool clearLoadMoreFailure = false,
+    Set<String>? withdrawing,
   }) => SeatRequestPage<T>(
-    requests: requests,
+    requests: requests ?? this.requests,
     nextCursor: nextCursor,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     loadMoreFailure: clearLoadMoreFailure
         ? null
         : loadMoreFailure ?? this.loadMoreFailure,
+    withdrawing: withdrawing ?? this.withdrawing,
+  );
+
+  /// One row replaced by the server's own version of it.
+  ///
+  /// By id, and only that row: the list keeps its order and every other row
+  /// keeps whatever the server last said about it.
+  SeatRequestPage<T> withRowReplaced(T row) => copyWith(
+    requests: <T>[
+      for (final T existing in requests)
+        if (existing.id == row.id) row else existing,
+    ],
   );
 
   /// The next page, with anything already held dropped.
@@ -72,6 +95,7 @@ final class SeatRequestPage<T extends SeatRequestRow> {
           if (known.add(row.id)) row,
       ],
       nextCursor: cursor,
+      withdrawing: withdrawing,
     );
   }
 }

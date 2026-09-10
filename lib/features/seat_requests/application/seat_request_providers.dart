@@ -29,6 +29,7 @@ import '../../../app/providers/session_provider.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/api/rm_retry.dart';
 import '../../../core/seat_requests/seat_request.dart';
+import '../../../core/seat_requests/seat_request_decoder.dart';
 import '../data/seat_request_repository.dart';
 import '../domain/seat_request_page.dart';
 
@@ -91,6 +92,74 @@ class MySeatRequestsController
 
     return (result.requests, result.nextCursor);
   }, (AsyncValue<SeatRequestPage<MySeatRequest>> next) => state = next);
+
+  /// Takes back one asking, replacing it with what the server returns.
+  ///
+  /// NEVER OPTIMISTIC. The row changes only after the server has said it is
+  /// withdrawn, and it changes to the server's own version of the request
+  /// rather than to a locally edited copy — the rule My Routes applies to
+  /// cancellation, for the same reason.
+  ///
+  /// Repeating it is safe by the endpoint's own shape: withdrawing something
+  /// already withdrawn is that withdrawal observed again, so it answers with
+  /// the request unchanged and this replaces the row with an identical one.
+  /// There is no second event to show.
+  ///
+  /// Returns the failure when there was one, so the caller can say so; the row
+  /// is left exactly as it was.
+  Future<RmFailure?> withdraw(String requestId) async {
+    final SeatRequestPage<MySeatRequest>? page = state.value;
+
+    // A repeated tap while this row is already withdrawing is the same
+    // intention arriving twice.
+    if (page == null || page.isWithdrawing(requestId)) return null;
+
+    state = AsyncData<SeatRequestPage<MySeatRequest>>(
+      page.copyWith(withdrawing: <String>{...page.withdrawing, requestId}),
+    );
+
+    try {
+      final MySeatRequest withdrawn = await ref
+          .read(seatRequestRepositoryProvider)
+          .withdraw(requestId);
+
+      _settle(requestId, replaceWith: withdrawn);
+
+      return null;
+    } on RmFailure catch (failure) {
+      _settle(requestId);
+
+      // The server has an opinion about this asking that this client's copy
+      // does not share — it was accepted, decided, or already withdrawn from
+      // somewhere else. None of those can be applied locally without inventing
+      // a transition nobody performed, so the list is re-read and whatever
+      // comes back is what is shown.
+      final SeatRequestRefusal? refusal = failure.seatRequestRefusal;
+
+      if (refusal == SeatRequestRefusal.alreadyAccepted ||
+          refusal == SeatRequestRefusal.alreadyDecided ||
+          refusal == SeatRequestRefusal.withdrawn) {
+        refresh();
+      }
+
+      return failure;
+    }
+  }
+
+  /// Clears the in-flight mark, and replaces the row when there is one.
+  void _settle(String requestId, {MySeatRequest? replaceWith}) {
+    final SeatRequestPage<MySeatRequest>? page = state.value;
+
+    if (page == null) return;
+
+    final SeatRequestPage<MySeatRequest> cleared = page.copyWith(
+      withdrawing: <String>{...page.withdrawing}..remove(requestId),
+    );
+
+    state = AsyncData<SeatRequestPage<MySeatRequest>>(
+      replaceWith == null ? cleared : cleared.withRowReplaced(replaceWith),
+    );
+  }
 }
 
 /// Who has asked for a seat on one of the caller's journeys.

@@ -560,6 +560,78 @@ abstract class AppLocalizations {
   /// **'Bu yolculuk artık geçerli değil'**
   String get seatRequestUnavailable;
 
+  /// Üyenin gönderdiği koltuk isteklerinin listesi. Kendi geçmişidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteklerim'**
+  String get myRequestsTitle;
+
+  /// Sıralama açıklaması. Sunucunun döndürdüğü sıradır; istemci sıralama yapmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'En son gönderilenler önce'**
+  String get myRequestsSubtitle;
+
+  /// Sunucu başarıyla yanıt verdi ve hiç istek yok. Hata DEĞİLDİR.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz koltuk istemedin'**
+  String get myRequestsEmpty;
+
+  /// Boş durumun açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir yolculuk bulup koltuk istediğinde burada görünür.'**
+  String get myRequestsEmptyBody;
+
+  /// Bir sonraki sayfayı ister.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get myRequestsLoadMore;
+
+  /// Sonraki sayfa gelmedi. Ekrandaki istekler yerinde kalır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki istekler yüklenemedi'**
+  String get myRequestsLoadMoreFailed;
+
+  /// Yalnızca yanıtlanmamış bir istek geri çekilebilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteği geri çek'**
+  String get myRequestsWithdraw;
+
+  /// Sunucu geri çekmeyi onayladıktan sonra gösterilen bilgi.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek geri çekildi'**
+  String get myRequestsWithdrawn;
+
+  /// Sunucuya ulaşılamadı veya sunucu reddetti. İstek olduğu gibi kaldı.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek geri çekilemedi'**
+  String get myRequestsWithdrawFailed;
+
+  /// Yolculuğun güncel durumu. İsteğin kendi durumundan ayrı bir gerçektir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk iptal edildi'**
+  String get myRequestsRouteCancelled;
+
+  /// Yolculuğun kalkışı geçmiş. İsteğin kendi durumundan ayrı bir gerçektir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk geçti'**
+  String get myRequestsRouteDeparted;
+
+  /// Profil ekranından İsteklerim listesine giden satır.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteklerim'**
+  String get myRequestsOpen;
+
   /// Bir sonuç kartının ekran okuyucu için tek parça okunuşu.
   ///
   /// In tr, this message translates to:

@@ -105,6 +105,7 @@ class _Loaded extends StatelessWidget {
           onEditProfile: () => context.pushNamed(AppRoutes.profileEdit),
           onOpenReviews: () => context.pushNamed(AppRoutes.reviews),
           onOpenMyRoutes: () => context.pushNamed(AppRoutes.myRoutes),
+          onOpenMyRequests: () => context.pushNamed(AppRoutes.myRequests),
         ),
       ),
       const SizedBox(height: RmSpacing.xl),

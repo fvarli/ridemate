@@ -85,6 +85,13 @@ abstract final class AppRoutes {
   static const String myRoutes = 'myRoutes';
   static const String myRoutesPath = '/me/routes';
 
+  /// What this member has asked for, reached from Profile. Same shape as My
+  /// Routes and for the same reason: a member's own history, above the shell,
+  /// with a back control and no tab bar. It reads a real endpoint, so it is
+  /// not behind kDebugMode either.
+  static const String myRequests = 'myRequests';
+  static const String myRequestsPath = '/me/seat-requests';
+
   /// The one screen a signed-in member without a profile can reach.
   ///
   /// Above the shell and reachable only by redirect: nothing links to it,

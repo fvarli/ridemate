@@ -36,6 +36,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/safety/presentation/safety_screen.dart';
+import '../../features/seat_requests/presentation/my_requests_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import '../../l10n/app_localizations.dart';
@@ -320,6 +321,13 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.myRoutes,
         builder: (BuildContext context, GoRouterState state) =>
             const MyRoutesScreen(),
+      ),
+      // The passenger half of the same idea, in the same place.
+      GoRoute(
+        path: AppRoutes.myRequestsPath,
+        name: AppRoutes.myRequests,
+        builder: (BuildContext context, GoRouterState state) =>
+            const MyRequestsScreen(),
       ),
       // Above the shell, and reached only by redirect: nothing links here.
       GoRoute(

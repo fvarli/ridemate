@@ -25,7 +25,7 @@ final class SeatRequestPage<T extends SeatRequestRow> {
     required this.nextCursor,
     this.isLoadingMore = false,
     this.loadMoreFailure,
-    this.withdrawing = const <String>{},
+    this.busy = const <String>{},
   });
 
   final List<T> requests;
@@ -35,11 +35,16 @@ final class SeatRequestPage<T extends SeatRequestRow> {
 
   final bool isLoadingMore;
 
-  /// The rows whose withdrawal is in flight.
+  /// The rows with a command in flight.
   ///
-  /// Kept on the page rather than in a widget so the control stays disabled
-  /// while the member scrolls past it and back.
-  final Set<String> withdrawing;
+  /// Keyed by request id rather than a single flag, so one row being decided
+  /// leaves every other row usable — and kept on the page rather than in a
+  /// widget, so the control stays disabled while the member scrolls past it
+  /// and back.
+  ///
+  /// Neutral about which command: a passenger withdraws, a driver accepts or
+  /// declines, and the page only cares that this row is busy.
+  final Set<String> busy;
 
   /// Why the page after this one did not arrive, if it did not.
   ///
@@ -51,14 +56,14 @@ final class SeatRequestPage<T extends SeatRequestRow> {
 
   bool get isEmpty => requests.isEmpty;
 
-  bool isWithdrawing(String requestId) => withdrawing.contains(requestId);
+  bool isBusy(String requestId) => busy.contains(requestId);
 
   SeatRequestPage<T> copyWith({
     List<T>? requests,
     bool? isLoadingMore,
     RmFailure? loadMoreFailure,
     bool clearLoadMoreFailure = false,
-    Set<String>? withdrawing,
+    Set<String>? busy,
   }) => SeatRequestPage<T>(
     requests: requests ?? this.requests,
     nextCursor: nextCursor,
@@ -66,7 +71,7 @@ final class SeatRequestPage<T extends SeatRequestRow> {
     loadMoreFailure: clearLoadMoreFailure
         ? null
         : loadMoreFailure ?? this.loadMoreFailure,
-    withdrawing: withdrawing ?? this.withdrawing,
+    busy: busy ?? this.busy,
   );
 
   /// One row replaced by the server's own version of it.
@@ -95,7 +100,7 @@ final class SeatRequestPage<T extends SeatRequestRow> {
           if (known.add(row.id)) row,
       ],
       nextCursor: cursor,
-      withdrawing: withdrawing,
+      busy: busy,
     );
   }
 }

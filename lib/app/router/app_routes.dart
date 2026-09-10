@@ -92,6 +92,18 @@ abstract final class AppRoutes {
   static const String myRequests = 'myRequests';
   static const String myRequestsPath = '/me/seat-requests';
 
+  /// Who has asked for a seat on one of this driver's journeys.
+  ///
+  /// Route-scoped, and reached only from the real My Routes card: a driver
+  /// holds several journeys and each has its own list. There is deliberately no
+  /// global inbox — nothing notifies anybody, so a single list of everything
+  /// would imply an arrival that never happens.
+  static const String routeRequests = 'routeRequests';
+  static const String routeRequestsPath = '/me/routes/:routeId/seat-requests';
+
+  static String routeRequestsPathFor(String routeId) =>
+      '/me/routes/$routeId/seat-requests';
+
   /// The one screen a signed-in member without a profile can reach.
   ///
   /// Above the shell and reachable only by redirect: nothing links to it,

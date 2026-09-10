@@ -308,6 +308,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myRequestsOpen => 'My requests';
 
   @override
+  String get routeRequestsOpen => 'Requests';
+
+  @override
+  String routeRequestsOpenSemanticLabel(String journey) {
+    return 'Incoming requests for $journey';
+  }
+
+  @override
+  String get routeRequestsTitle => 'Incoming requests';
+
+  @override
+  String get routeRequestsEmpty => 'No requests for this journey yet';
+
+  @override
+  String get routeRequestsEmptyBody =>
+      'When somebody requests a seat, it appears here.';
+
+  @override
+  String get routeRequestsLoadMore => 'Show more';
+
+  @override
+  String get routeRequestsLoadMoreFailed =>
+      'The next requests could not be loaded';
+
+  @override
+  String get routeRequestsAccept => 'Accept';
+
+  @override
+  String get routeRequestsDecline => 'Decline';
+
+  @override
+  String routeRequestsAcceptSemanticLabel(String passenger) {
+    return 'Accept $passenger\'s request';
+  }
+
+  @override
+  String routeRequestsDeclineSemanticLabel(String passenger) {
+    return 'Decline $passenger\'s request';
+  }
+
+  @override
+  String get routeRequestsAccepted => 'Request accepted';
+
+  @override
+  String get routeRequestsDeclined => 'Request declined';
+
+  @override
+  String get routeRequestsFull => 'Every offered seat has been given';
+
+  @override
+  String get routeRequestsRouteUnavailable =>
+      'This journey is no longer available';
+
+  @override
+  String get routeRequestsDecisionFailed => 'The request could not be answered';
+
+  @override
   String discoveryCardSemanticLabel(
     String driver,
     String journey,

@@ -307,6 +307,61 @@ class AppLocalizationsTr extends AppLocalizations {
   String get myRequestsOpen => 'İsteklerim';
 
   @override
+  String get routeRequestsOpen => 'İstekler';
+
+  @override
+  String routeRequestsOpenSemanticLabel(String journey) {
+    return '$journey için gelen istekler';
+  }
+
+  @override
+  String get routeRequestsTitle => 'Gelen istekler';
+
+  @override
+  String get routeRequestsEmpty => 'Bu yolculuk için henüz istek yok';
+
+  @override
+  String get routeRequestsEmptyBody =>
+      'Biri koltuk istediğinde burada görünür.';
+
+  @override
+  String get routeRequestsLoadMore => 'Daha fazla göster';
+
+  @override
+  String get routeRequestsLoadMoreFailed => 'Sonraki istekler yüklenemedi';
+
+  @override
+  String get routeRequestsAccept => 'Kabul et';
+
+  @override
+  String get routeRequestsDecline => 'Reddet';
+
+  @override
+  String routeRequestsAcceptSemanticLabel(String passenger) {
+    return '$passenger isteğini kabul et';
+  }
+
+  @override
+  String routeRequestsDeclineSemanticLabel(String passenger) {
+    return '$passenger isteğini reddet';
+  }
+
+  @override
+  String get routeRequestsAccepted => 'İstek kabul edildi';
+
+  @override
+  String get routeRequestsDeclined => 'İstek reddedildi';
+
+  @override
+  String get routeRequestsFull => 'Sunulan koltukların tamamı verilmiş';
+
+  @override
+  String get routeRequestsRouteUnavailable => 'Bu yolculuk artık geçerli değil';
+
+  @override
+  String get routeRequestsDecisionFailed => 'İstek yanıtlanamadı';
+
+  @override
   String discoveryCardSemanticLabel(
     String driver,
     String journey,

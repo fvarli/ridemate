@@ -172,6 +172,10 @@ class _RouteList extends ConsumerWidget {
             route: page.routes[i],
             isCancelling: page.isCancelling(page.routes[i].id),
             onCancel: () => _cancel(context, ref, page.routes[i]),
+            onOpenRequests: () => context.pushNamed(
+              AppRoutes.routeRequests,
+              pathParameters: <String, String>{'routeId': page.routes[i].id},
+            ),
           ),
         ],
         // Page two failing does not take page one off the screen.

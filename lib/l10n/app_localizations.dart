@@ -632,6 +632,102 @@ abstract class AppLocalizations {
   /// **'İsteklerim'**
   String get myRequestsOpen;
 
+  /// Bu yolculuğa gelen koltuk isteklerini açar.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstekler'**
+  String get routeRequestsOpen;
+
+  /// Düğmenin ekran okuyucu etiketi; birden çok kart aynı eylemi sunduğunda hangisini açtığını söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'{journey} için gelen istekler'**
+  String routeRequestsOpenSemanticLabel(String journey);
+
+  /// Sürücünün yayımladığı bir yolculuğa gelen koltuk istekleri.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelen istekler'**
+  String get routeRequestsTitle;
+
+  /// Sunucu başarıyla yanıt verdi ve hiç istek yok. Hata DEĞİLDİR.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk için henüz istek yok'**
+  String get routeRequestsEmpty;
+
+  /// Boş durumun açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biri koltuk istediğinde burada görünür.'**
+  String get routeRequestsEmptyBody;
+
+  /// Bir sonraki sayfayı ister.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get routeRequestsLoadMore;
+
+  /// Sonraki sayfa gelmedi. Ekrandaki istekler yerinde kalır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki istekler yüklenemedi'**
+  String get routeRequestsLoadMoreFailed;
+
+  /// Sürücü koltuğu paylaşmayı kabul eder. Rezervasyon veya ödeme DEĞİLDİR.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul et'**
+  String get routeRequestsAccept;
+
+  /// Sürücü isteği reddeder. Koltuk sayısını değiştirmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddet'**
+  String get routeRequestsDecline;
+
+  /// Kabul düğmesinin ekran okuyucu etiketi; hangi yolcuyu kabul ettiğini söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'{passenger} isteğini kabul et'**
+  String routeRequestsAcceptSemanticLabel(String passenger);
+
+  /// Reddet düğmesinin ekran okuyucu etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{passenger} isteğini reddet'**
+  String routeRequestsDeclineSemanticLabel(String passenger);
+
+  /// Sunucu kabulü onayladıktan sonra gösterilen bilgi.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek kabul edildi'**
+  String get routeRequestsAccepted;
+
+  /// Sunucu reddi onayladıktan sonra gösterilen bilgi.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek reddedildi'**
+  String get routeRequestsDeclined;
+
+  /// Sunucu kapasiteyi kendisi bilir; istemci koltuk saymaz. Bu, sunucunun verdiği yanıttır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunulan koltukların tamamı verilmiş'**
+  String get routeRequestsFull;
+
+  /// Yolculuk iptal edilmiş veya kalkışı geçmiş; yeni bir kabul yapılamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk artık geçerli değil'**
+  String get routeRequestsRouteUnavailable;
+
+  /// Sunucuya ulaşılamadı veya sunucu reddetti. İstek olduğu gibi kaldı.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek yanıtlanamadı'**
+  String get routeRequestsDecisionFailed;
+
   /// Bir sonuç kartının ekran okuyucu için tek parça okunuşu.
   ///
   /// In tr, this message translates to:

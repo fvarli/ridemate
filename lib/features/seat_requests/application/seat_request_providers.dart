@@ -112,10 +112,10 @@ class MySeatRequestsController
 
     // A repeated tap while this row is already withdrawing is the same
     // intention arriving twice.
-    if (page == null || page.isWithdrawing(requestId)) return null;
+    if (page == null || page.isBusy(requestId)) return null;
 
     state = AsyncData<SeatRequestPage<MySeatRequest>>(
-      page.copyWith(withdrawing: <String>{...page.withdrawing, requestId}),
+      page.copyWith(busy: <String>{...page.busy, requestId}),
     );
 
     try {
@@ -153,7 +153,7 @@ class MySeatRequestsController
     if (page == null) return;
 
     final SeatRequestPage<MySeatRequest> cleared = page.copyWith(
-      withdrawing: <String>{...page.withdrawing}..remove(requestId),
+      busy: <String>{...page.busy}..remove(requestId),
     );
 
     state = AsyncData<SeatRequestPage<MySeatRequest>>(
@@ -206,6 +206,96 @@ class IncomingSeatRequestsController
 
     return (result.requests, result.nextCursor);
   }, (AsyncValue<SeatRequestPage<IncomingSeatRequest>> next) => state = next);
+
+  /// Gives a seat away.
+  ///
+  /// CAPACITY IS NOT THIS CLIENT'S TO KNOW. Nothing here counts accepted rows
+  /// or works out whether a seat is left: the backend serializes acceptance
+  /// inside the route lock and owns that invariant entirely. This asks, and
+  /// renders the answer.
+  Future<RmFailure?> accept(String requestId) => _decide(
+    requestId,
+    (SeatRequestRepository repository) => repository.accept(requestId),
+  );
+
+  /// Says no.
+  ///
+  /// Deliberately NOT gated on the journey's own state. Declining creates no
+  /// obligation and frees no seat, so the backend permits it after a
+  /// cancellation or a departure — and a client that checked first would
+  /// strand pending requests a driver has every right to clear.
+  Future<RmFailure?> decline(String requestId) => _decide(
+    requestId,
+    (SeatRequestRepository repository) => repository.decline(requestId),
+  );
+
+  /// One decision, never optimistic.
+  ///
+  /// The row changes only after the server has answered, and it changes to the
+  /// server's own version of the request. A failure leaves it exactly as it
+  /// was — a refused accept must never look like an acceptance.
+  ///
+  /// Progress is keyed by request id rather than a single flag, so one row
+  /// being decided leaves every other row usable.
+  Future<RmFailure?> _decide(
+    String requestId,
+    Future<IncomingSeatRequest> Function(SeatRequestRepository) command,
+  ) async {
+    final SeatRequestPage<IncomingSeatRequest>? page = state.value;
+
+    // A second tap while this row is already deciding is the same intention
+    // arriving twice.
+    if (page == null || page.isBusy(requestId)) return null;
+
+    state = AsyncData<SeatRequestPage<IncomingSeatRequest>>(
+      page.copyWith(busy: <String>{...page.busy, requestId}),
+    );
+
+    try {
+      final IncomingSeatRequest decided = await command(
+        ref.read(seatRequestRepositoryProvider),
+      );
+
+      _settle(requestId, replaceWith: decided);
+
+      return null;
+    } on RmFailure catch (failure) {
+      _settle(requestId);
+
+      // The request is in a state this client's copy does not know about —
+      // somebody else decided it, or the passenger took it back. It cannot be
+      // repaired locally without inventing a transition nobody performed, so
+      // the listing is re-read.
+      //
+      // `route_full` and `route_unavailable` are deliberately NOT here: they
+      // say something about the journey, not about this request, and the row
+      // is still exactly what it was. Refreshing would only hide the failure.
+      final SeatRequestRefusal? refusal = failure.seatRequestRefusal;
+
+      if (refusal == SeatRequestRefusal.alreadyAccepted ||
+          refusal == SeatRequestRefusal.alreadyDecided ||
+          refusal == SeatRequestRefusal.withdrawn) {
+        refresh();
+      }
+
+      return failure;
+    }
+  }
+
+  /// Clears the in-flight mark, and replaces the row when there is one.
+  void _settle(String requestId, {IncomingSeatRequest? replaceWith}) {
+    final SeatRequestPage<IncomingSeatRequest>? page = state.value;
+
+    if (page == null) return;
+
+    final SeatRequestPage<IncomingSeatRequest> cleared = page.copyWith(
+      busy: <String>{...page.busy}..remove(requestId),
+    );
+
+    state = AsyncData<SeatRequestPage<IncomingSeatRequest>>(
+      replaceWith == null ? cleared : cleared.withRowReplaced(replaceWith),
+    );
+  }
 }
 
 /// Fetching the page after the one already held.

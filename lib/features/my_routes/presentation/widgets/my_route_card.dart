@@ -44,12 +44,16 @@ class MyRouteCard extends StatelessWidget {
     required this.route,
     required this.isCancelling,
     required this.onCancel,
+    required this.onOpenRequests,
     super.key,
   });
 
   final PublishedRoute route;
   final bool isCancelling;
   final VoidCallback onCancel;
+
+  /// Opens who has asked for a seat on this journey.
+  final VoidCallback onOpenRequests;
 
   /// Whether this journey can still be withdrawn.
   ///
@@ -139,22 +143,40 @@ class MyRouteCard extends StatelessWidget {
               ),
             ),
           ),
-          if (_canCancel) ...<Widget>[
-            const SizedBox(height: RmSpacing.md),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: RmButton(
-                label: l10n.myRoutesCancel,
-                // Names the journey, so the action is unambiguous when several
-                // cards each offer one.
-                semanticLabel: l10n.myRoutesCancelSemanticLabel(journey),
+          const SizedBox(height: RmSpacing.md),
+          // Wrap, not Row: two labelled actions do not fit beside each other at
+          // the narrow width in every locale — found by the RTL/narrow test,
+          // overflowing by 11px. They stack rather than being truncated,
+          // because a clipped action label is worse than a taller card.
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: RmSpacing.sm,
+            runSpacing: RmSpacing.sm,
+            children: <Widget>[
+              // Offered on every journey, including one that was cancelled or
+              // has departed: people asked, and the driver still has to be able
+              // to see and answer them. Whether a request can still be decided
+              // is the request's own business, and the server's.
+              RmButton(
+                label: l10n.routeRequestsOpen,
+                semanticLabel: l10n.routeRequestsOpenSemanticLabel(journey),
                 size: RmButtonSize.sm,
                 variant: RmButtonVariant.outline,
-                loading: isCancelling,
-                onPressed: onCancel,
+                onPressed: onOpenRequests,
               ),
-            ),
-          ],
+              if (_canCancel)
+                RmButton(
+                  label: l10n.myRoutesCancel,
+                  // Names the journey, so the action is unambiguous when
+                  // several cards each offer one.
+                  semanticLabel: l10n.myRoutesCancelSemanticLabel(journey),
+                  size: RmButtonSize.sm,
+                  variant: RmButtonVariant.outline,
+                  loading: isCancelling,
+                  onPressed: onCancel,
+                ),
+            ],
+          ),
         ],
       ),
     );

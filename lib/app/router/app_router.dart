@@ -37,6 +37,7 @@ import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/safety/presentation/safety_screen.dart';
 import '../../features/seat_requests/presentation/my_requests_screen.dart';
+import '../../features/seat_requests/presentation/route_requests_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import '../../l10n/app_localizations.dart';
@@ -328,6 +329,15 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.myRequests,
         builder: (BuildContext context, GoRouterState state) =>
             const MyRequestsScreen(),
+      ),
+      // The driver's side, scoped to one journey. Same UUIDv7 constraint as
+      // every other route id in the app, so a malformed one is an ordinary
+      // 404 rather than a screen that asks the backend about nonsense.
+      GoRoute(
+        path: AppRoutes.routeRequestsPath,
+        name: AppRoutes.routeRequests,
+        builder: (BuildContext context, GoRouterState state) =>
+            RouteRequestsScreen(routeId: state.pathParameters['routeId'] ?? ''),
       ),
       // Above the shell, and reached only by redirect: nothing links here.
       GoRoute(

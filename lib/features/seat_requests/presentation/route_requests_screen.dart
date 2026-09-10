@@ -1,29 +1,24 @@
 // ─────────────────────────────────────────────────────────────
-// RideMate — My Requests
+// RideMate — Incoming requests
 //
-// What this member has asked for, and what came of it.
+// Who has asked for a seat on one journey this driver published, and the two
+// answers they can give.
 //
-// HISTORY, NOT A FEED
+// CAPACITY IS NOT THIS SCREEN'S TO KNOW
 //
-// Nothing here is filtered by what discovery would show today. A request on a
-// journey that was later cancelled stays, and so does one on a journey that has
-// departed — this is the only surface that says what became of an asking, and
-// dropping rows because the journey moved on would erase the member's own
-// record. Every status appears for the same reason: a declined request is an
-// answer, not an absence.
+// Nothing here counts accepted rows, works out how many seats are left, or
+// decides whether a journey is full. The backend serializes acceptance inside
+// the route lock and owns that invariant entirely; this asks, and renders what
+// it is told. A `route_full` answer is the server's, not a conclusion drawn
+// here — and a refused acceptance never turns a row into an accepted one.
 //
-// TWO TRUTHS, SIDE BY SIDE
+// ROUTE-SCOPED, AND DELIBERATELY NOT AN INBOX
 //
-// The request's status is what the member asked and what they were told. The
-// journey's status and departure state are how the journey now stands. A card
-// showing `accepted` above `this journey was cancelled` is not a contradiction
-// to reconcile — it is both facts, and collapsing them into one would claim a
-// decision nobody made.
+// A driver holds several journeys and each has its own list. One list of
+// everything would imply arrival — that something reached them — and nothing
+// notifies anybody yet.
 //
 // NO FIXTURE, EVER. A failed read says so and offers a retry.
-//
-// The design source draws no such screen. Same approved extension as My
-// Routes (D-myroutes-1), composed from existing primitives.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -35,6 +30,7 @@ import '../../../core/api/rm_error_copy.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/icons/rm_icons.dart';
 import '../../../core/seat_requests/seat_request.dart';
+import '../../../core/seat_requests/seat_request_decoder.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
 import '../../../core/theme/tokens/rm_spacing.dart';
 import '../../../core/theme/tokens/rm_typography.dart';
@@ -44,17 +40,19 @@ import '../../../core/widgets/rm_list_row.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/seat_request_providers.dart';
 import '../domain/seat_request_page.dart';
-import 'widgets/my_request_card.dart';
+import 'widgets/incoming_request_card.dart';
 
-class MyRequestsScreen extends ConsumerWidget {
-  const MyRequestsScreen({super.key});
+class RouteRequestsScreen extends ConsumerWidget {
+  const RouteRequestsScreen({required this.routeId, super.key});
+
+  final String routeId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final RmColors c = context.rmColors;
-    final AsyncValue<SeatRequestPage<MySeatRequest>> page = ref.watch(
-      mySeatRequestsProvider,
+    final AsyncValue<SeatRequestPage<IncomingSeatRequest>> page = ref.watch(
+      incomingSeatRequestsProvider(routeId),
     );
 
     return Scaffold(
@@ -79,36 +77,22 @@ class MyRequestsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: RmSpacing.md),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text(
-                          l10n.myRequestsTitle,
-                          style: RmTypography.label.copyWith(color: c.ink),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        // The order the server returned them in, said plainly.
-                        // Nothing here sorts, so nothing here may imply a
-                        // ranking.
-                        Text(
-                          l10n.myRequestsSubtitle,
-                          style: RmTypography.caption.copyWith(color: c.sub),
-                        ),
-                      ],
+                    child: Text(
+                      l10n.routeRequestsTitle,
+                      style: RmTypography.label.copyWith(color: c.ink),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
             ),
             Expanded(
-              // `hasError` before `isLoading`, and the order is not cosmetic: a
-              // build that threw sits in a loading state carrying its error, so
-              // matching AsyncLoading first would show a spinner for ever and
-              // never say anything went wrong. Same idiom as My Routes.
+              // `hasError` before `isLoading`: a build that threw sits in a
+              // loading state carrying its error, so matching AsyncLoading
+              // first would spin for ever and say nothing.
               child: switch (page) {
-                AsyncValue<SeatRequestPage<MySeatRequest>>(
+                AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
                   hasError: true,
                   :final Object? error,
                 ) =>
@@ -129,28 +113,32 @@ class MyRequestsScreen extends ConsumerWidget {
                           size: RmButtonSize.sm,
                           variant: RmButtonVariant.outline,
                           onPressed: () => ref
-                              .read(mySeatRequestsProvider.notifier)
+                              .read(
+                                incomingSeatRequestsProvider(routeId).notifier,
+                              )
                               .refresh(),
                         ),
                       ],
                     ),
                   ),
-                AsyncValue<SeatRequestPage<MySeatRequest>>(isLoading: true) =>
+                AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
+                  isLoading: true,
+                ) =>
                   _Centred(
                     child: Text(
                       l10n.commonLoading,
                       style: RmTypography.body.copyWith(color: c.sub),
                     ),
                   ),
-                AsyncValue<SeatRequestPage<MySeatRequest>>(
-                  :final SeatRequestPage<MySeatRequest>? value,
+                AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
+                  :final SeatRequestPage<IncomingSeatRequest>? value,
                 )
                     when value != null =>
                   // Empty means the server answered and held nothing. It is
                   // never what a failure looks like.
                   value.isEmpty
                       ? _Empty(l10n: l10n)
-                      : _RequestList(page: value),
+                      : _RequestList(routeId: routeId, page: value),
                 _ => const SizedBox.shrink(),
               },
             ),
@@ -164,15 +152,16 @@ class MyRequestsScreen extends ConsumerWidget {
     if (context.canPop()) {
       context.pop();
     } else {
-      context.goNamed(AppRoutes.home);
+      context.goNamed(AppRoutes.myRoutes);
     }
   }
 }
 
 class _RequestList extends ConsumerWidget {
-  const _RequestList({required this.page});
+  const _RequestList({required this.routeId, required this.page});
 
-  final SeatRequestPage<MySeatRequest> page;
+  final String routeId;
+  final SeatRequestPage<IncomingSeatRequest> page;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,58 +175,66 @@ class _RequestList extends ConsumerWidget {
         RmSpacing.xl,
       ),
       children: <Widget>[
-        // In the order the server returned them. Nothing here sorts.
+        // In the order the server returned them. Nothing here sorts, and a
+        // decision does not move a row.
         for (int i = 0; i < page.requests.length; i++) ...<Widget>[
           if (i > 0) const SizedBox(height: RmSpacing.md),
-          MyRequestCard(
+          IncomingRequestCard(
             request: page.requests[i],
-            isWithdrawing: page.isBusy(page.requests[i].id),
-            onWithdraw: () => _withdraw(context, ref, page.requests[i]),
+            // Keyed by request id: one row being decided leaves the others
+            // usable.
+            isDeciding: page.isBusy(page.requests[i].id),
+            onAccept: () =>
+                _decide(context, ref, page.requests[i], accept: true),
+            onDecline: () =>
+                _decide(context, ref, page.requests[i], accept: false),
           ),
         ],
-        // Page two failing does not take page one off the screen.
         if (page.loadMoreFailure != null) ...<Widget>[
           const SizedBox(height: RmSpacing.md),
           RmInlineMessage(
-            message: l10n.myRequestsLoadMoreFailed,
+            message: l10n.routeRequestsLoadMoreFailed,
             icon: RmIcons.alertTriangle,
             tone: RmRowTone.danger,
           ),
         ],
-        // Shown only while the server offers a position. When it stops sending
-        // a cursor the control disappears rather than sitting there doing
-        // nothing.
         if (page.hasMore) ...<Widget>[
           const SizedBox(height: RmSpacing.lg),
           RmButton(
             label: page.loadMoreFailure == null
-                ? l10n.myRequestsLoadMore
+                ? l10n.routeRequestsLoadMore
                 : l10n.commonRetry,
             variant: RmButtonVariant.outline,
             loading: page.isLoadingMore,
-            onPressed: () =>
-                ref.read(mySeatRequestsProvider.notifier).loadMore(),
+            onPressed: () => ref
+                .read(incomingSeatRequestsProvider(routeId).notifier)
+                .loadMore(),
           ),
         ],
       ],
     );
   }
 
-  /// Ask the server, then show what it said.
+  /// Ask the server, then say what it answered.
   ///
-  /// Nothing is marked withdrawn before the answer arrives, and a failure
-  /// leaves the request exactly as it was.
-  Future<void> _withdraw(
+  /// Nothing is decided locally. A failure leaves the request exactly as it
+  /// was, and the message names the reason the server gave — matched on the
+  /// machine string, never read out of `message`.
+  Future<void> _decide(
     BuildContext context,
     WidgetRef ref,
-    MySeatRequest request,
-  ) async {
+    IncomingSeatRequest request, {
+    required bool accept,
+  }) async {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final IncomingSeatRequestsController controller = ref.read(
+      incomingSeatRequestsProvider(routeId).notifier,
+    );
 
-    final RmFailure? failure = await ref
-        .read(mySeatRequestsProvider.notifier)
-        .withdraw(request.id);
+    final RmFailure? failure = accept
+        ? await controller.accept(request.id)
+        : await controller.decline(request.id);
 
     messenger
       ..hideCurrentSnackBar()
@@ -245,12 +242,25 @@ class _RequestList extends ConsumerWidget {
         SnackBar(
           content: Text(
             failure == null
-                ? l10n.myRequestsWithdrawn
-                : l10n.myRequestsWithdrawFailed,
+                ? (accept
+                      ? l10n.routeRequestsAccepted
+                      : l10n.routeRequestsDeclined)
+                : _failureCopy(l10n, failure),
           ),
         ),
       );
   }
+
+  /// The server's own reason, or the one thing certainly true.
+  String _failureCopy(AppLocalizations l10n, RmFailure failure) =>
+      switch (failure.seatRequestRefusal) {
+        // Both are facts about the journey, not about this request — the row
+        // stays exactly what it was.
+        SeatRequestRefusal.routeFull => l10n.routeRequestsFull,
+        SeatRequestRefusal.routeUnavailable =>
+          l10n.routeRequestsRouteUnavailable,
+        _ => l10n.routeRequestsDecisionFailed,
+      };
 }
 
 class _Empty extends StatelessWidget {
@@ -267,13 +277,13 @@ class _Empty extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
-            l10n.myRequestsEmpty,
+            l10n.routeRequestsEmpty,
             style: RmTypography.body.copyWith(color: c.ink),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: RmSpacing.xs),
           Text(
-            l10n.myRequestsEmptyBody,
+            l10n.routeRequestsEmptyBody,
             style: RmTypography.caption.copyWith(color: c.sub),
             textAlign: TextAlign.center,
           ),

@@ -494,6 +494,72 @@ abstract class AppLocalizations {
   /// **'Daha fazlası alınamadı.'**
   String get discoveryLoadMoreFailed;
 
+  /// Sürücüden bir koltuk isteme eylemi. İstek sunucuya gönderilir; onay sürücüye aittir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Koltuk iste'**
+  String get seatRequestAsk;
+
+  /// İstek sunucuya gönderilirken düğmenin durumu. Henüz gönderildiği iddia edilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiliyor…'**
+  String get seatRequestSending;
+
+  /// Sunucunun onayladığı durum: istek iletildi, sürücü henüz yanıtlamadı.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderildi'**
+  String get seatRequestPending;
+
+  /// Sürücü koltuğu paylaşmayı kabul etti. Ödeme veya rezervasyon DEĞİLDİR.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul edildi'**
+  String get seatRequestAccepted;
+
+  /// Sürücü isteği yanıtladı ve kabul etmedi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddedildi'**
+  String get seatRequestDeclined;
+
+  /// Yolcunun kendi isteğini geri çektiği durum.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri çekildi'**
+  String get seatRequestWithdrawn;
+
+  /// İstek sunucuya ulaşmadı veya sunucu reddetti. Hiçbir koltuk istenmedi.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderilemedi'**
+  String get seatRequestFailed;
+
+  /// Haftaiçi tekrar eden bir plan için tek bir kalkış yoktur; bu yüzden istek gönderilemez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrarlayan yolculuklar için istek henüz yok'**
+  String get seatRequestRecurringUnsupported;
+
+  /// Üye kendi yayımladığı yolculuğa istek gönderemez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu senin yolculuğun'**
+  String get seatRequestOwnRoute;
+
+  /// Sürücünün sunduğu koltukların hepsi kabul edilmiş durumda.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunulan koltukların tamamı verilmiş'**
+  String get seatRequestRouteFull;
+
+  /// Yolculuk iptal edilmiş veya kalkışı geçmiş. Yeni bir istek kabul edilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk artık geçerli değil'**
+  String get seatRequestUnavailable;
+
   /// Bir sonuç kartının ekran okuyucu için tek parça okunuşu.
   ///
   /// In tr, this message translates to:

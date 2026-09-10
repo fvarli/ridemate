@@ -236,6 +236,40 @@ class AppLocalizationsTr extends AppLocalizations {
   String get discoveryLoadMoreFailed => 'Daha fazlası alınamadı.';
 
   @override
+  String get seatRequestAsk => 'Koltuk iste';
+
+  @override
+  String get seatRequestSending => 'Gönderiliyor…';
+
+  @override
+  String get seatRequestPending => 'İstek gönderildi';
+
+  @override
+  String get seatRequestAccepted => 'Kabul edildi';
+
+  @override
+  String get seatRequestDeclined => 'Reddedildi';
+
+  @override
+  String get seatRequestWithdrawn => 'Geri çekildi';
+
+  @override
+  String get seatRequestFailed => 'İstek gönderilemedi';
+
+  @override
+  String get seatRequestRecurringUnsupported =>
+      'Tekrarlayan yolculuklar için istek henüz yok';
+
+  @override
+  String get seatRequestOwnRoute => 'Bu senin yolculuğun';
+
+  @override
+  String get seatRequestRouteFull => 'Sunulan koltukların tamamı verilmiş';
+
+  @override
+  String get seatRequestUnavailable => 'Bu yolculuk artık geçerli değil';
+
+  @override
   String discoveryCardSemanticLabel(
     String driver,
     String journey,

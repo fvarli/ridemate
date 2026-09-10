@@ -18,13 +18,28 @@
 // left every one of those fields in the type, waiting for a widget to read one
 // again.
 //
-// IT IS NOT TAPPABLE, AND THAT IS DELIBERATE
+// IT STILL GOES NOWHERE, AND THAT IS STILL DELIBERATE
 //
-// Route Details is still fixture-backed: opening it from a real result would
-// show a real member's name above an invented vehicle, an invented plate and an
+// Route Details is fixture-backed: opening it from a real result would show a
+// real member's name above an invented vehicle, an invented plate and an
 // invented cost. A truthful card that goes nowhere is better than a tap into
-// fabricated details. There is no seat-request action either — asking for a
-// seat is Phase 13, and a button that did nothing would be worse than none.
+// fabricated details, so the card body is inert.
+//
+// ONE ACTION, AND ONLY WHEN IT IS TRUE
+//
+// Phase 13 gave it a seat request. The action appears only for a one-off
+// journey that has not departed and that this member has not already asked
+// about — three facts the card owns, checked here rather than assumed from the
+// endpoint's own filtering.
+//
+// A weekday plan gets no action at all: it has no single departure to hold a
+// seat on, and a disabled control would imply the feature exists and is being
+// withheld from this member.
+//
+// Once an asking exists the action is gone for good. A member may create one
+// seat request per journey for that journey's lifetime, so `declined` and
+// `withdrawn` are ends — offering to ask again would be a control the server
+// would refuse.
 //
 // INITIALS ARE THE SERVER'S
 //
@@ -33,18 +48,23 @@
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/format/rm_text_conventions.dart';
 import '../../../../core/routes/departure.dart';
 import '../../../../core/routes/discovered_route.dart';
+import '../../../../core/routes/published_route.dart';
 import '../../../../core/routes/ride_rule.dart';
+import '../../../../core/seat_requests/seat_request.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
 import '../../../../core/widgets/rm_avatar.dart';
+import '../../../../core/widgets/rm_button.dart';
 import '../../../../core/widgets/rm_card.dart';
 import '../../../../core/widgets/rm_chip.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../seat_requests/application/seat_request_action_providers.dart';
 
 /// One journey somebody else published.
 class DiscoveredRouteCard extends StatelessWidget {
@@ -64,71 +84,122 @@ class DiscoveredRouteCard extends StatelessWidget {
     final String departure = _departure(l10n);
     final String seats = l10n.discoverySeatsOffered(route.seatsOffered);
 
+    final Widget? action = _action(context, l10n, c);
+
     return RmCard(
-      // One announcement, so a screen reader reads a journey rather than six
-      // unrelated fragments. Nothing here is actionable, so there is no control
-      // whose own semantics this could swallow.
-      child: Semantics(
-        container: true,
-        label: l10n.discoveryCardSemanticLabel(
-          route.driver.displayName,
-          journey,
-          departure,
-          seats,
-        ),
-        child: ExcludeSemantics(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          // One announcement for the journey, so a screen reader reads it as a
+          // journey rather than six unrelated fragments. The action sits
+          // OUTSIDE this, because a control that a container swallows is a
+          // control a screen reader cannot describe or reach.
+          Semantics(
+            container: true,
+            label: l10n.discoveryCardSemanticLabel(
+              route.driver.displayName,
+              journey,
+              departure,
+              seats,
+            ),
+            child: ExcludeSemantics(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  RmAvatar(
-                    // The server's letters, as they arrived.
-                    initials: route.driver.initials,
-                    // No verification badge: nothing verifies anybody.
-                    verification: RmVerification.none,
-                    identity: RmIdentity.purple,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      RmAvatar(
+                        // The server's letters, as they arrived.
+                        initials: route.driver.initials,
+                        // No verification badge: nothing verifies anybody.
+                        verification: RmVerification.none,
+                        identity: RmIdentity.purple,
+                      ),
+                      const SizedBox(width: RmSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          route.driver.displayName,
+                          style: RmTypography.body.copyWith(color: c.ink),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: RmSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      route.driver.displayName,
-                      style: RmTypography.body.copyWith(color: c.ink),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: RmSpacing.sm),
+                  Text(
+                    journey,
+                    style: RmTypography.body.copyWith(color: c.ink),
+                  ),
+                  const SizedBox(height: RmSpacing.xs),
+                  Text(
+                    departure,
+                    style: RmTypography.caption.copyWith(color: c.sub),
+                  ),
+                  const SizedBox(height: RmSpacing.xs),
+                  Text(
+                    seats,
+                    style: RmTypography.caption.copyWith(color: c.sub),
+                  ),
+                  // Absent, not empty, when the driver selected nothing. A rule set
+                  // to false says only that they did not choose it.
+                  if (route.rules.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: RmSpacing.sm),
+                    Wrap(
+                      spacing: RmSpacing.xs,
+                      runSpacing: RmSpacing.xs,
+                      children: <Widget>[
+                        for (final RideRuleId id in RideRuleId.values)
+                          if (route.rules.contains(id))
+                            RmChip(label: _ruleLabel(l10n, id), compact: true),
+                      ],
                     ),
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: RmSpacing.sm),
-              Text(journey, style: RmTypography.body.copyWith(color: c.ink)),
-              const SizedBox(height: RmSpacing.xs),
-              Text(
-                departure,
-                style: RmTypography.caption.copyWith(color: c.sub),
-              ),
-              const SizedBox(height: RmSpacing.xs),
-              Text(seats, style: RmTypography.caption.copyWith(color: c.sub)),
-              // Absent, not empty, when the driver selected nothing. A rule set
-              // to false says only that they did not choose it.
-              if (route.rules.isNotEmpty) ...<Widget>[
-                const SizedBox(height: RmSpacing.sm),
-                Wrap(
-                  spacing: RmSpacing.xs,
-                  runSpacing: RmSpacing.xs,
-                  children: <Widget>[
-                    for (final RideRuleId id in RideRuleId.values)
-                      if (route.rules.contains(id))
-                        RmChip(label: _ruleLabel(l10n, id), compact: true),
-                  ],
-                ),
-              ],
-            ],
+            ),
           ),
-        ),
+          if (action != null) ...<Widget>[
+            const SizedBox(height: RmSpacing.sm),
+            action,
+          ],
+        ],
       ),
     );
+  }
+
+  /// The one thing this card can do, or what became of it.
+  ///
+  /// Outside the `ExcludeSemantics` above, so the action keeps its own
+  /// semantics while the journey is announced as one piece.
+  Widget? _action(BuildContext context, AppLocalizations l10n, RmColors c) {
+    final MySeatRequestSummary? asked = route.mySeatRequest;
+
+    // An asking exists. The card says what the server says about it, and
+    // offers nothing: this journey cannot be asked about again.
+    if (asked != null) {
+      return _Status(
+        label: switch (asked.status) {
+          SeatRequestStatus.pending => l10n.seatRequestPending,
+          SeatRequestStatus.accepted => l10n.seatRequestAccepted,
+          SeatRequestStatus.declined => l10n.seatRequestDeclined,
+          SeatRequestStatus.withdrawn => l10n.seatRequestWithdrawn,
+        },
+      );
+    }
+
+    // No single departure to hold a seat on. Stated once, quietly, rather
+    // than as a disabled control.
+    if (route.recurrence != Recurrence.once) {
+      return _Status(label: l10n.seatRequestRecurringUnsupported, muted: true);
+    }
+
+    // The server excludes departed journeys, but a page can be read and then
+    // sat on. The card owns this fact, so it checks it.
+    if (route.departureState != DepartureState.upcoming) return null;
+
+    return _RequestButton(routeId: route.id);
   }
 
   /// The departure as the driver chose it.
@@ -156,4 +227,96 @@ class DiscoveredRouteCard extends StatelessWidget {
     RideRuleId.noPets => l10n.createRouteRuleNoPets,
     RideRuleId.quiet => l10n.createRouteRuleQuiet,
   };
+}
+
+/// The action, and the failure it may leave behind.
+///
+/// A `ConsumerWidget` of its own rather than state on the card: only this
+/// journey's attempt should rebuild when it changes, and the card itself has
+/// nothing to watch.
+class _RequestButton extends ConsumerWidget {
+  const _RequestButton({required this.routeId});
+
+  final String routeId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final RmColors c = context.rmColors;
+    final SeatRequestAttempt? attempt = ref.watch(
+      seatRequestActionProvider.select(
+        (Map<String, SeatRequestAttempt> all) => all[routeId],
+      ),
+    );
+
+    final bool sending = attempt is SeatRequestSending;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        RmButton(
+          label: sending ? l10n.seatRequestSending : l10n.seatRequestAsk,
+          // The in-card size the design uses for a card action, and the
+          // lower-ranked variant: a solid brand fill would make asking for a
+          // seat look like the screen's single main action, and there are as
+          // many of these as there are results.
+          size: RmButtonSize.sm,
+          variant: RmButtonVariant.outline,
+          // Null disables it. A tap while one is in flight would be the same
+          // asking sent twice — the server would recognise it, but the member
+          // would have watched two spinners to find that out.
+          onPressed: sending
+              ? null
+              : () => ref
+                    .read(seatRequestActionProvider.notifier)
+                    .request(routeId),
+          loading: sending,
+        ),
+        if (attempt is SeatRequestFailed) ...<Widget>[
+          const SizedBox(height: RmSpacing.xs),
+          Text(
+            _failureLabel(l10n, attempt),
+            style: RmTypography.caption.copyWith(color: c.danger),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// What went wrong, from the reason the server named.
+  ///
+  /// Matched on the machine string, never on `message` — which is
+  /// developer-facing English no client displays — and never on the status,
+  /// which several of these share. Anything this build does not recognise
+  /// falls back to saying only that the request was not sent, which is the one
+  /// thing that is certainly true.
+  String _failureLabel(AppLocalizations l10n, SeatRequestFailed attempt) =>
+      switch (attempt.refusal) {
+        SeatRequestRefusal.ownRoute => l10n.seatRequestOwnRoute,
+        SeatRequestRefusal.routeFull => l10n.seatRequestRouteFull,
+        SeatRequestRefusal.routeUnavailable => l10n.seatRequestUnavailable,
+        SeatRequestRefusal.recurringRouteUnsupported =>
+          l10n.seatRequestRecurringUnsupported,
+        _ => l10n.seatRequestFailed,
+      };
+}
+
+/// What became of an asking, or why one cannot be made.
+///
+/// Text, not a control: there is nothing here to do.
+class _Status extends StatelessWidget {
+  const _Status({required this.label, this.muted = false});
+
+  final String label;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final RmColors c = context.rmColors;
+
+    return Text(
+      label,
+      style: RmTypography.caption.copyWith(color: muted ? c.sub : c.ink),
+    );
+  }
 }

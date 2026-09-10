@@ -236,6 +236,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discoveryLoadMoreFailed => 'Couldn\'t load more.';
 
   @override
+  String get seatRequestAsk => 'Request a seat';
+
+  @override
+  String get seatRequestSending => 'Sending…';
+
+  @override
+  String get seatRequestPending => 'Request sent';
+
+  @override
+  String get seatRequestAccepted => 'Accepted';
+
+  @override
+  String get seatRequestDeclined => 'Declined';
+
+  @override
+  String get seatRequestWithdrawn => 'Withdrawn';
+
+  @override
+  String get seatRequestFailed => 'The request was not sent';
+
+  @override
+  String get seatRequestRecurringUnsupported =>
+      'Requests for recurring journeys are not available yet';
+
+  @override
+  String get seatRequestOwnRoute => 'This is your journey';
+
+  @override
+  String get seatRequestRouteFull => 'Every offered seat has been given';
+
+  @override
+  String get seatRequestUnavailable => 'This journey is no longer available';
+
+  @override
   String discoveryCardSemanticLabel(
     String driver,
     String journey,

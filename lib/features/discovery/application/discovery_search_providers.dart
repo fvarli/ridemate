@@ -23,6 +23,7 @@ import '../../../app/providers/session_provider.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/api/rm_retry.dart';
 import '../../../core/routes/discovered_route.dart';
+import '../../../core/seat_requests/seat_request.dart';
 import '../data/discovery_repository.dart';
 
 final Provider<DiscoveryRepository> discoveryRepositoryProvider =
@@ -165,6 +166,31 @@ class DiscoveryController extends AsyncNotifier<DiscoveryState> {
   /// the loading state, the request and the answer as one step, and discards
   /// the old cursor by construction.
   void refresh() => ref.invalidateSelf();
+
+  /// Records the asking the server has just confirmed on one journey.
+  ///
+  /// In place, and only that journey: the list keeps its order, its cursor and
+  /// every page already loaded. Re-reading the whole search to learn one card's
+  /// new state would throw away the pages behind it and could reorder nothing
+  /// while costing everything.
+  ///
+  /// The summary is the server's own — the id and status it returned — never a
+  /// locally assembled one. A client that invented an id here would be
+  /// guessing at the resource it is meant to be addressing.
+  void markRequested(String routeId, MySeatRequestSummary summary) {
+    final DiscoveryState? current = state.value;
+
+    if (current is! DiscoveryMatches) return;
+
+    state = AsyncData<DiscoveryState>(
+      current.copyWith(
+        routes: <DiscoveredRoute>[
+          for (final DiscoveredRoute route in current.routes)
+            if (route.id == routeId) route.withSeatRequest(summary) else route,
+        ],
+      ),
+    );
+  }
 
   /// Fetches the page after the one already held.
   ///

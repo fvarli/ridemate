@@ -115,6 +115,26 @@ final class DiscoveredRoute {
   /// requestable again.
   final MySeatRequestSummary? mySeatRequest;
 
+  /// The same journey, carrying the asking the server has confirmed.
+  ///
+  /// Everything else is copied unchanged: this exists to record one answer,
+  /// not to let a screen edit a journey it does not own.
+  DiscoveredRoute withSeatRequest(MySeatRequestSummary summary) =>
+      DiscoveredRoute(
+        id: id,
+        origin: origin,
+        destination: destination,
+        recurrence: recurrence,
+        departureDate: departureDate,
+        departureTime: departureTime,
+        timezone: timezone,
+        departureState: departureState,
+        seatsOffered: seatsOffered,
+        rules: rules,
+        driver: driver,
+        mySeatRequest: summary,
+      );
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

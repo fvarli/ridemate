@@ -1005,16 +1005,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myRoutesCancelled => 'The route is cancelled.';
 
   @override
-  String get myRoutesTripStateNotStarted => 'Trip: Not started';
+  String get tripStateNotStarted => 'Not started';
 
   @override
-  String get myRoutesTripStateInProgress => 'Trip: Started';
+  String get tripStateInProgress => 'Started';
 
   @override
-  String get myRoutesTripStateCompleted => 'Trip: Completed';
+  String get tripStateCompleted => 'Completed';
 
   @override
-  String get myRoutesTripStateAborted => 'Trip: Abandoned';
+  String get tripStateAborted => 'Abandoned';
+
+  @override
+  String tripStateLine(String state) {
+    return 'Trip: $state';
+  }
 
   @override
   String get myRoutesStartTrip => 'Start trip';
@@ -1100,18 +1105,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tripStatusState => 'State';
-
-  @override
-  String get tripStatusStateNotStarted => 'Not started';
-
-  @override
-  String get tripStatusStateInProgress => 'Started';
-
-  @override
-  String get tripStatusStateCompleted => 'Completed';
-
-  @override
-  String get tripStatusStateAborted => 'Abandoned';
 
   @override
   String get tripStatusStartedNote =>

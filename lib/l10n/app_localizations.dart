@@ -1751,29 +1751,35 @@ abstract class AppLocalizations {
   /// **'Rota iptal edildi.'**
   String get myRoutesCancelled;
 
-  /// Sürücü henüz Başlat demedi. Sunucunun söylediği durum; istemci bunu saatten çıkarmaz.
+  /// Sunucuda yolculuk kaydı yok. Tek kaynak: sürücünün rotaları, yolcunun istekleri ve yolculuk durumu ekranı aynı sözcüğü kullanır.
   ///
   /// In tr, this message translates to:
-  /// **'Yolculuk: Başlamadı'**
-  String get myRoutesTripStateNotStarted;
+  /// **'Başlamadı'**
+  String get tripStateNotStarted;
 
-  /// Sürücü Başlat dedi ve sunucu kabul etti. Aracın hareket ettiğini, birinin bindiğini veya bir konum bilindiğini SÖYLEMEZ.
+  /// Sürücü Başlat dedi ve sunucu kabul etti. Aracın hareket ettiğini, birinin bindiğini, alındığını veya bir konum bilindiğini SÖYLEMEZ.
   ///
   /// In tr, this message translates to:
-  /// **'Yolculuk: Başladı'**
-  String get myRoutesTripStateInProgress;
+  /// **'Başladı'**
+  String get tripStateInProgress;
 
   /// Sürücü yolculuğun yapıldığını bildirdi.
   ///
   /// In tr, this message translates to:
-  /// **'Yolculuk: Tamamlandı'**
-  String get myRoutesTripStateCompleted;
+  /// **'Tamamlandı'**
+  String get tripStateCompleted;
 
-  /// Sürücü yolculuğun yapılmadığını bildirdi. Rota iptalinden ayrıdır; onun karşılığı myRoutesStatusCancelled.
+  /// Sürücü yolculuğun yapılmadığını bildirdi. Rota iptalinden ayrıdır.
   ///
   /// In tr, this message translates to:
-  /// **'Yolculuk: Yarıda bırakıldı'**
-  String get myRoutesTripStateAborted;
+  /// **'Yarıda bırakıldı'**
+  String get tripStateAborted;
+
+  /// Durumu, yanındaki istek ve rota durumlarından ayırt eden etiketli biçim.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk: {state}'**
+  String tripStateLine(String state);
 
   /// Yalnızca sunucunun bildirdiği durum başlamadı iken görünür. Başlatmaya izin olup olmadığına sunucu karar verir.
   ///
@@ -1900,30 +1906,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Durum'**
   String get tripStatusState;
-
-  /// Sunucuda yolculuk kaydı yok.
-  ///
-  /// In tr, this message translates to:
-  /// **'Başlamadı'**
-  String get tripStatusStateNotStarted;
-
-  /// Sürücü Başlat dedi ve sunucu kabul etti. Başka hiçbir şey söylemez.
-  ///
-  /// In tr, this message translates to:
-  /// **'Başladı'**
-  String get tripStatusStateInProgress;
-
-  /// Sürücü yolculuğun yapıldığını bildirdi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tamamlandı'**
-  String get tripStatusStateCompleted;
-
-  /// Sürücü yolculuğun yapılmadığını bildirdi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yarıda bırakıldı'**
-  String get tripStatusStateAborted;
 
   /// Başladı durumunun ne DEMEDİĞİNİ açıkça söyler. Ürün konum, harita, navigasyon veya yolcu varlığı bilmiyor.
   ///

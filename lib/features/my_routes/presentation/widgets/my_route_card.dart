@@ -35,6 +35,7 @@ import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
 import '../../../../core/trips/trip_lifecycle.dart';
+import '../../../../core/trips/trip_state_copy.dart';
 import '../../../../core/widgets/rm_button.dart';
 import '../../../../core/widgets/rm_card.dart';
 import '../../../../core/widgets/rm_chip.dart';
@@ -128,7 +129,7 @@ class MyRouteCard extends StatelessWidget {
     final String departure = _departure(l10n);
     final String seats = l10n.myRoutesSeatsOffered(route.seatsOffered);
     final String status = _status(l10n);
-    final String trip = _trip(l10n);
+    final String trip = tripStateLine(l10n, row.trip.state);
 
     return RmCard(
       // The ordinary "this row opens its detail" gesture, so the lifecycle in
@@ -321,20 +322,6 @@ class MyRouteCard extends StatelessWidget {
       DepartureState.past => l10n.myRoutesStatusPast,
       DepartureState.upcoming => l10n.myRoutesStatusPublished,
     },
-  };
-
-  /// Whether the journey was made, in the member's own language.
-  ///
-  /// `Başladı` means the driver said so and the server recorded it. It does
-  /// NOT say the car is moving, that anybody boarded, that the driver is at
-  /// the origin, or that any location is known — none of which this product
-  /// knows. `Yarıda bırakıldı` is separate from `İptal edildi`: one is a
-  /// journey abandoned, the other a plan withdrawn.
-  String _trip(AppLocalizations l10n) => switch (row.trip.state) {
-    TripState.notStarted => l10n.myRoutesTripStateNotStarted,
-    TripState.inProgress => l10n.myRoutesTripStateInProgress,
-    TripState.completed => l10n.myRoutesTripStateCompleted,
-    TripState.aborted => l10n.myRoutesTripStateAborted,
   };
 
   /// When it leaves, in the terms the driver chose.

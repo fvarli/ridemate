@@ -46,6 +46,7 @@ import '../../../core/theme/tokens/rm_colors.dart';
 import '../../../core/theme/tokens/rm_spacing.dart';
 import '../../../core/theme/tokens/rm_typography.dart';
 import '../../../core/trips/trip_lifecycle.dart';
+import '../../../core/trips/trip_state_copy.dart';
 import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_card.dart';
 import '../../../core/widgets/rm_icon_button.dart';
@@ -238,7 +239,10 @@ class _Detail extends ConsumerWidget {
             children: <Widget>[
               _Line(label: l10n.tripStatusDeparture, value: _departure(l10n)),
               const SizedBox(height: RmSpacing.md),
-              _Line(label: l10n.tripStatusState, value: _state(l10n)),
+              _Line(
+                label: l10n.tripStatusState,
+                value: tripStateLabel(l10n, row.trip.state),
+              ),
               // What `in_progress` does not mean, said rather than assumed.
               if (row.trip.state == TripState.inProgress) ...<Widget>[
                 const SizedBox(height: RmSpacing.xs),
@@ -283,13 +287,6 @@ class _Detail extends ConsumerWidget {
 
     return rows;
   }
-
-  String _state(AppLocalizations l10n) => switch (row.trip.state) {
-    TripState.notStarted => l10n.tripStatusStateNotStarted,
-    TripState.inProgress => l10n.tripStatusStateInProgress,
-    TripState.completed => l10n.tripStatusStateCompleted,
-    TripState.aborted => l10n.tripStatusStateAborted,
-  };
 
   /// The departure the driver published, in the terms they chose.
   String _departure(AppLocalizations l10n) {

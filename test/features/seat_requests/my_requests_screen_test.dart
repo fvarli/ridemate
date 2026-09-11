@@ -21,6 +21,7 @@ import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/seat_requests/seat_request.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
+import 'package:ridemate/core/trips/trip_lifecycle.dart';
 import 'package:ridemate/features/seat_requests/application/seat_request_providers.dart';
 import 'package:ridemate/features/seat_requests/data/seat_request_repository.dart';
 import 'package:ridemate/features/seat_requests/presentation/my_requests_screen.dart';
@@ -37,6 +38,7 @@ MySeatRequest _request({
   DepartureState departureState = DepartureState.upcoming,
   String driver = 'İrem Yılmaz',
   String initials = 'İY',
+  TripState trip = TripState.notStarted,
 }) => MySeatRequest(
   id: id,
   status: status,
@@ -63,7 +65,12 @@ MySeatRequest _request({
     rules: const <RideRuleId>{},
     driver: SeatRequestMember(displayName: driver, initials: initials),
     // Always present on this projection, `notStarted` included.
-    trip: fakeTrip(),
+    trip: fakeTrip(
+      state: trip,
+      startedAt: trip == TripState.notStarted ? null : '2026-09-11T07:05:00Z',
+      completedAt: trip == TripState.completed ? '2026-09-11T07:45:00Z' : null,
+      abortedAt: trip == TripState.aborted ? '2026-09-11T07:20:00Z' : null,
+    ),
   ),
 );
 
@@ -333,6 +340,18 @@ void main() {
         'ödeme',
         'kalan koltuk',
         'boş koltuk',
+        // Phase 14 could have said any of these about a started journey. The
+        // server knows none of them: it knows the driver pressed Start.
+        'yolda',
+        'yola çıktı',
+        'geliyor',
+        'seyahat',
+        'bindin',
+        'alındın',
+        'konum',
+        'harita',
+        'navigasyon',
+        'gps',
       ]) {
         expect(
           rendered.any((String s) => s.contains(forbidden)),
@@ -505,6 +524,12 @@ void main() {
         ],
       );
 
+      // Tall enough to build the control at all: the list is lazy, so a
+      // widget far below the viewport is never created and cannot be scrolled
+      // to. Two cards now carry a lifecycle line each.
+      await tester.binding.setSurfaceSize(const Size(393, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await pump(tester, backend);
       await tester.pumpAndSettle();
 
@@ -576,6 +601,264 @@ void main() {
       // Still here. Route Details is fixture-backed and this screen is not a
       // way into it.
       expect(find.byType(MyRequestsScreen), findsOneWidget);
+    });
+  });
+
+  group('Whether the journey was made', () {
+    /// The third truth, beside the asking's own status and the journey's.
+    testWidgets('all four states render their own line', (
+      WidgetTester tester,
+    ) async {
+      for (final (TripState state, String copy) in <(TripState, String)>[
+        (TripState.notStarted, 'Yolculuk: Başlamadı'),
+        (TripState.inProgress, 'Yolculuk: Başladı'),
+        (TripState.completed, 'Yolculuk: Tamamlandı'),
+        (TripState.aborted, 'Yolculuk: Yarıda bırakıldı'),
+      ]) {
+        await pump(
+          tester,
+          _Requests(
+            pages: <MySeatRequestsResult>[
+              MySeatRequestsResult(
+                requests: <MySeatRequest>[_request(trip: state)],
+                nextCursor: null,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text(copy), findsOneWidget, reason: state.wire);
+        expect(
+          find.textContaining(state.wire),
+          findsNothing,
+          reason: 'the wire string reached the screen: ${state.wire}',
+        );
+      }
+    });
+
+    /// CARRIES WEIGHT. The one combination that looks like a bug and is not.
+    ///
+    /// A driver may set off while somebody's asking is still unanswered. Both
+    /// are true, the server says both, and the client reconciles neither.
+    testWidgets('a pending asking on a started journey stays pending', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        _Requests(
+          pages: <MySeatRequestsResult>[
+            MySeatRequestsResult(
+              requests: <MySeatRequest>[
+                _request(
+                  status: SeatRequestStatus.pending,
+                  trip: TripState.inProgress,
+                ),
+              ],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).seatRequestPending), findsOneWidget);
+      expect(find.text('Yolculuk: Başladı'), findsOneWidget);
+      // And the asking is still the passenger's to take back.
+      expect(find.text(l10nOf(tester).myRequestsWithdraw), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. A journey ending answers nobody's asking.
+    testWidgets('an accepted asking survives every ending', (
+      WidgetTester tester,
+    ) async {
+      for (final TripState state in <TripState>[
+        TripState.inProgress,
+        TripState.completed,
+        TripState.aborted,
+      ]) {
+        await pump(
+          tester,
+          _Requests(
+            pages: <MySeatRequestsResult>[
+              MySeatRequestsResult(
+                requests: <MySeatRequest>[
+                  _request(status: SeatRequestStatus.accepted, trip: state),
+                ],
+                nextCursor: null,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(l10nOf(tester).seatRequestAccepted),
+          findsOneWidget,
+          reason: state.wire,
+        );
+        // Still no Withdraw: Phase 13's rule, untouched by Phase 14.
+        expect(
+          find.text(l10nOf(tester).myRequestsWithdraw),
+          findsNothing,
+          reason: state.wire,
+        );
+      }
+    });
+
+    /// CARRIES WEIGHT. A withdrawn plan and an abandoned journey are different
+    /// facts, and one is never drawn from the other.
+    testWidgets('a cancelled journey nobody started says exactly that', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        _Requests(
+          pages: <MySeatRequestsResult>[
+            MySeatRequestsResult(
+              requests: <MySeatRequest>[
+                _request(
+                  status: SeatRequestStatus.accepted,
+                  routeStatus: RouteStatus.cancelled,
+                ),
+              ],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).seatRequestAccepted), findsOneWidget);
+      expect(
+        find.text(l10nOf(tester).myRequestsRouteCancelled),
+        findsOneWidget,
+      );
+      expect(find.text('Yolculuk: Başlamadı'), findsOneWidget);
+      expect(find.text('Yolculuk: Yarıda bırakıldı'), findsNothing);
+    });
+
+    /// The lifecycle never decides whether the asking can be taken back.
+    testWidgets('Withdraw follows the asking alone, in every state', (
+      WidgetTester tester,
+    ) async {
+      for (final TripState state in TripState.values) {
+        for (final (SeatRequestStatus status, Matcher expected)
+            in <(SeatRequestStatus, Matcher)>[
+              (SeatRequestStatus.pending, findsOneWidget),
+              (SeatRequestStatus.accepted, findsNothing),
+              (SeatRequestStatus.declined, findsNothing),
+              (SeatRequestStatus.withdrawn, findsNothing),
+            ]) {
+          await pump(
+            tester,
+            _Requests(
+              pages: <MySeatRequestsResult>[
+                MySeatRequestsResult(
+                  requests: <MySeatRequest>[
+                    _request(status: status, trip: state),
+                  ],
+                  nextCursor: null,
+                ),
+              ],
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(
+            find.text(l10nOf(tester).myRequestsWithdraw),
+            expected,
+            reason: '${status.wire} + ${state.wire}',
+          );
+        }
+      }
+    });
+
+    /// CARRIES WEIGHT. Reading a lifecycle is not being able to change one.
+    testWidgets('a passenger is offered no lifecycle command at all', (
+      WidgetTester tester,
+    ) async {
+      for (final TripState state in TripState.values) {
+        await pump(
+          tester,
+          _Requests(
+            pages: <MySeatRequestsResult>[
+              MySeatRequestsResult(
+                requests: <MySeatRequest>[
+                  _request(status: SeatRequestStatus.accepted, trip: state),
+                ],
+                nextCursor: null,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        for (final String control in <String>[
+          'Yolculuğu başlat',
+          'Yolculuğu tamamla',
+          'Yolculuğu yarıda bırak',
+          'Yolculuk durumu',
+        ]) {
+          expect(
+            find.text(control),
+            findsNothing,
+            reason: '$control: ${state.wire}',
+          );
+        }
+      }
+    });
+
+    /// Three separate facts, each its own node, so a screen reader hears all
+    /// three rather than one merged sentence.
+    testWidgets('the lifecycle is announced beside the other two truths', (
+      WidgetTester tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pump(
+        tester,
+        _Requests(
+          pages: <MySeatRequestsResult>[
+            MySeatRequestsResult(
+              requests: <MySeatRequest>[
+                _request(
+                  status: SeatRequestStatus.accepted,
+                  routeStatus: RouteStatus.cancelled,
+                  trip: TripState.notStarted,
+                ),
+              ],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The card announces as one node whose label is its lines in order, so
+      // what matters is that the lifecycle is IN it and stays distinct from
+      // the two beside it — not that it has a node to itself.
+      final String announced = tester
+          .getSemantics(find.text('Yolculuk: Başlamadı'))
+          .label;
+
+      for (final String fact in <String>[
+        l10nOf(tester).seatRequestAccepted,
+        l10nOf(tester).myRequestsRouteCancelled,
+        'Yolculuk: Başlamadı',
+      ]) {
+        expect(announced, contains(fact), reason: fact);
+      }
+
+      // Separated rather than run together: three facts, not one sentence a
+      // listener has to unpick.
+      expect(announced, contains('\n'));
+      expect(
+        announced.indexOf(l10nOf(tester).seatRequestAccepted),
+        lessThan(announced.indexOf('Yolculuk: Başlamadı')),
+      );
+
+      handle.dispose();
     });
   });
 }

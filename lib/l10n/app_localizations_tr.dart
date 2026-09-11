@@ -1002,16 +1002,21 @@ class AppLocalizationsTr extends AppLocalizations {
   String get myRoutesCancelled => 'Rota iptal edildi.';
 
   @override
-  String get myRoutesTripStateNotStarted => 'Yolculuk: Başlamadı';
+  String get tripStateNotStarted => 'Başlamadı';
 
   @override
-  String get myRoutesTripStateInProgress => 'Yolculuk: Başladı';
+  String get tripStateInProgress => 'Başladı';
 
   @override
-  String get myRoutesTripStateCompleted => 'Yolculuk: Tamamlandı';
+  String get tripStateCompleted => 'Tamamlandı';
 
   @override
-  String get myRoutesTripStateAborted => 'Yolculuk: Yarıda bırakıldı';
+  String get tripStateAborted => 'Yarıda bırakıldı';
+
+  @override
+  String tripStateLine(String state) {
+    return 'Yolculuk: $state';
+  }
 
   @override
   String get myRoutesStartTrip => 'Yolculuğu başlat';
@@ -1097,18 +1102,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get tripStatusState => 'Durum';
-
-  @override
-  String get tripStatusStateNotStarted => 'Başlamadı';
-
-  @override
-  String get tripStatusStateInProgress => 'Başladı';
-
-  @override
-  String get tripStatusStateCompleted => 'Tamamlandı';
-
-  @override
-  String get tripStatusStateAborted => 'Yarıda bırakıldı';
 
   @override
   String get tripStatusStartedNote =>

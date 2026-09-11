@@ -1,12 +1,21 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — One of the member's own askings
 //
-// The request's status and the journey's are rendered as two separate lines,
-// because they are two separate facts. `Kabul edildi` above `Bu yolculuk iptal
-// edildi` is not a bug: the driver agreed to share a seat and then withdrew the
-// journey, and both of those happened. Merging them into one label would have
-// to invent a state — `cancelled_by_route`, `expired` — that no response
-// carries and no decision produced.
+// The request's status, the journey's, and whether the journey was made are
+// rendered as three separate lines, because they are three separate facts.
+// `Kabul edildi` above `Bu yolculuk iptal edildi` is not a bug: the driver
+// agreed to share a seat and then withdrew the journey, and both of those
+// happened. `Beklemede` above `Yolculuk: Başladı` is not one either — a driver
+// may set off while somebody's asking is still unanswered, and the server says
+// so. Merging any of them into one label would have to invent a state —
+// `cancelled_by_route`, `expired`, `missed` — that no response carries and no
+// decision produced.
+//
+// NOTHING HERE IS A PASSENGER ACTION ON THE JOURNEY
+//
+// The lifecycle is read and nothing else. A passenger cannot start, complete or
+// abandon a journey, and the line saying `Başladı` does not say the member is
+// aboard, was picked up, is moving, or is anywhere at all.
 //
 // WITHDRAW APPEARS ONLY WHILE THERE IS SOMETHING TO WITHDRAW
 //
@@ -28,6 +37,7 @@ import '../../../../core/seat_requests/seat_request.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
+import '../../../../core/trips/trip_state_copy.dart';
 import '../../../../core/widgets/rm_avatar.dart';
 import '../../../../core/widgets/rm_button.dart';
 import '../../../../core/widgets/rm_card.dart';
@@ -99,7 +109,7 @@ class MyRequestCard extends StatelessWidget {
             style: RmTypography.caption.copyWith(color: c.sub),
           ),
           const SizedBox(height: RmSpacing.sm),
-          // The asking's own state — history, and the first of the two truths.
+          // The asking's own state — history, and the first of the three.
           Text(
             _statusLabel(l10n),
             style: RmTypography.body.copyWith(color: c.ink),
@@ -112,6 +122,15 @@ class MyRequestCard extends StatelessWidget {
               style: RmTypography.caption.copyWith(color: c.sub),
             ),
           ],
+          // And whether it was made — the third truth, always said. Unlike the
+          // note above it is never absent: `Başlamadı` is a fact about the
+          // journey rather than the lack of one, and a passenger reading their
+          // own history needs to know which journeys happened.
+          const SizedBox(height: RmSpacing.xs),
+          Text(
+            tripStateLine(l10n, route.trip.state),
+            style: RmTypography.caption.copyWith(color: c.sub),
+          ),
           if (request.status == SeatRequestStatus.pending) ...<Widget>[
             const SizedBox(height: RmSpacing.sm),
             RmButton(

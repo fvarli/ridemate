@@ -1163,21 +1163,29 @@
   "@myRoutesCancelled": {
     "description": "Sunucu iptali onayladıktan sonra gösterilir; önce değil."
   },
-  "myRoutesTripStateNotStarted": "Yolculuk: Başlamadı",
-  "@myRoutesTripStateNotStarted": {
-    "description": "Sürücü henüz Başlat demedi. Sunucunun söylediği durum; istemci bunu saatten çıkarmaz."
+
+  "tripStateNotStarted": "Başlamadı",
+  "@tripStateNotStarted": {
+    "description": "Sunucuda yolculuk kaydı yok. Tek kaynak: sürücünün rotaları, yolcunun istekleri ve yolculuk durumu ekranı aynı sözcüğü kullanır."
   },
-  "myRoutesTripStateInProgress": "Yolculuk: Başladı",
-  "@myRoutesTripStateInProgress": {
-    "description": "Sürücü Başlat dedi ve sunucu kabul etti. Aracın hareket ettiğini, birinin bindiğini veya bir konum bilindiğini SÖYLEMEZ."
+  "tripStateInProgress": "Başladı",
+  "@tripStateInProgress": {
+    "description": "Sürücü Başlat dedi ve sunucu kabul etti. Aracın hareket ettiğini, birinin bindiğini, alındığını veya bir konum bilindiğini SÖYLEMEZ."
   },
-  "myRoutesTripStateCompleted": "Yolculuk: Tamamlandı",
-  "@myRoutesTripStateCompleted": {
+  "tripStateCompleted": "Tamamlandı",
+  "@tripStateCompleted": {
     "description": "Sürücü yolculuğun yapıldığını bildirdi."
   },
-  "myRoutesTripStateAborted": "Yolculuk: Yarıda bırakıldı",
-  "@myRoutesTripStateAborted": {
-    "description": "Sürücü yolculuğun yapılmadığını bildirdi. Rota iptalinden ayrıdır; onun karşılığı myRoutesStatusCancelled."
+  "tripStateAborted": "Yarıda bırakıldı",
+  "@tripStateAborted": {
+    "description": "Sürücü yolculuğun yapılmadığını bildirdi. Rota iptalinden ayrıdır."
+  },
+  "tripStateLine": "Yolculuk: {state}",
+  "@tripStateLine": {
+    "description": "Durumu, yanındaki istek ve rota durumlarından ayırt eden etiketli biçim.",
+    "placeholders": {
+      "state": { "type": "String" }
+    }
   },
 
   "myRoutesStartTrip": "Yolculuğu başlat",
@@ -1289,22 +1297,6 @@
   "tripStatusState": "Durum",
   "@tripStatusState": {
     "description": "Yolculuğun sunucudaki durumunu etiketler. Ekran başlığından ayrıdır."
-  },
-  "tripStatusStateNotStarted": "Başlamadı",
-  "@tripStatusStateNotStarted": {
-    "description": "Sunucuda yolculuk kaydı yok."
-  },
-  "tripStatusStateInProgress": "Başladı",
-  "@tripStatusStateInProgress": {
-    "description": "Sürücü Başlat dedi ve sunucu kabul etti. Başka hiçbir şey söylemez."
-  },
-  "tripStatusStateCompleted": "Tamamlandı",
-  "@tripStatusStateCompleted": {
-    "description": "Sürücü yolculuğun yapıldığını bildirdi."
-  },
-  "tripStatusStateAborted": "Yarıda bırakıldı",
-  "@tripStatusStateAborted": {
-    "description": "Sürücü yolculuğun yapılmadığını bildirdi."
   },
   "tripStatusStartedNote": "Bu yalnızca yolculuğu RideMate'te başlattığını gösterir. Konum, harita, navigasyon veya yolcu bilgisi tutulmaz.",
   "@tripStatusStartedNote": {

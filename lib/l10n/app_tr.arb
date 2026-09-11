@@ -980,8 +980,8 @@
   "@errorNetwork": {
     "description": "Ağ hatası. Sunucuya hiç ulaşılamadığında gösterilir."
   },
-  "errorConflict": "Bu rota zaten yayınlanmış görünüyor.",
-  "@errorConflict": {"description": "409. İstek, sunucudaki mevcut durumla bağdaşmıyor. Sessizce yeni bir kimlikle tekrar denenmez."},
+  "errorConflict": "Bu işlem mevcut durum nedeniyle tamamlanamadı. Bilgileri yenileyip tekrar deneyin.",
+  "@errorConflict": {"description": "409 için son çare. Alan adı belirtmez: aynı kod yayınlama, koltuk isteği ve yolculuk komutlarından gelebilir. Sunucunun adlandırdığı ve bu sürümün tanıdığı her gerekçenin kendi metni vardır; buraya yalnızca gerekçesiz ya da tanınmayan bir 409 düşer. Sessizce yeni bir kimlikle tekrar denenmez."},
   "errorUnexpected": "Beklenmeyen bir sorun oluştu. Lütfen tekrar dene.",
   "@errorUnexpected": {
     "description": "Tanınmayan veya beklenmeyen sunucu hatası için güvenli varsayılan metin."

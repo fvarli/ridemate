@@ -389,6 +389,14 @@ more sharply, so the two make one flow to review. The test that pins the route b
 `kDebugMode` was generalised in Phase 6 to check **every** guarded route rather than this
 one, so a third cannot be added in a way that weakens the check.
 
+**Phase 14 did not unlock it.** A real trip lifecycle exists now, and this screen is still not
+it: `TripStatusScreen` is a different screen at a different route, backed by the server, and
+it reuses nothing from here. What Phase 14 made real is a driver saying a journey started,
+was made, or was not — which is exactly the part of this fixture that was never the problem.
+The map, the moving vehicle, the ETA, the live badge, the passenger and the SOS control are
+still figures from the comp, and are still the reason the route stays behind `kDebugMode`. A
+navigation test asserts a real My Routes card reaches `TripStatusScreen` and never this one.
+
 ### Nothing on the Safety Center is real either
 
 No emergency dispatch, telephony, trusted-contact store, location sharing, QR
@@ -762,8 +770,10 @@ them a rule rather than a formatting detail (`i` → `İ`, `ı` → `I`), so der
 be authoring a rule the backend owns. A guard asserts nothing under `features/discovery`
 computes them.
 
-**`seats_offered` is offered, not available.** Nothing can request a seat yet, so there is
-nothing to subtract, and the copy never says remaining, free or available.
+**`seats_offered` is offered, not available.** Phase 13 made asking real, and this still does
+not change: the server publishes no remaining count and subtracting locally would be the
+client inventing capacity it cannot serialize. The copy never says remaining, free or
+available.
 
 **The card shows nothing else.** No rating, verified badge, trip count, shared-route count,
 trust score, approval rate, compatibility percentage, walking minutes, distance, savings or
@@ -771,8 +781,70 @@ cost. The design's match card drew eleven such figures; each names a phase that 
 happened. `MatchCard` was **replaced rather than narrowed**, because a trimmed class keeps
 every withdrawn field alive in its type, waiting for some later widget to read one again.
 
-**There is no join or request-seat action.** Asking for a seat is Phase 13, and a button that
-did nothing would be worse than no button.
+**The card gained exactly one action, in Phase 13.** Asking for a seat, which the server
+answers; the card then shows the caller's own request as the server returned it, and never a
+state assumed from the tap. Nothing else was added with it.
+
+### What Phase 14 made real, and the rules it runs on
+
+Three endpoints, all the driver's, all bodyless:
+`POST /api/v1/routes/{routeId}/trip/start`, `.../trip/complete`, `.../trip/abort`.
+
+**Three truths, and the client reconciles none of them.** A seat request's status is the
+passenger's own history. A route's status and departure state are the plan as it stands. The
+trip lifecycle is whether the journey was made. None implies another, and the combinations
+that look wrong are the ones to get right: an accepted request on a cancelled journey, a
+completed journey whose request was declined, and **a pending asking on a journey that has
+already started** — a driver may set off while somebody's request is unanswered. Merging any
+two would have to invent a state (`cancelled_by_route`, `expired`, `missed`) that no response
+carries.
+
+**The lifecycle is carried, never derived.** Nothing computes it from a route status, a
+departure state, a request status or a clock. `not_started` arrives from the server for a
+journey nobody began; an unknown state or a missing `trip` key fails the response rather than
+becoming a plausible guess.
+
+**The projections are separate types because the contract has separate schemas.**
+`PublishedRoute` carries no lifecycle — publication and cancellation answer without one —
+and `MyRoute` is that route plus a required `TripLifecycle`. `DiscoveredRoute` has none: the
+public feed says nothing about whether a journey was made. Folding `trip` onto the shared
+type would make it either a lie on two surfaces or a nullable half that the first forgetful
+screen reads as `not_started`.
+
+**Commands are offered on the lifecycle and on nothing else.** `not_started` offers Start;
+`in_progress` offers Complete and Abort; a finished or abandoned journey offers neither.
+Not the device clock, not `departureState` — which would hide Start exactly when the backend
+allows it, since a journey may only begin once its departure has passed — not the route's
+status, and not a passenger count. A withdrawn journey still offers Start and the server
+answers `route_unavailable`; whether a command is *permitted* is the backend's to say, and it
+says it with a reason this client can put on screen.
+
+**Nothing is optimistic.** A row moves only after the server has answered, and it moves to
+the lifecycle the answer carried rather than to one assumed from which button was pressed.
+`already_completed` and `already_aborted` mean the row was stale, so the list is re-read —
+the reason names *which* ending happened and nothing about *when*, and a timestamp invented
+here would be one no server ever sent.
+
+**`in_progress` means one thing: the driver pressed Start and the server accepted it.** Not
+that anybody is moving, at the origin, aboard, picked up, or anywhere known. The real Trip
+Status screen says so in as many words, and a guard scans these surfaces for the claims it
+must not make.
+
+**The passenger side is read-only.** My Requests shows the lifecycle as a third line and
+offers no command, no navigation into the driver's screen, and no change to Withdraw — still
+pending-only, exactly as Phase 13 defined it.
+
+**Timestamps are printed, never measured.** The three the server sends appear only when they
+exist, and only on the Trip Status screen. `RmFormatters.instant` converts an instant into the
+reader's zone — a zone change on a recorded fact, which is why it lives in `core/format` and
+not in `features/my_routes`, where a guard bans the clock outright. No duration, arrival,
+estimate or elapsed time is computed anywhere.
+
+**Not in this phase, and not implied by it**: occurrences for recurring journeys (only one-off
+routes have a trip), GPS, live location, maps, navigation, realtime or polling, push, chat,
+SOS, boarding, attendance, no-show, passenger presence, review eligibility, ratings, trust,
+verification, payment or cost — and no automatic inference of any kind. Nothing completes a
+trip on a schedule and nothing aborts one because time passed.
 
 ### Route Details is still a fixture, and nothing real walks into it
 
@@ -960,7 +1032,7 @@ correct, and Phase 10 found no consumer for one.
 
 ## Roadmap
 
-Phase 13 onward, in dependency order. The ordering was not a preference: **Discovery could not
+Phase 15 onward, in dependency order. The ordering was not a preference: **Discovery could not
 come next**, and finding that out is what shaped Phase 10.
 
 The design's match card renders eleven data points and only four could be backend-owned at the
@@ -973,8 +1045,8 @@ the screen** rather than inventing them.
 |---|---|---|
 | 11 | **Profile minimum** ✅ | a name and initials — another member can finally be named honestly |
 | 12 | **Discovery** ✅ | a real search over published journeys, and a card reduced to what the server knows |
-| 13 | **Seat requests** | seat availability becomes a real quantity; a discovered route gains something to do; approval rate gets a source |
-| 14 | **Trip lifecycle** | trip counts |
+| 13 | **Seat requests** ✅ | a discovered route gained something to do, and approval rate a source. Seat availability did **not** become a client quantity: the server publishes no remaining count |
+| 14 | **Trip lifecycle** ✅ | whether a journey was actually made — the fact a trip count would have to count |
 | 15 | **Reviews** | ratings |
 | 16 | **Verification** | the verified state and its badge |
 | 17 | **Trust Score** | depends on 13–16; the match card is finally whole |

@@ -860,7 +860,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorConflict =>
-      'This route appears to have been published already.';
+      'This action could not be completed because the current state has changed. Refresh and try again.';
 
   @override
   String get errorUnexpected => 'Something went wrong. Please try again.';

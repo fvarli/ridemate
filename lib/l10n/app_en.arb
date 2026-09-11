@@ -240,7 +240,7 @@
   "dateWeeksAgo": "{count, plural, =1{1 week ago} other{{count} weeks ago}}",
 
   "errorNetwork": "Couldn't connect. Check your internet connection.",
-  "errorConflict": "This route appears to have been published already.",
+  "errorConflict": "This action could not be completed because the current state has changed. Refresh and try again.",
   "errorUnexpected": "Something went wrong. Please try again.",
   "errorValidation": "Check the details you entered.",
   "errorUnauthenticated": "Your session has ended. Sign in again.",

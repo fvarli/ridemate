@@ -1487,10 +1487,10 @@ abstract class AppLocalizations {
   /// **'Bağlantı kurulamadı. İnternet bağlantını kontrol et.'**
   String get errorNetwork;
 
-  /// 409. İstek, sunucudaki mevcut durumla bağdaşmıyor. Sessizce yeni bir kimlikle tekrar denenmez.
+  /// 409 için son çare. Alan adı belirtmez: aynı kod yayınlama, koltuk isteği ve yolculuk komutlarından gelebilir. Sunucunun adlandırdığı ve bu sürümün tanıdığı her gerekçenin kendi metni vardır; buraya yalnızca gerekçesiz ya da tanınmayan bir 409 düşer. Sessizce yeni bir kimlikle tekrar denenmez.
   ///
   /// In tr, this message translates to:
-  /// **'Bu rota zaten yayınlanmış görünüyor.'**
+  /// **'Bu işlem mevcut durum nedeniyle tamamlanamadı. Bilgileri yenileyip tekrar deneyin.'**
   String get errorConflict;
 
   /// Tanınmayan veya beklenmeyen sunucu hatası için güvenli varsayılan metin.

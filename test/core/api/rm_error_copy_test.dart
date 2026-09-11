@@ -90,4 +90,78 @@ void main() {
   test('the mapping is exhaustive over the enum', () {
     expect(RmErrorCode.values, hasLength(10));
   });
+
+  /// CARRIES WEIGHT. The last-resort 409 sentence names no domain.
+  ///
+  /// It used to say a route had already been published, which was true while
+  /// publication was the only command that could conflict. Three domains reach
+  /// it now — publication, seat requests and trip lifecycle — and a member
+  /// abandoning a journey should not be told something about publishing.
+  ///
+  /// Every reason the server names and this build knows has its own sentence,
+  /// so what lands here is a 409 carrying no reason, or one from a backend
+  /// newer than this app.
+  test('the generic conflict copy belongs to no domain', () {
+    const RmFailure unknown = RmFailure.fromBackend(
+      status: 409,
+      code: RmErrorCode.conflict,
+      // A reason a later backend might add. `tripRefusal` and
+      // `seatRequestRefusal` both answer null for it, so the fallback is what
+      // the member sees.
+      reason: 'trip_already_started',
+    );
+
+    for (final (AppLocalizations l10n, List<String> forbidden)
+        in <(AppLocalizations, List<String>)>[
+          (
+            tr,
+            <String>[
+              'rota',
+              'yayın',
+              'koltuk',
+              'istek',
+              'yolculuk',
+              'sürücü',
+              'yolcu',
+            ],
+          ),
+          (
+            en,
+            <String>[
+              'route',
+              'publish',
+              'seat',
+              'request',
+              'trip',
+              'driver',
+              'passenger',
+            ],
+          ),
+        ]) {
+      final String copy = unknown.copy(l10n).toLowerCase();
+
+      expect(copy, isNotEmpty);
+      for (final String word in forbidden) {
+        expect(
+          copy.contains(word),
+          isFalse,
+          reason: '"$word" names a domain the server did not name: $copy',
+        );
+      }
+    }
+  });
+
+  /// And it still says something a member can act on, rather than shrugging.
+  test('the generic conflict copy is not the unexpected-error sentence', () {
+    final RmFailure conflict = backend(RmErrorCode.conflict, status: 409);
+
+    expect(
+      conflict.copy(tr),
+      isNot(backend(RmErrorCode.internalError).copy(tr)),
+    );
+    expect(
+      conflict.copy(en),
+      isNot(backend(RmErrorCode.internalError).copy(en)),
+    );
+  });
 }

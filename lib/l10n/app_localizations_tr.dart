@@ -854,7 +854,8 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bağlantı kurulamadı. İnternet bağlantını kontrol et.';
 
   @override
-  String get errorConflict => 'Bu rota zaten yayınlanmış görünüyor.';
+  String get errorConflict =>
+      'Bu işlem mevcut durum nedeniyle tamamlanamadı. Bilgileri yenileyip tekrar deneyin.';
 
   @override
   String get errorUnexpected =>

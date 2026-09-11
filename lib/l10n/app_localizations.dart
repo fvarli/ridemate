@@ -1751,15 +1751,94 @@ abstract class AppLocalizations {
   /// **'Rota iptal edildi.'**
   String get myRoutesCancelled;
 
+  /// Sürücü henüz Başlat demedi. Sunucunun söylediği durum; istemci bunu saatten çıkarmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk: Başlamadı'**
+  String get myRoutesTripStateNotStarted;
+
+  /// Sürücü Başlat dedi ve sunucu kabul etti. Aracın hareket ettiğini, birinin bindiğini veya bir konum bilindiğini SÖYLEMEZ.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk: Başladı'**
+  String get myRoutesTripStateInProgress;
+
+  /// Sürücü yolculuğun yapıldığını bildirdi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk: Tamamlandı'**
+  String get myRoutesTripStateCompleted;
+
+  /// Sürücü yolculuğun yapılmadığını bildirdi. Rota iptalinden ayrıdır; onun karşılığı myRoutesStatusCancelled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk: Yarıda bırakıldı'**
+  String get myRoutesTripStateAborted;
+
+  /// Yalnızca sunucunun bildirdiği durum başlamadı iken görünür. Başlatmaya izin olup olmadığına sunucu karar verir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuğu başlat'**
+  String get myRoutesStartTrip;
+
+  /// Başlat düğmesinin hangi rotaya ait olduğunu söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} yolculuğunu başlat'**
+  String myRoutesStartTripSemanticLabel(String route);
+
+  /// Sunucu başlatmayı kabul ettikten SONRA gösterilir, öncesinde değil.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} yolculuğu başladı.'**
+  String myRoutesTripStarted(String route);
+
+  /// Sunucunun gerekçe adlandırmadığı ya da bu sürümün tanımadığı bir gerekçe adlandırdığı ret için.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk başlatılamadı.'**
+  String get myRoutesTripStartFailed;
+
+  /// Kalkışa sunucu kendi saatiyle karar verir; cihaz saati burada hiç kullanılmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk henüz başlatılamaz.'**
+  String get myRoutesStartDepartureNotReached;
+
+  /// Hafta içi planların tek bir kalkışı yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrarlayan rotalarda yolculuk başlatma henüz yok.'**
+  String get myRoutesStartRecurringUnsupported;
+
+  /// Rota yayından kalkmış.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu rota artık başlatılamaz.'**
+  String get myRoutesStartRouteUnavailable;
+
+  /// Ekrandaki satır eskimiş; liste sunucudan yeniden okunur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk zaten tamamlanmış.'**
+  String get myRoutesStartAlreadyCompleted;
+
+  /// Ekrandaki satır eskimiş; liste sunucudan yeniden okunur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk zaten yarıda bırakılmış.'**
+  String get myRoutesStartAlreadyAborted;
+
   /// Bir rota kartının ekran okuyucuya okunan tam hâli.
   ///
   /// In tr, this message translates to:
-  /// **'{route}, {departure}, {seats}, {status}'**
+  /// **'{route}, {departure}, {seats}, {status}, {trip}'**
   String myRoutesCardSemanticLabel(
     String route,
     String departure,
     String seats,
     String status,
+    String trip,
   );
 
   /// İptal düğmesinin hangi rotaya ait olduğunu söyler.

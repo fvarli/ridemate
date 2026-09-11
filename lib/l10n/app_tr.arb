@@ -1163,14 +1163,76 @@
   "@myRoutesCancelled": {
     "description": "Sunucu iptali onayladıktan sonra gösterilir; önce değil."
   },
-  "myRoutesCardSemanticLabel": "{route}, {departure}, {seats}, {status}",
+  "myRoutesTripStateNotStarted": "Yolculuk: Başlamadı",
+  "@myRoutesTripStateNotStarted": {
+    "description": "Sürücü henüz Başlat demedi. Sunucunun söylediği durum; istemci bunu saatten çıkarmaz."
+  },
+  "myRoutesTripStateInProgress": "Yolculuk: Başladı",
+  "@myRoutesTripStateInProgress": {
+    "description": "Sürücü Başlat dedi ve sunucu kabul etti. Aracın hareket ettiğini, birinin bindiğini veya bir konum bilindiğini SÖYLEMEZ."
+  },
+  "myRoutesTripStateCompleted": "Yolculuk: Tamamlandı",
+  "@myRoutesTripStateCompleted": {
+    "description": "Sürücü yolculuğun yapıldığını bildirdi."
+  },
+  "myRoutesTripStateAborted": "Yolculuk: Yarıda bırakıldı",
+  "@myRoutesTripStateAborted": {
+    "description": "Sürücü yolculuğun yapılmadığını bildirdi. Rota iptalinden ayrıdır; onun karşılığı myRoutesStatusCancelled."
+  },
+
+  "myRoutesStartTrip": "Yolculuğu başlat",
+  "@myRoutesStartTrip": {
+    "description": "Yalnızca sunucunun bildirdiği durum başlamadı iken görünür. Başlatmaya izin olup olmadığına sunucu karar verir."
+  },
+  "myRoutesStartTripSemanticLabel": "{route} yolculuğunu başlat",
+  "@myRoutesStartTripSemanticLabel": {
+    "description": "Başlat düğmesinin hangi rotaya ait olduğunu söyler.",
+    "placeholders": {
+      "route": { "type": "String" }
+    }
+  },
+  "myRoutesTripStarted": "{route} yolculuğu başladı.",
+  "@myRoutesTripStarted": {
+    "description": "Sunucu başlatmayı kabul ettikten SONRA gösterilir, öncesinde değil.",
+    "placeholders": {
+      "route": { "type": "String" }
+    }
+  },
+  "myRoutesTripStartFailed": "Yolculuk başlatılamadı.",
+  "@myRoutesTripStartFailed": {
+    "description": "Sunucunun gerekçe adlandırmadığı ya da bu sürümün tanımadığı bir gerekçe adlandırdığı ret için."
+  },
+
+  "myRoutesStartDepartureNotReached": "Bu yolculuk henüz başlatılamaz.",
+  "@myRoutesStartDepartureNotReached": {
+    "description": "Kalkışa sunucu kendi saatiyle karar verir; cihaz saati burada hiç kullanılmaz."
+  },
+  "myRoutesStartRecurringUnsupported": "Tekrarlayan rotalarda yolculuk başlatma henüz yok.",
+  "@myRoutesStartRecurringUnsupported": {
+    "description": "Hafta içi planların tek bir kalkışı yoktur."
+  },
+  "myRoutesStartRouteUnavailable": "Bu rota artık başlatılamaz.",
+  "@myRoutesStartRouteUnavailable": {
+    "description": "Rota yayından kalkmış."
+  },
+  "myRoutesStartAlreadyCompleted": "Bu yolculuk zaten tamamlanmış.",
+  "@myRoutesStartAlreadyCompleted": {
+    "description": "Ekrandaki satır eskimiş; liste sunucudan yeniden okunur."
+  },
+  "myRoutesStartAlreadyAborted": "Bu yolculuk zaten yarıda bırakılmış.",
+  "@myRoutesStartAlreadyAborted": {
+    "description": "Ekrandaki satır eskimiş; liste sunucudan yeniden okunur."
+  },
+
+  "myRoutesCardSemanticLabel": "{route}, {departure}, {seats}, {status}, {trip}",
   "@myRoutesCardSemanticLabel": {
     "description": "Bir rota kartının ekran okuyucuya okunan tam hâli.",
     "placeholders": {
       "route": { "type": "String" },
       "departure": { "type": "String" },
       "seats": { "type": "String" },
-      "status": { "type": "String" }
+      "status": { "type": "String" },
+      "trip": { "type": "String" }
     }
   },
   "myRoutesCancelSemanticLabel": "{route} rotasını iptal et",

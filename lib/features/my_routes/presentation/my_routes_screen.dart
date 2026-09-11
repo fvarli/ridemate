@@ -34,6 +34,8 @@ import '../../../core/routes/published_route.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
 import '../../../core/theme/tokens/rm_spacing.dart';
 import '../../../core/theme/tokens/rm_typography.dart';
+import '../../../core/trips/trip_decoder.dart';
+import '../../../core/trips/trip_lifecycle.dart';
 import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
@@ -169,11 +171,11 @@ class _RouteList extends ConsumerWidget {
         for (int i = 0; i < page.routes.length; i++) ...<Widget>[
           if (i > 0) const SizedBox(height: RmSpacing.md),
           MyRouteCard(
-            // The journey only. The card says nothing about the lifecycle yet;
-            // F2 is where a driver acts on it.
-            route: page.routes[i].route,
+            row: page.routes[i],
             isCancelling: page.isCancelling(page.routes[i].id),
+            isStarting: page.isChangingTrip(page.routes[i].id),
             onCancel: () => _cancel(context, ref, page.routes[i].route),
+            onStart: () => _start(context, ref, page.routes[i].route),
             onOpenRequests: () => context.pushNamed(
               AppRoutes.routeRequests,
               pathParameters: <String, String>{'routeId': page.routes[i].id},
@@ -207,6 +209,72 @@ class _RouteList extends ConsumerWidget {
       ],
     );
   }
+
+  /// Tells the server the journey is under way, then says what it answered.
+  ///
+  /// No confirmation sheet. Cancellation has one because withdrawing a journey
+  /// takes it away from people who were counting on it; starting one takes
+  /// nothing away, and a driver about to set off should not have to answer a
+  /// question first.
+  ///
+  /// Nothing is marked started before the answer arrives, and a refusal leaves
+  /// the row exactly as the server last described it.
+  Future<void> _start(
+    BuildContext context,
+    WidgetRef ref,
+    PublishedRoute route,
+  ) async {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String journey = RmTextConventions.route(
+      route.origin.label,
+      route.destination.label,
+    );
+
+    final RmFailure? failure = await ref
+        .read(myRoutesProvider.notifier)
+        .startTrip(route.id);
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            failure == null
+                ? l10n.myRoutesTripStarted(journey)
+                : _startFailureCopy(l10n, failure),
+          ),
+        ),
+      );
+  }
+
+  /// Why the server would not start it, in the member's language.
+  ///
+  /// Branches on `details.reason`, the stable machine string — never on the
+  /// status, which all six refusals share, and never on the server's message,
+  /// which RmFailure does not carry at all.
+  ///
+  /// The five reachable from Start are named; anything else falls to the
+  /// existing generic seam rather than to a sentence invented here. A reason a
+  /// later backend adds arrives as null from [TripFailure.tripRefusal] and
+  /// lands there too.
+  String _startFailureCopy(AppLocalizations l10n, RmFailure failure) =>
+      switch (failure.tripRefusal) {
+        TripRefusal.departureNotReached =>
+          l10n.myRoutesStartDepartureNotReached,
+        TripRefusal.recurringRouteUnsupported =>
+          l10n.myRoutesStartRecurringUnsupported,
+        TripRefusal.routeUnavailable => l10n.myRoutesStartRouteUnavailable,
+        // Both mean this row is stale rather than that the command was wrong.
+        // The controller re-reads the list; neither ending is invented here
+        // from the reason that named it.
+        TripRefusal.alreadyCompleted => l10n.myRoutesStartAlreadyCompleted,
+        TripRefusal.alreadyAborted => l10n.myRoutesStartAlreadyAborted,
+        // Not a Start refusal: nothing completes or abandons a journey that
+        // was never begun, so this arm exists only to keep the switch honest.
+        TripRefusal.tripNotStarted => l10n.myRoutesTripStartFailed,
+        null => failure.copy(l10n),
+      };
 
   /// Confirm, then ask the server, then show what it said.
   ///

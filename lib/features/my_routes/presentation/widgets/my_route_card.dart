@@ -28,11 +28,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/format/rm_text_conventions.dart';
 import '../../../../core/routes/departure.dart';
+import '../../../../core/routes/my_route.dart';
 import '../../../../core/routes/published_route.dart';
 import '../../../../core/routes/ride_rule.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
+import '../../../../core/trips/trip_lifecycle.dart';
 import '../../../../core/widgets/rm_button.dart';
 import '../../../../core/widgets/rm_card.dart';
 import '../../../../core/widgets/rm_chip.dart';
@@ -41,19 +43,34 @@ import '../../../../l10n/app_localizations.dart';
 
 class MyRouteCard extends StatelessWidget {
   const MyRouteCard({
-    required this.route,
+    required this.row,
     required this.isCancelling,
+    required this.isStarting,
     required this.onCancel,
+    required this.onStart,
     required this.onOpenRequests,
     super.key,
   });
 
-  final PublishedRoute route;
+  /// The journey and whether it was made — the owner's projection, which is
+  /// the only one carrying a lifecycle.
+  final MyRoute row;
+
   final bool isCancelling;
+
+  /// Whether a Start command for this journey is in flight.
+  final bool isStarting;
+
   final VoidCallback onCancel;
+
+  /// Tells the server the journey is under way. Whether it may be is the
+  /// server's answer, not this card's.
+  final VoidCallback onStart;
 
   /// Opens who has asked for a seat on this journey.
   final VoidCallback onOpenRequests;
+
+  PublishedRoute get route => row.route;
 
   /// Whether this journey can still be withdrawn.
   ///
@@ -65,6 +82,16 @@ class MyRouteCard extends StatelessWidget {
   bool get _canCancel =>
       route.status == RouteStatus.published &&
       route.departureState == DepartureState.upcoming;
+
+  /// Whether there is a journey left to begin.
+  ///
+  /// The whole condition. Everything that decides whether Start will be
+  /// ACCEPTED — the departure instant in the route's own timezone, whether the
+  /// plan recurs, whether it still stands — belongs to the backend, which
+  /// answers with a reason this screen can say out loud. A client that
+  /// pre-judged any of it would eventually hide a Start the API would have
+  /// taken, and would do so silently.
+  bool get _canStart => row.trip.state == TripState.notStarted;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +105,7 @@ class MyRouteCard extends StatelessWidget {
     final String departure = _departure(l10n);
     final String seats = l10n.myRoutesSeatsOffered(route.seatsOffered);
     final String status = _status(l10n);
+    final String trip = _trip(l10n);
 
     return RmCard(
       child: Column(
@@ -89,11 +117,15 @@ class MyRouteCard extends StatelessWidget {
           // button's own semantics and leave it unreachable.
           Semantics(
             container: true,
+            // The lifecycle is inside the excluded subtree, so it has to be
+            // named here or a screen reader would be told less than the screen
+            // shows.
             label: l10n.myRoutesCardSemanticLabel(
               journey,
               departure,
               seats,
               status,
+              trip,
             ),
             child: ExcludeSemantics(
               child: Column(
@@ -124,6 +156,16 @@ class MyRouteCard extends StatelessWidget {
                   const SizedBox(height: RmSpacing.xs),
                   Text(
                     seats,
+                    style: RmTypography.caption.copyWith(color: c.sub),
+                  ),
+                  const SizedBox(height: RmSpacing.xs),
+                  // Subordinate to the journey, and deliberately not a second
+                  // pill: the pill above answers whether the plan still
+                  // stands, and this answers whether it was made. They are
+                  // different questions and a route can say anything about one
+                  // while saying anything about the other.
+                  Text(
+                    trip,
                     style: RmTypography.caption.copyWith(color: c.sub),
                   ),
                   // Absent, not empty, when the driver selected nothing.
@@ -164,6 +206,21 @@ class MyRouteCard extends StatelessWidget {
                 variant: RmButtonVariant.outline,
                 onPressed: onOpenRequests,
               ),
+              // Offered on exactly the server's own answer, and on nothing
+              // else. Not the departure clock — the device's or the server's:
+              // `departureState` would hide Start precisely when the backend
+              // allows it, since a journey may only begin once its departure
+              // has been reached. Not the route's status either: a withdrawn
+              // journey answers `route_unavailable`, which is the server
+              // saying so rather than this card guessing it.
+              if (_canStart)
+                RmButton(
+                  label: l10n.myRoutesStartTrip,
+                  semanticLabel: l10n.myRoutesStartTripSemanticLabel(journey),
+                  size: RmButtonSize.sm,
+                  loading: isStarting,
+                  onPressed: onStart,
+                ),
               if (_canCancel)
                 RmButton(
                   label: l10n.myRoutesCancel,
@@ -214,6 +271,20 @@ class MyRouteCard extends StatelessWidget {
       DepartureState.past => l10n.myRoutesStatusPast,
       DepartureState.upcoming => l10n.myRoutesStatusPublished,
     },
+  };
+
+  /// Whether the journey was made, in the member's own language.
+  ///
+  /// `Başladı` means the driver said so and the server recorded it. It does
+  /// NOT say the car is moving, that anybody boarded, that the driver is at
+  /// the origin, or that any location is known — none of which this product
+  /// knows. `Yarıda bırakıldı` is separate from `İptal edildi`: one is a
+  /// journey abandoned, the other a plan withdrawn.
+  String _trip(AppLocalizations l10n) => switch (row.trip.state) {
+    TripState.notStarted => l10n.myRoutesTripStateNotStarted,
+    TripState.inProgress => l10n.myRoutesTripStateInProgress,
+    TripState.completed => l10n.myRoutesTripStateCompleted,
+    TripState.aborted => l10n.myRoutesTripStateAborted,
   };
 
   /// When it leaves, in the terms the driver chose.

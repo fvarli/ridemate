@@ -1005,13 +1005,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myRoutesCancelled => 'The route is cancelled.';
 
   @override
+  String get myRoutesTripStateNotStarted => 'Trip: Not started';
+
+  @override
+  String get myRoutesTripStateInProgress => 'Trip: Started';
+
+  @override
+  String get myRoutesTripStateCompleted => 'Trip: Completed';
+
+  @override
+  String get myRoutesTripStateAborted => 'Trip: Abandoned';
+
+  @override
+  String get myRoutesStartTrip => 'Start trip';
+
+  @override
+  String myRoutesStartTripSemanticLabel(String route) {
+    return 'Start the trip for $route';
+  }
+
+  @override
+  String myRoutesTripStarted(String route) {
+    return 'The trip for $route has started.';
+  }
+
+  @override
+  String get myRoutesTripStartFailed => 'The trip could not be started.';
+
+  @override
+  String get myRoutesStartDepartureNotReached =>
+      'This trip cannot be started yet.';
+
+  @override
+  String get myRoutesStartRecurringUnsupported =>
+      'Starting a trip on a recurring route is not supported yet.';
+
+  @override
+  String get myRoutesStartRouteUnavailable =>
+      'This route can no longer be started.';
+
+  @override
+  String get myRoutesStartAlreadyCompleted =>
+      'This trip was already completed.';
+
+  @override
+  String get myRoutesStartAlreadyAborted => 'This trip was already abandoned.';
+
+  @override
   String myRoutesCardSemanticLabel(
     String route,
     String departure,
     String seats,
     String status,
+    String trip,
   ) {
-    return '$route, $departure, $seats, $status';
+    return '$route, $departure, $seats, $status, $trip';
   }
 
   @override

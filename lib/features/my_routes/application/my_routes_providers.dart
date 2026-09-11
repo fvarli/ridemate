@@ -21,6 +21,7 @@ import '../../../app/providers/session_provider.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/api/rm_retry.dart';
 import '../../../core/routes/published_route.dart';
+import '../../../core/trips/trip_decoder.dart';
 import '../../../core/trips/trip_lifecycle.dart';
 import '../data/my_routes_repository.dart';
 import '../domain/my_routes_page.dart';
@@ -222,9 +223,28 @@ class MyRoutesController extends AsyncNotifier<MyRoutesPage> {
     } on RmFailure catch (failure) {
       state = AsyncData<MyRoutesPage>(_settled(routeId));
 
+      // A journey the server says has already ended means the row on screen is
+      // stale, not that the command was wrong. The ending is re-read rather
+      // than built from the reason that named it: `already_completed` says
+      // WHICH ending happened and nothing about WHEN, and a `completed_at`
+      // invented here would be a timestamp no server ever sent.
+      //
+      // The other three refusals are facts about the journey as it already is,
+      // so nothing local changes for them.
+      if (_isTerminal(failure.tripRefusal)) refresh();
+
       return failure;
     }
   }
+
+  static bool _isTerminal(TripRefusal? refusal) => switch (refusal) {
+    TripRefusal.alreadyCompleted || TripRefusal.alreadyAborted => true,
+    TripRefusal.departureNotReached ||
+    TripRefusal.recurringRouteUnsupported ||
+    TripRefusal.routeUnavailable ||
+    TripRefusal.tripNotStarted ||
+    null => false,
+  };
 
   MyRoutesPage _settled(String routeId) {
     final MyRoutesPage page = state.value!;

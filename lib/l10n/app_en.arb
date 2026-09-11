@@ -285,6 +285,22 @@
   "myRoutesCancelConfirm": "Yes, cancel it",
   "myRoutesCancelDismiss": "Keep it",
   "myRoutesCancelled": "The route is cancelled.",
-  "myRoutesCardSemanticLabel": "{route}, {departure}, {seats}, {status}",
+  "myRoutesTripStateNotStarted": "Trip: Not started",
+  "myRoutesTripStateInProgress": "Trip: Started",
+  "myRoutesTripStateCompleted": "Trip: Completed",
+  "myRoutesTripStateAborted": "Trip: Abandoned",
+
+  "myRoutesStartTrip": "Start trip",
+  "myRoutesStartTripSemanticLabel": "Start the trip for {route}",
+  "myRoutesTripStarted": "The trip for {route} has started.",
+  "myRoutesTripStartFailed": "The trip could not be started.",
+
+  "myRoutesStartDepartureNotReached": "This trip cannot be started yet.",
+  "myRoutesStartRecurringUnsupported": "Starting a trip on a recurring route is not supported yet.",
+  "myRoutesStartRouteUnavailable": "This route can no longer be started.",
+  "myRoutesStartAlreadyCompleted": "This trip was already completed.",
+  "myRoutesStartAlreadyAborted": "This trip was already abandoned.",
+
+  "myRoutesCardSemanticLabel": "{route}, {departure}, {seats}, {status}, {trip}",
   "myRoutesCancelSemanticLabel": "Cancel the {route} route"
 }

@@ -1027,7 +1027,33 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get myRoutesTripStartFailed => 'Yolculuk başlatılamadı.';
+  String get myRoutesCompleteTrip => 'Yolculuğu tamamla';
+
+  @override
+  String myRoutesCompleteTripSemanticLabel(String route) {
+    return '$route yolculuğunu tamamla';
+  }
+
+  @override
+  String get myRoutesAbortTrip => 'Yolculuğu yarıda bırak';
+
+  @override
+  String myRoutesAbortTripSemanticLabel(String route) {
+    return '$route yolculuğunu yarıda bırak';
+  }
+
+  @override
+  String myRoutesTripCompleted(String route) {
+    return '$route yolculuğu tamamlandı.';
+  }
+
+  @override
+  String myRoutesTripAborted(String route) {
+    return '$route yolculuğu yarıda bırakıldı.';
+  }
+
+  @override
+  String get myRoutesTripNotStarted => 'Bu yolculuk henüz başlatılmamış.';
 
   @override
   String get myRoutesStartDepartureNotReached =>
@@ -1041,10 +1067,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get myRoutesStartRouteUnavailable => 'Bu rota artık başlatılamaz.';
 
   @override
-  String get myRoutesStartAlreadyCompleted => 'Bu yolculuk zaten tamamlanmış.';
+  String get myRoutesTripAlreadyCompleted => 'Bu yolculuk zaten tamamlanmış.';
 
   @override
-  String get myRoutesStartAlreadyAborted =>
+  String get myRoutesTripAlreadyAborted =>
       'Bu yolculuk zaten yarıda bırakılmış.';
 
   @override
@@ -1062,4 +1088,45 @@ class AppLocalizationsTr extends AppLocalizations {
   String myRoutesCancelSemanticLabel(String route) {
     return '$route rotasını iptal et';
   }
+
+  @override
+  String get tripStatusTitle => 'Yolculuk durumu';
+
+  @override
+  String get tripStatusDeparture => 'Planlanan kalkış';
+
+  @override
+  String get tripStatusState => 'Durum';
+
+  @override
+  String get tripStatusStateNotStarted => 'Başlamadı';
+
+  @override
+  String get tripStatusStateInProgress => 'Başladı';
+
+  @override
+  String get tripStatusStateCompleted => 'Tamamlandı';
+
+  @override
+  String get tripStatusStateAborted => 'Yarıda bırakıldı';
+
+  @override
+  String get tripStatusStartedNote =>
+      'Bu yalnızca yolculuğu RideMate\'te başlattığını gösterir. Konum, harita, navigasyon veya yolcu bilgisi tutulmaz.';
+
+  @override
+  String get tripStatusStartedAt => 'Başlangıç';
+
+  @override
+  String get tripStatusCompletedAt => 'Tamamlanma';
+
+  @override
+  String get tripStatusAbortedAt => 'Yarıda bırakılma';
+
+  @override
+  String get tripStatusNotFound => 'Bu rota listende yok';
+
+  @override
+  String get tripStatusNotFoundBody =>
+      'Rotalarını yeniden yükleyip tekrar dene.';
 }

@@ -28,6 +28,7 @@ import '../../features/discovery/presentation/search_screen.dart';
 import '../../features/gallery/presentation/gallery_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/my_routes/presentation/my_routes_screen.dart';
+import '../../features/my_routes/presentation/trip_status_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/application/profile_gate.dart';
@@ -338,6 +339,15 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.routeRequests,
         builder: (BuildContext context, GoRouterState state) =>
             RouteRequestsScreen(routeId: state.pathParameters['routeId'] ?? ''),
+      ),
+      // The driver's own journey, in full. Real and server-backed, so it is
+      // not behind kDebugMode — unlike AppRoutes.activeTrip, which this
+      // deliberately does not reuse.
+      GoRoute(
+        path: AppRoutes.tripStatusPath,
+        name: AppRoutes.tripStatus,
+        builder: (BuildContext context, GoRouterState state) =>
+            TripStatusScreen(routeId: state.pathParameters['routeId'] ?? ''),
       ),
       // Above the shell, and reached only by redirect: nothing links here.
       GoRoute(

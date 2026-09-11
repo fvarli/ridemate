@@ -142,6 +142,26 @@ class RmFormatters {
 
   String hourMinute(int hour, int minute) => '${_pad(hour)}:${_pad(minute)}';
 
+  /// An instant the server recorded, e.g. `11 Eylül 2026 · 10:05`.
+  ///
+  /// CONVERTED TO THE READER'S ZONE, AND THAT IS THE POINT
+  ///
+  /// The value is an absolute moment — when the backend accepted a command —
+  /// so a driver who pressed Start at 10:05 in İstanbul must not read 07:05
+  /// back. That is a zone change on a fact, not a computation: nothing here
+  /// compares two instants, measures between them, or consults the clock.
+  ///
+  /// Deliberately NOT how a departure is rendered. A departure is a wall clock
+  /// the driver published in the route's own timezone, and converting one
+  /// would be this client second-guessing the server about when a journey
+  /// leaves — the thing `api_boundary_test` exists to prevent.
+  String instant(DateTime value) {
+    final DateTime local = value.toLocal();
+
+    return '${calendarDate(local.year, local.month, local.day)}'
+        '$separator${time(local)}';
+  }
+
   static String _pad(int value) => value.toString().padLeft(2, '0');
 
   // ── Relative dates ─────────────────────────────────────────

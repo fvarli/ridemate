@@ -45,10 +45,13 @@ class MyRouteCard extends StatelessWidget {
   const MyRouteCard({
     required this.row,
     required this.isCancelling,
-    required this.isStarting,
+    required this.isChangingTrip,
     required this.onCancel,
     required this.onStart,
+    required this.onComplete,
+    required this.onAbort,
     required this.onOpenRequests,
+    required this.onOpenTrip,
     super.key,
   });
 
@@ -58,8 +61,11 @@ class MyRouteCard extends StatelessWidget {
 
   final bool isCancelling;
 
-  /// Whether a Start command for this journey is in flight.
-  final bool isStarting;
+  /// Whether any lifecycle command for this journey is in flight.
+  ///
+  /// One flag for all three: only one of them is ever offered at a time, so
+  /// a per-verb flag would be three ways to say the same thing.
+  final bool isChangingTrip;
 
   final VoidCallback onCancel;
 
@@ -67,8 +73,17 @@ class MyRouteCard extends StatelessWidget {
   /// server's answer, not this card's.
   final VoidCallback onStart;
 
+  /// Says the journey was made.
+  final VoidCallback onComplete;
+
+  /// Says it was not. No reason is collected; none is stored.
+  final VoidCallback onAbort;
+
   /// Opens who has asked for a seat on this journey.
   final VoidCallback onOpenRequests;
+
+  /// Opens this journey's own lifecycle, in full.
+  final VoidCallback onOpenTrip;
 
   PublishedRoute get route => row.route;
 
@@ -93,6 +108,14 @@ class MyRouteCard extends StatelessWidget {
   /// taken, and would do so silently.
   bool get _canStart => row.trip.state == TripState.notStarted;
 
+  /// Whether there is a journey under way to end.
+  ///
+  /// The same rule read the other way, and the same reasoning: a journey the
+  /// server calls `in_progress` is exactly one that can be completed or
+  /// abandoned, and nothing else here has a say. Both endings are offered
+  /// together because the driver — not this screen — knows which happened.
+  bool get _canEnd => row.trip.state == TripState.inProgress;
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
@@ -108,6 +131,14 @@ class MyRouteCard extends StatelessWidget {
     final String trip = _trip(l10n);
 
     return RmCard(
+      // The ordinary "this row opens its detail" gesture, so the lifecycle in
+      // full does not need a fifth control on an already crowded card.
+      //
+      // Deliberately NO `semanticLabel` here: RmCard excludes its subtree's
+      // semantics whenever one is given, which would swallow every action
+      // button on this card. The journey's own description stays on the inner
+      // container below, where it does not.
+      onTap: onOpenTrip,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -218,9 +249,28 @@ class MyRouteCard extends StatelessWidget {
                   label: l10n.myRoutesStartTrip,
                   semanticLabel: l10n.myRoutesStartTripSemanticLabel(journey),
                   size: RmButtonSize.sm,
-                  loading: isStarting,
+                  loading: isChangingTrip,
                   onPressed: onStart,
                 ),
+              if (_canEnd) ...<Widget>[
+                RmButton(
+                  label: l10n.myRoutesCompleteTrip,
+                  semanticLabel: l10n.myRoutesCompleteTripSemanticLabel(
+                    journey,
+                  ),
+                  size: RmButtonSize.sm,
+                  loading: isChangingTrip,
+                  onPressed: onComplete,
+                ),
+                RmButton(
+                  label: l10n.myRoutesAbortTrip,
+                  semanticLabel: l10n.myRoutesAbortTripSemanticLabel(journey),
+                  size: RmButtonSize.sm,
+                  variant: RmButtonVariant.outline,
+                  loading: isChangingTrip,
+                  onPressed: onAbort,
+                ),
+              ],
               if (_canCancel)
                 RmButton(
                   label: l10n.myRoutesCancel,

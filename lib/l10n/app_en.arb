@@ -293,14 +293,35 @@
   "myRoutesStartTrip": "Start trip",
   "myRoutesStartTripSemanticLabel": "Start the trip for {route}",
   "myRoutesTripStarted": "The trip for {route} has started.",
-  "myRoutesTripStartFailed": "The trip could not be started.",
+
+  "myRoutesCompleteTrip": "Complete trip",
+  "myRoutesCompleteTripSemanticLabel": "Complete the trip for {route}",
+  "myRoutesAbortTrip": "Abandon trip",
+  "myRoutesAbortTripSemanticLabel": "Abandon the trip for {route}",
+  "myRoutesTripCompleted": "The trip for {route} is complete.",
+  "myRoutesTripAborted": "The trip for {route} was abandoned.",
+  "myRoutesTripNotStarted": "This trip has not been started.",
 
   "myRoutesStartDepartureNotReached": "This trip cannot be started yet.",
   "myRoutesStartRecurringUnsupported": "Starting a trip on a recurring route is not supported yet.",
   "myRoutesStartRouteUnavailable": "This route can no longer be started.",
-  "myRoutesStartAlreadyCompleted": "This trip was already completed.",
-  "myRoutesStartAlreadyAborted": "This trip was already abandoned.",
+  "myRoutesTripAlreadyCompleted": "This trip was already completed.",
+  "myRoutesTripAlreadyAborted": "This trip was already abandoned.",
 
   "myRoutesCardSemanticLabel": "{route}, {departure}, {seats}, {status}, {trip}",
-  "myRoutesCancelSemanticLabel": "Cancel the {route} route"
+  "myRoutesCancelSemanticLabel": "Cancel the {route} route",
+
+  "tripStatusTitle": "Trip status",
+  "tripStatusDeparture": "Scheduled departure",
+  "tripStatusState": "State",
+  "tripStatusStateNotStarted": "Not started",
+  "tripStatusStateInProgress": "Started",
+  "tripStatusStateCompleted": "Completed",
+  "tripStatusStateAborted": "Abandoned",
+  "tripStatusStartedNote": "This only means you started the trip in RideMate. No location, map, navigation or passenger information is held.",
+  "tripStatusStartedAt": "Started at",
+  "tripStatusCompletedAt": "Completed at",
+  "tripStatusAbortedAt": "Abandoned at",
+  "tripStatusNotFound": "This route is not in your list",
+  "tripStatusNotFoundBody": "Reload your routes and try again."
 }

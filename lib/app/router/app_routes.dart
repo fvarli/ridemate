@@ -104,6 +104,17 @@ abstract final class AppRoutes {
   static String routeRequestsPathFor(String routeId) =>
       '/me/routes/$routeId/seat-requests';
 
+  /// One journey's lifecycle in full: whether it was made, and when.
+  ///
+  /// Route-scoped and the driver's own, reached from the real My Routes card.
+  /// A REAL screen backed by the server, and deliberately not
+  /// [activeTrip] — that one is a fixture promising a live map, a location and
+  /// an SOS control that nothing implements.
+  static const String tripStatus = 'tripStatus';
+  static const String tripStatusPath = '/me/routes/:routeId/trip';
+
+  static String tripStatusPathFor(String routeId) => '/me/routes/$routeId/trip';
+
   /// The one screen a signed-in member without a profile can reach.
   ///
   /// Above the shell and reachable only by redirect: nothing links to it,

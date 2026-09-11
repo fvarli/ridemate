@@ -170,12 +170,20 @@ class MyRoutesController extends AsyncNotifier<MyRoutesPage> {
       _lifecycle(routeId, (MyRoutesRepository repo) => repo.startTrip(routeId));
 
   /// Says it was made.
+  ///
+  /// Shares every rule with [startTrip] because they are the same kind of
+  /// thing: one command, one route, the server's answer. Nothing about
+  /// finishing a journey is more or less optimistic than beginning one.
   Future<RmFailure?> completeTrip(String routeId) => _lifecycle(
     routeId,
     (MyRoutesRepository repo) => repo.completeTrip(routeId),
   );
 
   /// Says it was abandoned.
+  ///
+  /// No reason is sent, because none is stored and none is asked for. A reason
+  /// taxonomy is a design nobody has made, and a free-text field would be
+  /// somewhere one member writes about another.
   Future<RmFailure?> abortTrip(String routeId) =>
       _lifecycle(routeId, (MyRoutesRepository repo) => repo.abortTrip(routeId));
 

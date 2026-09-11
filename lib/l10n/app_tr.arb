@@ -1198,9 +1198,46 @@
       "route": { "type": "String" }
     }
   },
-  "myRoutesTripStartFailed": "Yolculuk başlatılamadı.",
-  "@myRoutesTripStartFailed": {
-    "description": "Sunucunun gerekçe adlandırmadığı ya da bu sürümün tanımadığı bir gerekçe adlandırdığı ret için."
+
+  "myRoutesCompleteTrip": "Yolculuğu tamamla",
+  "@myRoutesCompleteTrip": {
+    "description": "Yalnızca sunucunun bildirdiği durum başladı iken görünür."
+  },
+  "myRoutesCompleteTripSemanticLabel": "{route} yolculuğunu tamamla",
+  "@myRoutesCompleteTripSemanticLabel": {
+    "description": "Tamamla düğmesinin hangi rotaya ait olduğunu söyler.",
+    "placeholders": {
+      "route": { "type": "String" }
+    }
+  },
+  "myRoutesAbortTrip": "Yolculuğu yarıda bırak",
+  "@myRoutesAbortTrip": {
+    "description": "Yolculuğun yapılmadığını bildirir. Gerekçe sorulmaz ve saklanmaz: tanımlı bir gerekçe listesi yok."
+  },
+  "myRoutesAbortTripSemanticLabel": "{route} yolculuğunu yarıda bırak",
+  "@myRoutesAbortTripSemanticLabel": {
+    "description": "Yarıda bırak düğmesinin hangi rotaya ait olduğunu söyler.",
+    "placeholders": {
+      "route": { "type": "String" }
+    }
+  },
+  "myRoutesTripCompleted": "{route} yolculuğu tamamlandı.",
+  "@myRoutesTripCompleted": {
+    "description": "Sunucu kabul ettikten SONRA gösterilir, öncesinde değil.",
+    "placeholders": {
+      "route": { "type": "String" }
+    }
+  },
+  "myRoutesTripAborted": "{route} yolculuğu yarıda bırakıldı.",
+  "@myRoutesTripAborted": {
+    "description": "Sunucu kabul ettikten SONRA gösterilir, öncesinde değil.",
+    "placeholders": {
+      "route": { "type": "String" }
+    }
+  },
+  "myRoutesTripNotStarted": "Bu yolculuk henüz başlatılmamış.",
+  "@myRoutesTripNotStarted": {
+    "description": "Başlamamış bir yolculuk tamamlanamaz veya yarıda bırakılamaz."
   },
 
   "myRoutesStartDepartureNotReached": "Bu yolculuk henüz başlatılamaz.",
@@ -1215,12 +1252,12 @@
   "@myRoutesStartRouteUnavailable": {
     "description": "Rota yayından kalkmış."
   },
-  "myRoutesStartAlreadyCompleted": "Bu yolculuk zaten tamamlanmış.",
-  "@myRoutesStartAlreadyCompleted": {
+  "myRoutesTripAlreadyCompleted": "Bu yolculuk zaten tamamlanmış.",
+  "@myRoutesTripAlreadyCompleted": {
     "description": "Ekrandaki satır eskimiş; liste sunucudan yeniden okunur."
   },
-  "myRoutesStartAlreadyAborted": "Bu yolculuk zaten yarıda bırakılmış.",
-  "@myRoutesStartAlreadyAborted": {
+  "myRoutesTripAlreadyAborted": "Bu yolculuk zaten yarıda bırakılmış.",
+  "@myRoutesTripAlreadyAborted": {
     "description": "Ekrandaki satır eskimiş; liste sunucudan yeniden okunur."
   },
 
@@ -1239,5 +1276,58 @@
   "@myRoutesCancelSemanticLabel": {
     "description": "İptal düğmesinin hangi rotaya ait olduğunu söyler.",
     "placeholders": { "route": { "type": "String" } }
+  },
+
+  "tripStatusTitle": "Yolculuk durumu",
+  "@tripStatusTitle": {
+    "description": "Tek bir yolculuğun sunucudaki durumunu gösteren ekranın başlığı."
+  },
+  "tripStatusDeparture": "Planlanan kalkış",
+  "@tripStatusDeparture": {
+    "description": "Sürücünün yayınladığı kalkış. Gerçekleşen bir saat değildir."
+  },
+  "tripStatusState": "Durum",
+  "@tripStatusState": {
+    "description": "Yolculuğun sunucudaki durumunu etiketler. Ekran başlığından ayrıdır."
+  },
+  "tripStatusStateNotStarted": "Başlamadı",
+  "@tripStatusStateNotStarted": {
+    "description": "Sunucuda yolculuk kaydı yok."
+  },
+  "tripStatusStateInProgress": "Başladı",
+  "@tripStatusStateInProgress": {
+    "description": "Sürücü Başlat dedi ve sunucu kabul etti. Başka hiçbir şey söylemez."
+  },
+  "tripStatusStateCompleted": "Tamamlandı",
+  "@tripStatusStateCompleted": {
+    "description": "Sürücü yolculuğun yapıldığını bildirdi."
+  },
+  "tripStatusStateAborted": "Yarıda bırakıldı",
+  "@tripStatusStateAborted": {
+    "description": "Sürücü yolculuğun yapılmadığını bildirdi."
+  },
+  "tripStatusStartedNote": "Bu yalnızca yolculuğu RideMate'te başlattığını gösterir. Konum, harita, navigasyon veya yolcu bilgisi tutulmaz.",
+  "@tripStatusStartedNote": {
+    "description": "Başladı durumunun ne DEMEDİĞİNİ açıkça söyler. Ürün konum, harita, navigasyon veya yolcu varlığı bilmiyor."
+  },
+  "tripStatusStartedAt": "Başlangıç",
+  "@tripStatusStartedAt": {
+    "description": "Sunucunun kaydettiği an. Kalkış saati değildir, ve durum sözcüğünden ayrı yazılır: ikisi aynı ekranda yan yana durur."
+  },
+  "tripStatusCompletedAt": "Tamamlanma",
+  "@tripStatusCompletedAt": {
+    "description": "Sunucunun kaydettiği an."
+  },
+  "tripStatusAbortedAt": "Yarıda bırakılma",
+  "@tripStatusAbortedAt": {
+    "description": "Sunucunun kaydettiği an."
+  },
+  "tripStatusNotFound": "Bu rota listende yok",
+  "@tripStatusNotFound": {
+    "description": "Rota yüklenmiş sayfalarda bulunamadı. Uydurulmuş bir yolculuk gösterilmez."
+  },
+  "tripStatusNotFoundBody": "Rotalarını yeniden yükleyip tekrar dene.",
+  "@tripStatusNotFoundBody": {
+    "description": "Tek bir rotayı okuyan bir uç nokta yok; liste yeniden okunur."
   }
 }

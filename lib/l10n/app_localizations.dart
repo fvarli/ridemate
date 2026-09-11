@@ -1793,11 +1793,47 @@ abstract class AppLocalizations {
   /// **'{route} yolculuğu başladı.'**
   String myRoutesTripStarted(String route);
 
-  /// Sunucunun gerekçe adlandırmadığı ya da bu sürümün tanımadığı bir gerekçe adlandırdığı ret için.
+  /// Yalnızca sunucunun bildirdiği durum başladı iken görünür.
   ///
   /// In tr, this message translates to:
-  /// **'Yolculuk başlatılamadı.'**
-  String get myRoutesTripStartFailed;
+  /// **'Yolculuğu tamamla'**
+  String get myRoutesCompleteTrip;
+
+  /// Tamamla düğmesinin hangi rotaya ait olduğunu söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} yolculuğunu tamamla'**
+  String myRoutesCompleteTripSemanticLabel(String route);
+
+  /// Yolculuğun yapılmadığını bildirir. Gerekçe sorulmaz ve saklanmaz: tanımlı bir gerekçe listesi yok.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuğu yarıda bırak'**
+  String get myRoutesAbortTrip;
+
+  /// Yarıda bırak düğmesinin hangi rotaya ait olduğunu söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} yolculuğunu yarıda bırak'**
+  String myRoutesAbortTripSemanticLabel(String route);
+
+  /// Sunucu kabul ettikten SONRA gösterilir, öncesinde değil.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} yolculuğu tamamlandı.'**
+  String myRoutesTripCompleted(String route);
+
+  /// Sunucu kabul ettikten SONRA gösterilir, öncesinde değil.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} yolculuğu yarıda bırakıldı.'**
+  String myRoutesTripAborted(String route);
+
+  /// Başlamamış bir yolculuk tamamlanamaz veya yarıda bırakılamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk henüz başlatılmamış.'**
+  String get myRoutesTripNotStarted;
 
   /// Kalkışa sunucu kendi saatiyle karar verir; cihaz saati burada hiç kullanılmaz.
   ///
@@ -1821,13 +1857,13 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'Bu yolculuk zaten tamamlanmış.'**
-  String get myRoutesStartAlreadyCompleted;
+  String get myRoutesTripAlreadyCompleted;
 
   /// Ekrandaki satır eskimiş; liste sunucudan yeniden okunur.
   ///
   /// In tr, this message translates to:
   /// **'Bu yolculuk zaten yarıda bırakılmış.'**
-  String get myRoutesStartAlreadyAborted;
+  String get myRoutesTripAlreadyAborted;
 
   /// Bir rota kartının ekran okuyucuya okunan tam hâli.
   ///
@@ -1846,6 +1882,84 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{route} rotasını iptal et'**
   String myRoutesCancelSemanticLabel(String route);
+
+  /// Tek bir yolculuğun sunucudaki durumunu gösteren ekranın başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk durumu'**
+  String get tripStatusTitle;
+
+  /// Sürücünün yayınladığı kalkış. Gerçekleşen bir saat değildir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Planlanan kalkış'**
+  String get tripStatusDeparture;
+
+  /// Yolculuğun sunucudaki durumunu etiketler. Ekran başlığından ayrıdır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Durum'**
+  String get tripStatusState;
+
+  /// Sunucuda yolculuk kaydı yok.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlamadı'**
+  String get tripStatusStateNotStarted;
+
+  /// Sürücü Başlat dedi ve sunucu kabul etti. Başka hiçbir şey söylemez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başladı'**
+  String get tripStatusStateInProgress;
+
+  /// Sürücü yolculuğun yapıldığını bildirdi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamamlandı'**
+  String get tripStatusStateCompleted;
+
+  /// Sürücü yolculuğun yapılmadığını bildirdi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarıda bırakıldı'**
+  String get tripStatusStateAborted;
+
+  /// Başladı durumunun ne DEMEDİĞİNİ açıkça söyler. Ürün konum, harita, navigasyon veya yolcu varlığı bilmiyor.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yalnızca yolculuğu RideMate\'te başlattığını gösterir. Konum, harita, navigasyon veya yolcu bilgisi tutulmaz.'**
+  String get tripStatusStartedNote;
+
+  /// Sunucunun kaydettiği an. Kalkış saati değildir, ve durum sözcüğünden ayrı yazılır: ikisi aynı ekranda yan yana durur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç'**
+  String get tripStatusStartedAt;
+
+  /// Sunucunun kaydettiği an.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamamlanma'**
+  String get tripStatusCompletedAt;
+
+  /// Sunucunun kaydettiği an.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarıda bırakılma'**
+  String get tripStatusAbortedAt;
+
+  /// Rota yüklenmiş sayfalarda bulunamadı. Uydurulmuş bir yolculuk gösterilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu rota listende yok'**
+  String get tripStatusNotFound;
+
+  /// Tek bir rotayı okuyan bir uç nokta yok; liste yeniden okunur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rotalarını yeniden yükleyip tekrar dene.'**
+  String get tripStatusNotFoundBody;
 }
 
 class _AppLocalizationsDelegate

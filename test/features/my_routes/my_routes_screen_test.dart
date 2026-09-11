@@ -12,7 +12,6 @@ import 'package:ridemate/core/widgets/rm_button.dart';
 import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/my_routes/presentation/my_routes_screen.dart';
-import 'package:ridemate/features/my_routes/presentation/widgets/my_route_card.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
@@ -930,7 +929,10 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('a repeated tap while one is in flight sends one command', (
+    /// The control is unreachable while the command is in flight, so a second
+    /// tap cannot be aimed at it. That a second call would be refused anyway is
+    /// the controller's own guarantee — see my_routes_state_test.dart.
+    testWidgets('the control is gone while one command is in flight', (
       WidgetTester tester,
     ) async {
       await pump(
@@ -943,11 +945,8 @@ void main() {
       routes.hold();
       await tester.tap(find.text('Yolculuğu başlat'));
       await tester.pump();
-      // The label is gone while loading, so a second tap lands on the card
-      // rather than the control — which is the point: it cannot be sent twice.
-      await tester.tap(find.byType(MyRouteCard));
-      await tester.pump();
 
+      expect(find.text('Yolculuğu başlat'), findsNothing);
       expect(routes.tripCommands, <String>[
         'start 01991b00-0000-7000-8000-000000000001',
       ]);
@@ -1113,6 +1112,301 @@ void main() {
         '409',
       ]) {
         expect(find.textContaining(english), findsNothing, reason: english);
+      }
+    });
+  });
+
+  group('Ending a journey', () {
+    MyRoute running() => fakeMyRoute(
+      trip: TripState.inProgress,
+      startedAt: '2026-09-11T07:05:00Z',
+      recurrence: Recurrence.once,
+      departureDate: '2026-09-11',
+      departureState: DepartureState.past,
+    );
+
+    testWidgets('a running journey offers both endings and no Start', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[
+          page(<MyRoute>[running()]),
+        ],
+      );
+
+      expect(find.text('Yolculuğu tamamla'), findsOneWidget);
+      expect(find.text('Yolculuğu yarıda bırak'), findsOneWidget);
+      expect(find.text('Yolculuğu başlat'), findsNothing);
+      // A journey under way has departed, so withdrawing it is already gone.
+      expect(find.text('Rotayı iptal et'), findsNothing);
+    });
+
+    testWidgets('an unstarted journey offers neither ending', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[
+          page(<MyRoute>[fakeMyRoute()]),
+        ],
+      );
+
+      expect(find.text('Yolculuğu tamamla'), findsNothing);
+      expect(find.text('Yolculuğu yarıda bırak'), findsNothing);
+    });
+
+    /// CARRIES WEIGHT. A journey that has ended has no lifecycle command left.
+    testWidgets('a terminal journey offers no lifecycle command at all', (
+      WidgetTester tester,
+    ) async {
+      for (final TripState state in <TripState>[
+        TripState.completed,
+        TripState.aborted,
+      ]) {
+        await pump(
+          tester,
+          pages: <MyRoutesResult>[
+            page(<MyRoute>[
+              fakeMyRoute(trip: state, startedAt: '2026-09-11T07:05:00Z'),
+            ]),
+          ],
+        );
+
+        for (final String control in <String>[
+          'Yolculuğu başlat',
+          'Yolculuğu tamamla',
+          'Yolculuğu yarıda bırak',
+        ]) {
+          expect(
+            find.text(control),
+            findsNothing,
+            reason: '${state.wire}: $control',
+          );
+        }
+      }
+    });
+
+    /// Two running journeys, and the SECOND is tapped: a control wired to the
+    /// wrong row would pass against a single-card list and fail here.
+    MyRoutesResult twoRunning() => page(<MyRoute>[
+      running(),
+      fakeMyRoute(
+        id: 'b',
+        originLabel: 'İkinci',
+        trip: TripState.inProgress,
+        startedAt: '2026-09-11T07:05:00Z',
+        recurrence: Recurrence.once,
+        departureDate: '2026-09-11',
+        departureState: DepartureState.past,
+      ),
+    ]);
+
+    testWidgets('completing sends that route id and renders the answer', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[twoRunning()],
+        size: const Size(393, 1600),
+      );
+
+      await tester.tap(find.text('Yolculuğu tamamla').last);
+      await tester.pumpAndSettle();
+
+      expect(routes.tripCommands, <String>['complete b']);
+      expect(find.text('Yolculuk: Tamamlandı'), findsOneWidget);
+      // And the journey that was not tapped is untouched.
+      expect(find.text('Yolculuk: Başladı'), findsOneWidget);
+    });
+
+    testWidgets('abandoning sends that route id and renders the answer', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[twoRunning()],
+        size: const Size(393, 1600),
+      );
+
+      await tester.tap(find.text('Yolculuğu yarıda bırak').last);
+      await tester.pumpAndSettle();
+
+      expect(routes.tripCommands, <String>['abort b']);
+      expect(find.text('Yolculuk: Yarıda bırakıldı'), findsOneWidget);
+      expect(find.text('Yolculuk: Başladı'), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. No reason is asked for, because none is stored.
+    testWidgets('abandoning never asks why', (WidgetTester tester) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[
+          page(<MyRoute>[running()]),
+        ],
+      );
+
+      await tester.tap(find.text('Yolculuğu yarıda bırak'));
+      await tester.pump();
+
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byType(TextFormField), findsNothing);
+    });
+
+    testWidgets('nothing moves before the server has answered', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[
+          page(<MyRoute>[running()]),
+        ],
+      );
+
+      routes.hold();
+      await tester.tap(find.text('Yolculuğu tamamla'));
+      await tester.pump();
+
+      expect(find.text('Yolculuk: Başladı'), findsOneWidget);
+      expect(find.text('Yolculuk: Tamamlandı'), findsNothing);
+
+      routes.release();
+      await tester.pumpAndSettle();
+    });
+
+    /// One journey ending does not take the controls away from another.
+    testWidgets('only the target card is busy', (WidgetTester tester) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[
+          page(<MyRoute>[
+            running(),
+            fakeMyRoute(
+              id: 'b',
+              originLabel: 'İkinci',
+              trip: TripState.inProgress,
+              startedAt: '2026-09-11T07:05:00Z',
+              recurrence: Recurrence.once,
+              departureDate: '2026-09-11',
+              departureState: DepartureState.past,
+            ),
+          ]),
+        ],
+        size: const Size(393, 1600),
+      );
+
+      routes.hold();
+      await tester.tap(find.text('Yolculuğu tamamla').first);
+      await tester.pump();
+
+      expect(find.text('Yolculuğu tamamla'), findsOneWidget);
+      expect(find.text('Yolculuğu yarıda bırak'), findsOneWidget);
+
+      routes.release();
+      await tester.pumpAndSettle();
+    });
+  });
+
+  group('When the server will not end it', () {
+    MyRoute running() => fakeMyRoute(
+      trip: TripState.inProgress,
+      startedAt: '2026-09-11T07:05:00Z',
+      recurrence: Recurrence.once,
+      departureDate: '2026-09-11',
+      departureState: DepartureState.past,
+    );
+
+    Future<void> refuse(
+      WidgetTester tester,
+      String control,
+      TripRefusal refusal,
+    ) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[
+          page(<MyRoute>[running()]),
+        ],
+      );
+      routes.tripFailure = RmFailure.fromBackend(
+        status: 409,
+        code: RmErrorCode.conflict,
+        reason: refusal.wire,
+      );
+
+      await tester.tap(find.text(control));
+      await tester.pumpAndSettle();
+    }
+
+    /// CARRIES WEIGHT. A journey nobody started cannot be ended, and saying so
+    /// must not end it on screen.
+    testWidgets('trip_not_started leaves both commands alone', (
+      WidgetTester tester,
+    ) async {
+      for (final String control in <String>[
+        'Yolculuğu tamamla',
+        'Yolculuğu yarıda bırak',
+      ]) {
+        await refuse(tester, control, TripRefusal.tripNotStarted);
+
+        expect(find.text('Bu yolculuk henüz başlatılmamış.'), findsOneWidget);
+        expect(find.text('Yolculuk: Başladı'), findsOneWidget, reason: control);
+        expect(find.text('Yolculuğu tamamla'), findsOneWidget, reason: control);
+      }
+    });
+
+    /// CARRIES WEIGHT. The reason names WHICH ending happened and nothing
+    /// about when, so neither is drawn from it.
+    testWidgets('a stale ending is re-read, never synthesised', (
+      WidgetTester tester,
+    ) async {
+      await refuse(tester, 'Yolculuğu tamamla', TripRefusal.alreadyAborted);
+
+      expect(find.text('Bu yolculuk zaten yarıda bırakılmış.'), findsOneWidget);
+      expect(find.text('Yolculuk: Yarıda bırakıldı'), findsNothing);
+      expect(routes.callCount, greaterThan(1));
+
+      await refuse(
+        tester,
+        'Yolculuğu yarıda bırak',
+        TripRefusal.alreadyCompleted,
+      );
+
+      expect(find.text('Bu yolculuk zaten tamamlanmış.'), findsOneWidget);
+      expect(find.text('Yolculuk: Tamamlandı'), findsNothing);
+      expect(routes.callCount, greaterThan(1));
+    });
+
+    testWidgets('an unknown reason falls to the generic seam', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        pages: <MyRoutesResult>[
+          page(<MyRoute>[running()]),
+        ],
+      );
+      routes.tripFailure = const RmFailure.fromBackend(
+        status: 409,
+        code: RmErrorCode.conflict,
+        reason: 'trip_already_started',
+      );
+
+      await tester.tap(find.text('Yolculuğu tamamla'));
+      await tester.pumpAndSettle();
+
+      // The row is untouched, and not one of the six sentences this build
+      // owns is used for a reason it has never heard of. The app's existing
+      // `conflict` copy is shown instead.
+      expect(find.text('Yolculuk: Başladı'), findsOneWidget);
+      for (final String owned in <String>[
+        'Bu yolculuk zaten tamamlanmış.',
+        'Bu yolculuk zaten yarıda bırakılmış.',
+        'Bu yolculuk henüz başlatılmamış.',
+        'Bu yolculuk henüz başlatılamaz.',
+        'Bu rota artık başlatılamaz.',
+        'Tekrarlayan rotalarda yolculuk başlatma henüz yok.',
+      ]) {
+        expect(find.text(owned), findsNothing, reason: owned);
       }
     });
   });

@@ -1030,7 +1030,33 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get myRoutesTripStartFailed => 'The trip could not be started.';
+  String get myRoutesCompleteTrip => 'Complete trip';
+
+  @override
+  String myRoutesCompleteTripSemanticLabel(String route) {
+    return 'Complete the trip for $route';
+  }
+
+  @override
+  String get myRoutesAbortTrip => 'Abandon trip';
+
+  @override
+  String myRoutesAbortTripSemanticLabel(String route) {
+    return 'Abandon the trip for $route';
+  }
+
+  @override
+  String myRoutesTripCompleted(String route) {
+    return 'The trip for $route is complete.';
+  }
+
+  @override
+  String myRoutesTripAborted(String route) {
+    return 'The trip for $route was abandoned.';
+  }
+
+  @override
+  String get myRoutesTripNotStarted => 'This trip has not been started.';
 
   @override
   String get myRoutesStartDepartureNotReached =>
@@ -1045,11 +1071,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This route can no longer be started.';
 
   @override
-  String get myRoutesStartAlreadyCompleted =>
-      'This trip was already completed.';
+  String get myRoutesTripAlreadyCompleted => 'This trip was already completed.';
 
   @override
-  String get myRoutesStartAlreadyAborted => 'This trip was already abandoned.';
+  String get myRoutesTripAlreadyAborted => 'This trip was already abandoned.';
 
   @override
   String myRoutesCardSemanticLabel(
@@ -1066,4 +1091,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String myRoutesCancelSemanticLabel(String route) {
     return 'Cancel the $route route';
   }
+
+  @override
+  String get tripStatusTitle => 'Trip status';
+
+  @override
+  String get tripStatusDeparture => 'Scheduled departure';
+
+  @override
+  String get tripStatusState => 'State';
+
+  @override
+  String get tripStatusStateNotStarted => 'Not started';
+
+  @override
+  String get tripStatusStateInProgress => 'Started';
+
+  @override
+  String get tripStatusStateCompleted => 'Completed';
+
+  @override
+  String get tripStatusStateAborted => 'Abandoned';
+
+  @override
+  String get tripStatusStartedNote =>
+      'This only means you started the trip in RideMate. No location, map, navigation or passenger information is held.';
+
+  @override
+  String get tripStatusStartedAt => 'Started at';
+
+  @override
+  String get tripStatusCompletedAt => 'Completed at';
+
+  @override
+  String get tripStatusAbortedAt => 'Abandoned at';
+
+  @override
+  String get tripStatusNotFound => 'This route is not in your list';
+
+  @override
+  String get tripStatusNotFoundBody => 'Reload your routes and try again.';
 }

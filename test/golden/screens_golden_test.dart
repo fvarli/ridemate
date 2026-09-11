@@ -25,6 +25,7 @@ import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/my_routes/presentation/my_routes_screen.dart';
+import 'package:ridemate/features/my_routes/presentation/trip_status_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:ridemate/features/profile/application/my_profile_providers.dart';
@@ -479,6 +480,50 @@ void main() {
       await expectLater(
         find.byType(MyRoutesScreen),
         matchesGoldenFile('goldens/my_routes_rtl.png'),
+      );
+    });
+  });
+
+  /// One journey's lifecycle. Deliberately not the Active Trip fixture, which
+  /// this screen exists to avoid becoming.
+  ///
+  /// CAPTURED UNSTARTED, ON PURPOSE
+  ///
+  /// The states that carry a timestamp render it in the READER's zone, so a
+  /// baseline of one would differ between a developer in İstanbul and CI in
+  /// UTC — a second environmental coupling on top of font rasterization, and
+  /// one with no warning attached. The timestamp rows, the started note and
+  /// both endings are covered by trip_status_screen_test.dart instead, where
+  /// the expectation is computed rather than pictured.
+  group('Trip status', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(
+          tester,
+          const TripStatusScreen(
+            routeId: '01991b00-0000-7000-8000-000000000001',
+          ),
+          brightness: brightness,
+        );
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(TripStatusScreen),
+          matchesGoldenFile('goldens/trip_status_${brightness.name}.png'),
+        );
+      });
+    }
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      await pump(
+        tester,
+        const TripStatusScreen(routeId: '01991b00-0000-7000-8000-000000000001'),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(TripStatusScreen),
+        matchesGoldenFile('goldens/trip_status_rtl.png'),
       );
     });
   });

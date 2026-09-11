@@ -27,6 +27,7 @@ import 'package:ridemate/features/seat_requests/presentation/my_requests_screen.
 import 'package:ridemate/features/seat_requests/presentation/widgets/my_request_card.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
+import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 
 MySeatRequest _request({
@@ -61,6 +62,8 @@ MySeatRequest _request({
     seatsOffered: 3,
     rules: const <RideRuleId>{},
     driver: SeatRequestMember(displayName: driver, initials: initials),
+    // Always present on this projection, `notStarted` included.
+    trip: fakeTrip(),
   ),
 );
 

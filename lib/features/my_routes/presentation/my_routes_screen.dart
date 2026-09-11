@@ -169,9 +169,11 @@ class _RouteList extends ConsumerWidget {
         for (int i = 0; i < page.routes.length; i++) ...<Widget>[
           if (i > 0) const SizedBox(height: RmSpacing.md),
           MyRouteCard(
-            route: page.routes[i],
+            // The journey only. The card says nothing about the lifecycle yet;
+            // F2 is where a driver acts on it.
+            route: page.routes[i].route,
             isCancelling: page.isCancelling(page.routes[i].id),
-            onCancel: () => _cancel(context, ref, page.routes[i]),
+            onCancel: () => _cancel(context, ref, page.routes[i].route),
             onOpenRequests: () => context.pushNamed(
               AppRoutes.routeRequests,
               pathParameters: <String, String>{'routeId': page.routes[i].id},

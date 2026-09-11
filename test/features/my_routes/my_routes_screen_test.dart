@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/widgets/rm_button.dart';
@@ -46,7 +47,7 @@ void main() {
     await tester.pump();
   }
 
-  MyRoutesResult page(List<PublishedRoute> routes, {String? next}) =>
+  MyRoutesResult page(List<MyRoute> routes, {String? next}) =>
       MyRoutesResult(routes: routes, nextCursor: next);
 
   group('What the list shows', () {
@@ -56,8 +57,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               originLabel: 'Kadıköy, Vapur İskelesi',
               destinationLabel: 'Levent, Metro İstasyonu',
               seatsOffered: 3,
@@ -84,7 +85,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(seatsOffered: 3)]),
+          page(<MyRoute>[fakeMyRoute(seatsOffered: 3)]),
         ],
       );
 
@@ -100,8 +101,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               recurrence: Recurrence.once,
               departureDate: '2099-04-01',
               departureTime: '18:10',
@@ -121,10 +122,10 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(id: 'a', originLabel: 'Birinci'),
-            fakeRoute(id: 'b', originLabel: 'İkinci'),
-            fakeRoute(id: 'c', originLabel: 'Üçüncü'),
+          page(<MyRoute>[
+            fakeMyRoute(id: 'a', originLabel: 'Birinci'),
+            fakeMyRoute(id: 'b', originLabel: 'İkinci'),
+            fakeMyRoute(id: 'c', originLabel: 'Üçüncü'),
           ]),
         ],
       );
@@ -145,8 +146,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               rules: <RideRuleId>{RideRuleId.noSmoking, RideRuleId.quiet},
             ),
           ]),
@@ -170,7 +171,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(rules: const <RideRuleId>{})]),
+          page(<MyRoute>[fakeMyRoute(rules: const <RideRuleId>{})]),
         ],
       );
 
@@ -193,7 +194,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(rules: const <RideRuleId>{})]),
+          page(<MyRoute>[fakeMyRoute(rules: const <RideRuleId>{})]),
         ],
       );
 
@@ -210,8 +211,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               status: RouteStatus.published,
               departureState: DepartureState.upcoming,
             ),
@@ -228,8 +229,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               recurrence: Recurrence.once,
               departureDate: '2020-01-01',
               status: RouteStatus.published,
@@ -249,8 +250,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               status: RouteStatus.cancelled,
               cancelledAt: '2026-08-28T10:00:00+00:00',
             ),
@@ -270,8 +271,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               recurrence: Recurrence.weekdays,
               departureState: DepartureState.upcoming,
             ),
@@ -296,7 +297,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(id: 'a')]),
+          page(<MyRoute>[fakeMyRoute(id: 'a')]),
         ],
       );
 
@@ -318,9 +319,9 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(id: 'a', originLabel: 'Birinci'),
-            fakeRoute(id: 'b', originLabel: 'İkinci'),
+          page(<MyRoute>[
+            fakeMyRoute(id: 'a', originLabel: 'Birinci'),
+            fakeMyRoute(id: 'b', originLabel: 'İkinci'),
           ]),
         ],
       );
@@ -351,7 +352,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(id: 'a')]),
+          page(<MyRoute>[fakeMyRoute(id: 'a')]),
         ],
       );
       routes.cancelFailure = const RmFailure.transport();
@@ -372,7 +373,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(id: 'a')]),
+          page(<MyRoute>[fakeMyRoute(id: 'a')]),
         ],
       );
       routes.cancelFailure = const RmFailure.fromBackend(
@@ -396,9 +397,9 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(id: 'a', originLabel: 'Birinci'),
-            fakeRoute(id: 'b', originLabel: 'İkinci'),
+          page(<MyRoute>[
+            fakeMyRoute(id: 'a', originLabel: 'Birinci'),
+            fakeMyRoute(id: 'b', originLabel: 'İkinci'),
           ]),
         ],
       );
@@ -422,9 +423,9 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(id: 'a', originLabel: 'Birinci'),
-            fakeRoute(id: 'b', originLabel: 'İkinci'),
+          page(<MyRoute>[
+            fakeMyRoute(id: 'a', originLabel: 'Birinci'),
+            fakeMyRoute(id: 'b', originLabel: 'İkinci'),
           ]),
         ],
       );
@@ -459,8 +460,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(id: 'a')], next: 'more'),
-          page(<PublishedRoute>[fakeRoute(id: 'b', originLabel: 'İkinci')]),
+          page(<MyRoute>[fakeMyRoute(id: 'a')], next: 'more'),
+          page(<MyRoute>[fakeMyRoute(id: 'b', originLabel: 'İkinci')]),
         ],
       );
 
@@ -480,7 +481,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute()]),
+          page(<MyRoute>[fakeMyRoute()]),
         ],
       );
 
@@ -494,8 +495,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(id: 'a', originLabel: 'Birinci'),
+          page(<MyRoute>[
+            fakeMyRoute(id: 'a', originLabel: 'Birinci'),
           ], next: 'more'),
         ],
       );
@@ -514,8 +515,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(id: 'a')], next: 'more'),
-          page(<PublishedRoute>[fakeRoute(id: 'b')]),
+          page(<MyRoute>[fakeMyRoute(id: 'a')], next: 'more'),
+          page(<MyRoute>[fakeMyRoute(id: 'b')]),
         ],
       );
       routes.hold();
@@ -536,7 +537,7 @@ void main() {
     testWidgets('an empty account says so and invents nothing', (
       WidgetTester tester,
     ) async {
-      await pump(tester, pages: <MyRoutesResult>[page(<PublishedRoute>[])]);
+      await pump(tester, pages: <MyRoutesResult>[page(<MyRoute>[])]);
 
       expect(find.text('Henüz rota yayınlamadın'), findsOneWidget);
       expect(find.text('Rotayı iptal et'), findsNothing);
@@ -554,7 +555,7 @@ void main() {
       routes
         ..failure = null
         ..chain(<MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute(originLabel: 'Gerçek')]),
+          page(<MyRoute>[fakeMyRoute(originLabel: 'Gerçek')]),
         ]);
 
       await tester.tap(find.text('Yeniden dene'));
@@ -594,8 +595,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               rules: <RideRuleId>{RideRuleId.noSmoking, RideRuleId.quiet},
             ),
           ]),
@@ -626,7 +627,7 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[fakeRoute()]),
+          page(<MyRoute>[fakeMyRoute()]),
         ],
       );
 
@@ -644,8 +645,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               originLabel: 'Kadıköy, Vapur İskelesi',
               destinationLabel: 'Levent, Metro İstasyonu',
             ),
@@ -673,8 +674,8 @@ void main() {
       await pump(
         tester,
         pages: <MyRoutesResult>[
-          page(<PublishedRoute>[
-            fakeRoute(
+          page(<MyRoute>[
+            fakeMyRoute(
               rules: <RideRuleId>{RideRuleId.noSmoking, RideRuleId.quiet},
             ),
           ], next: 'more'),

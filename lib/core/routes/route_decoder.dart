@@ -1,12 +1,17 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — Reading a route the server sent
 //
-// ONE DECODER, TWO ENDPOINTS
+// ONE DECODER, THREE PROJECTIONS
 //
-// `POST /routes` returns a route and `GET /me/routes` returns a page of them,
-// and they are the same shape because they are the same projection. Decoding
-// them in two places would mean fixing a strictness bug in one and not the
-// other, and the half that kept the bug would be the one nobody was looking at.
+// `POST /routes` and `POST /routes/{id}/cancel` return a plain route.
+// `GET /me/routes` returns the same route plus the lifecycle of its journey,
+// and discovery returns a different projection again. They share every field
+// they have in common by sharing this reader — decoding them in two places
+// would mean fixing a strictness bug in one and not the other, and the half
+// that kept the bug would be the one nobody was looking at.
+//
+// What the owner's list adds is composed on top rather than folded in. See
+// `MyRoute`.
 //
 // STRICT, AND WHOLE
 //
@@ -21,8 +26,10 @@ import '../api/rm_error_code.dart';
 import '../api/rm_failure.dart';
 import '../places/place.dart';
 import '../seat_requests/seat_request_decoder.dart';
+import '../trips/trip_decoder.dart';
 import 'departure.dart';
 import 'discovered_route.dart';
+import 'my_route.dart';
 import 'published_route.dart';
 import 'ride_rule.dart';
 
@@ -76,6 +83,20 @@ abstract final class RouteDecoder {
         null => null,
         _ => throw malformed(status),
       },
+    );
+  }
+
+  /// Decodes a route as its own member sees it, lifecycle included.
+  ///
+  /// `trip` is required here and absent from [route], which mirrors the
+  /// contract exactly: the owner's list is the only route projection that says
+  /// whether the journey was made.
+  static MyRoute myRoute(Object? value, int status) {
+    if (value is! Map<String, Object?>) throw malformed(status);
+
+    return MyRoute(
+      route: route(value, status),
+      trip: TripDecoder.within(value, status),
     );
   }
 

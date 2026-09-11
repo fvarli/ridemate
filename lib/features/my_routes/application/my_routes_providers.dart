@@ -21,6 +21,7 @@ import '../../../app/providers/session_provider.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/api/rm_retry.dart';
 import '../../../core/routes/published_route.dart';
+import '../../../core/trips/trip_lifecycle.dart';
 import '../data/my_routes_repository.dart';
 import '../domain/my_routes_page.dart';
 
@@ -161,6 +162,79 @@ class MyRoutesController extends AsyncNotifier<MyRoutesPage> {
 
       return failure;
     }
+  }
+
+  /// Says the journey on [routeId] is under way.
+  Future<RmFailure?> startTrip(String routeId) =>
+      _lifecycle(routeId, (MyRoutesRepository repo) => repo.startTrip(routeId));
+
+  /// Says it was made.
+  Future<RmFailure?> completeTrip(String routeId) => _lifecycle(
+    routeId,
+    (MyRoutesRepository repo) => repo.completeTrip(routeId),
+  );
+
+  /// Says it was abandoned.
+  Future<RmFailure?> abortTrip(String routeId) =>
+      _lifecycle(routeId, (MyRoutesRepository repo) => repo.abortTrip(routeId));
+
+  /// One lifecycle command, and what it does to this screen.
+  ///
+  /// NEVER OPTIMISTIC
+  ///
+  /// The row changes only after the server has answered, and it changes to the
+  /// lifecycle the server returned rather than to one assumed from which
+  /// command was sent. A refusal leaves the row exactly as it was — a journey
+  /// the backend would not start is not a journey that started.
+  ///
+  /// Returns the failure when there was one, in the idiom of [cancel], so the
+  /// caller can say so without this screen owning the copy.
+  Future<RmFailure?> _lifecycle(
+    String routeId,
+    Future<TripLifecycle> Function(MyRoutesRepository) command,
+  ) async {
+    final MyRoutesPage? page = state.value;
+
+    // A repeated tap while the same journey is already transitioning is the
+    // same intention arriving twice. Nothing is queued.
+    if (page == null || page.isChangingTrip(routeId)) return null;
+
+    state = AsyncData<MyRoutesPage>(
+      page.copyWith(changingTrip: <String>{...page.changingTrip, routeId}),
+    );
+
+    try {
+      final TripLifecycle trip = await command(
+        ref.read(myRoutesRepositoryProvider),
+      );
+
+      // The one place this lifecycle is held, and it holds what the server
+      // returned. My Seat Requests carries the same fact for journeys OTHER
+      // members published — never for this one, because nobody can ask for a
+      // seat in their own car — so there is nothing there to keep in step, and
+      // a cross-feature refresh here would be coupling that buys nothing. Both
+      // feeds auto-dispose and re-read the server on entry.
+      state = AsyncData<MyRoutesPage>(
+        _settled(routeId).withTripReplaced(routeId, trip),
+      );
+
+      return null;
+    } on RmFailure catch (failure) {
+      state = AsyncData<MyRoutesPage>(_settled(routeId));
+
+      return failure;
+    }
+  }
+
+  MyRoutesPage _settled(String routeId) {
+    final MyRoutesPage page = state.value!;
+
+    return page.copyWith(
+      changingTrip: <String>{
+        for (final String id in page.changingTrip)
+          if (id != routeId) id,
+      },
+    );
   }
 
   MyRoutesPage _released(String routeId) {

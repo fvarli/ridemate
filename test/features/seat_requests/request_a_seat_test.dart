@@ -116,6 +116,8 @@ MySeatRequest _accepted(String id, String routeId) => MySeatRequest(
     seatsOffered: 3,
     rules: const <RideRuleId>{},
     driver: const SeatRequestMember(displayName: 'İrem Yılmaz', initials: 'İY'),
+    // Always present on this projection, `notStarted` included.
+    trip: fakeTrip(),
   ),
 );
 

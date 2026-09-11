@@ -8,8 +8,11 @@ import 'package:ridemate/core/api/rm_api_client.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/routes/departure.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
+import 'package:ridemate/core/trips/trip_decoder.dart';
+import 'package:ridemate/core/trips/trip_lifecycle.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 
 import '../../support/fakes.dart';
@@ -36,6 +39,20 @@ void main() {
     );
   }
 
+  /// The `trip` object every My Routes row carries.
+  Map<String, Object?> trip({
+    String state = 'not_started',
+    Object? startedAt,
+    Object? completedAt,
+    Object? abortedAt,
+  }) => <String, Object?>{
+    'state': state,
+    'started_at': startedAt,
+    'completed_at': completedAt,
+    'aborted_at': abortedAt,
+  };
+
+  /// A row of `GET /me/routes`, which always carries a lifecycle.
   Map<String, Object?> route({
     String id = '01991b00-0000-7000-8000-000000000001',
     String recurrence = 'weekdays',
@@ -43,6 +60,7 @@ void main() {
     String status = 'published',
     String departureState = 'upcoming',
     Object? cancelledAt,
+    Map<String, Object?>? lifecycle,
   }) => <String, Object?>{
     'id': id,
     'origin': <String, Object?>{
@@ -68,11 +86,30 @@ void main() {
     'status': status,
     'published_at': '2026-08-28T09:41:00+00:00',
     'cancelled_at': cancelledAt,
+    'trip': lifecycle ?? trip(),
   };
+
+  /// The same object with the lifecycle removed, for the drift tests.
+  Map<String, Object?> routeWithoutTrip() =>
+      Map<String, Object?>.from(route())..remove('trip');
 
   http.Response ok(Object? body, [int status = 200]) => http.Response(
     jsonEncode(body),
     status,
+    headers: <String, String>{'content-type': 'application/json'},
+  );
+
+  /// A 409 naming a machine-readable reason, the way the backend sends one.
+  http.Response conflict(String reason) => http.Response(
+    jsonEncode(<String, Object?>{
+      'error': <String, Object?>{
+        'code': 'conflict',
+        'message': 'developer facing',
+        'details': <String, Object?>{'reason': reason},
+        'request_id': '00000000-0000-7000-8000-000000000009',
+      },
+    }),
+    409,
     headers: <String, String>{'content-type': 'application/json'},
   );
 
@@ -164,7 +201,7 @@ void main() {
       final MyRoutesResult result = await repository.page();
 
       expect(
-        <String>[for (final PublishedRoute r in result.routes) r.id],
+        <String>[for (final MyRoute r in result.routes) r.id],
         <String>[
           '01991b00-0000-7000-8000-000000000001',
           '01991b00-0000-7000-8000-000000000002',
@@ -184,7 +221,7 @@ void main() {
         }),
       );
 
-      final PublishedRoute r = (await repository.page()).routes.single;
+      final PublishedRoute r = (await repository.page()).routes.single.route;
 
       expect(r.origin.label, 'Kadıköy, Vapur İskelesi');
       expect(r.destination.label, 'Levent, Metro İstasyonu');
@@ -432,6 +469,20 @@ void main() {
       }
     });
 
+    /// CARRIES WEIGHT. A row without a lifecycle is drift, not a journey
+    /// nobody started — and one row failing fails the page rather than leaving
+    /// the list quietly short.
+    test('a row missing its lifecycle fails the page', () async {
+      final ApiMyRoutesRepository repository = repositoryOver(
+        (_) async => ok(<String, Object?>{
+          'routes': <Object?>[routeWithoutTrip()],
+          'next_cursor': null,
+        }),
+      );
+
+      await expectLater(repository.page(), throwsA(isA<RmFailure>()));
+    });
+
     test('a malformed success fails rather than filling in blanks', () async {
       final ApiMyRoutesRepository repository = repositoryOver(
         (_) async => ok(<String, Object?>{'route': 'gone'}),
@@ -440,6 +491,252 @@ void main() {
       await expectLater(
         repository.cancel('01991b00-0000-7000-8000-000000000001'),
         throwsA(isA<RmFailure>()),
+      );
+    });
+  });
+
+  group('The three lifecycle commands', () {
+    const String id = '01991b00-0000-7000-8000-000000000001';
+
+    /// The response body of a lifecycle command: the trip, and nothing else.
+    http.Response lifecycle(Map<String, Object?> body, [int status = 200]) =>
+        ok(<String, Object?>{'trip': body}, status);
+
+    test('each posts to its documented path with no body at all', () async {
+      for (final (
+            String verb,
+            Future<TripLifecycle> Function(ApiMyRoutesRepository) call,
+            int status,
+          )
+          in <
+            (String, Future<TripLifecycle> Function(ApiMyRoutesRepository), int)
+          >[
+            ('start', (ApiMyRoutesRepository r) => r.startTrip(id), 201),
+            ('complete', (ApiMyRoutesRepository r) => r.completeTrip(id), 200),
+            ('abort', (ApiMyRoutesRepository r) => r.abortTrip(id), 200),
+          ]) {
+        final ApiMyRoutesRepository repository = repositoryOver(
+          (_) async => lifecycle(trip(state: 'in_progress'), status),
+        );
+
+        await call(repository);
+
+        expect(sent, hasLength(1), reason: verb);
+        expect(sent.single.method, 'POST', reason: verb);
+        expect(sent.single.url.path, '/api/v1/routes/$id/trip/$verb');
+        expect(sent.single.url.queryParameters, isEmpty, reason: verb);
+
+        // CARRIES WEIGHT. Bodyless means bodyless: no `expected_status`, no
+        // `Idempotency-Key`, no client timestamp, no ids, no coordinates. An
+        // empty JSON object would still be a body the contract does not
+        // describe, and the first field somebody added to it would be
+        // semantics the server never agreed to.
+        expect(sent.single.body, isEmpty, reason: verb);
+        expect(
+          sent.single.headers.keys.map((String k) => k.toLowerCase()),
+          isNot(contains('idempotency-key')),
+          reason: verb,
+        );
+      }
+    });
+
+    test('starting accepts the created answer and the repeated one', () async {
+      for (final int status in <int>[201, 200]) {
+        final ApiMyRoutesRepository repository = repositoryOver(
+          (_) async => lifecycle(
+            trip(state: 'in_progress', startedAt: '2026-09-11T07:05:00Z'),
+            status,
+          ),
+        );
+
+        final TripLifecycle result = await repository.startTrip(id);
+
+        expect(result.state, TripState.inProgress, reason: '$status');
+        // The same lifecycle either way. Which status carried it is not
+        // product truth and nothing upstream is told them apart.
+        expect(
+          result.startedAt,
+          DateTime.utc(2026, 9, 11, 7, 5),
+          reason: '$status',
+        );
+      }
+    });
+
+    /// CARRIES WEIGHT. Neither ending creates anything, so neither says 201.
+    test(
+      'a created answer to complete or abort is not this contract',
+      () async {
+        for (final Future<TripLifecycle> Function(ApiMyRoutesRepository) call
+            in <Future<TripLifecycle> Function(ApiMyRoutesRepository)>[
+              (ApiMyRoutesRepository r) => r.completeTrip(id),
+              (ApiMyRoutesRepository r) => r.abortTrip(id),
+            ]) {
+          final ApiMyRoutesRepository repository = repositoryOver(
+            (_) async => lifecycle(trip(state: 'completed'), 201),
+          );
+
+          await expectLater(call(repository), throwsA(isA<RmFailure>()));
+        }
+      },
+    );
+
+    /// And a 2xx nobody documented is refused rather than read as one that is.
+    test('an undocumented success is refused', () async {
+      final ApiMyRoutesRepository repository = repositoryOver(
+        (_) async => lifecycle(trip(state: 'in_progress'), 202),
+      );
+
+      await expectLater(repository.startTrip(id), throwsA(isA<RmFailure>()));
+    });
+
+    test('completing and abandoning read their own endings', () async {
+      final ApiMyRoutesRepository completing = repositoryOver(
+        (_) async => lifecycle(
+          trip(
+            state: 'completed',
+            startedAt: '2026-09-11T07:05:00Z',
+            completedAt: '2026-09-11T07:45:00Z',
+          ),
+        ),
+      );
+
+      final TripLifecycle completed = await completing.completeTrip(id);
+
+      expect(completed.state, TripState.completed);
+      expect(completed.completedAt, DateTime.utc(2026, 9, 11, 7, 45));
+      expect(completed.abortedAt, isNull);
+
+      final ApiMyRoutesRepository abandoning = repositoryOver(
+        (_) async => lifecycle(
+          trip(
+            state: 'aborted',
+            startedAt: '2026-09-11T07:05:00Z',
+            abortedAt: '2026-09-11T07:20:00Z',
+          ),
+        ),
+      );
+
+      final TripLifecycle aborted = await abandoning.abortTrip(id);
+
+      expect(aborted.state, TripState.aborted);
+      expect(aborted.abortedAt, DateTime.utc(2026, 9, 11, 7, 20));
+      expect(aborted.completedAt, isNull);
+    });
+
+    test('a malformed lifecycle fails rather than filling in blanks', () async {
+      for (final Object? body in <Object?>[
+        'gone',
+        <String, Object?>{'state': 'in_progress'},
+        <String, Object?>{
+          'state': 'parked',
+          'started_at': null,
+          'completed_at': null,
+          'aborted_at': null,
+        },
+      ]) {
+        final ApiMyRoutesRepository repository = repositoryOver(
+          (_) async => ok(<String, Object?>{'trip': body}),
+        );
+
+        await expectLater(
+          repository.startTrip(id),
+          throwsA(isA<RmFailure>()),
+          reason: '$body',
+        );
+      }
+    });
+  });
+
+  group('What a refusal says', () {
+    const String id = '01991b00-0000-7000-8000-000000000001';
+
+    /// CARRIES WEIGHT. All six arrive as the same 409, so the reason is the
+    /// only thing that distinguishes them.
+    test('every documented reason maps to its own value', () async {
+      for (final TripRefusal expected in TripRefusal.values) {
+        final ApiMyRoutesRepository repository = repositoryOver(
+          (_) async => conflict(expected.wire),
+        );
+
+        await expectLater(
+          repository.startTrip(id),
+          throwsA(
+            isA<RmFailure>()
+                .having((RmFailure f) => f.status, 'status', 409)
+                .having((RmFailure f) => f.code, 'code', RmErrorCode.conflict)
+                .having(
+                  (RmFailure f) => f.tripRefusal,
+                  'tripRefusal',
+                  expected,
+                ),
+          ),
+          reason: expected.wire,
+        );
+      }
+    });
+
+    /// A seventh reason is not coerced into one of the six.
+    test('a reason this build has never heard of stays unknown', () async {
+      final ApiMyRoutesRepository repository = repositoryOver(
+        (_) async => conflict('trip_already_started'),
+      );
+
+      await expectLater(
+        repository.completeTrip(id),
+        throwsA(
+          isA<RmFailure>()
+              .having((RmFailure f) => f.tripRefusal, 'tripRefusal', isNull)
+              .having((RmFailure f) => f.code, 'code', RmErrorCode.conflict),
+        ),
+      );
+    });
+
+    /// CARRIES WEIGHT. The message is developer-facing English the contract
+    /// forbids clients to display, and it is not where the answer lives.
+    test('the reason is read even when the message contradicts it', () async {
+      final ApiMyRoutesRepository repository = repositoryOver(
+        (_) async => http.Response(
+          jsonEncode(<String, Object?>{
+            'error': <String, Object?>{
+              'code': 'conflict',
+              'message': 'That journey was already reported as made.',
+              'details': <String, Object?>{'reason': 'trip_not_started'},
+              'request_id': '00000000-0000-7000-8000-000000000009',
+            },
+          }),
+          409,
+          headers: <String, String>{'content-type': 'application/json'},
+        ),
+      );
+
+      await expectLater(
+        repository.abortTrip(id),
+        throwsA(
+          isA<RmFailure>().having(
+            (RmFailure f) => f.tripRefusal,
+            'tripRefusal',
+            TripRefusal.tripNotStarted,
+          ),
+        ),
+      );
+    });
+
+    /// A seat-request reason on a trip command is not a trip refusal, and the
+    /// two vocabularies stay apart even where they share a string.
+    test('a reason only seat requests use names no trip refusal', () async {
+      final ApiMyRoutesRepository repository = repositoryOver(
+        (_) async => conflict('already_requested'),
+      );
+
+      await expectLater(
+        repository.startTrip(id),
+        throwsA(
+          isA<RmFailure>().having(
+            (RmFailure f) => f.tripRefusal,
+            'tripRefusal',
+            isNull,
+          ),
+        ),
       );
     });
   });

@@ -20,7 +20,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
-import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/my_routes/domain/my_routes_page.dart';
@@ -34,8 +34,8 @@ void main() {
   setUpAll(loadRideMateFonts);
 
   MyRoutesResult page(List<String> ids) => MyRoutesResult(
-    routes: <PublishedRoute>[
-      for (final String id in ids) fakeRoute(id: id, originLabel: 'Yer $id'),
+    routes: <MyRoute>[
+      for (final String id in ids) fakeMyRoute(id: id, originLabel: 'Yer $id'),
     ],
     nextCursor: null,
   );
@@ -196,7 +196,7 @@ void main() {
 
         expect(routes.callCount, 2, reason: 'exactly one new read, not more');
         expect(
-          <String>[for (final PublishedRoute r in reread.routes) r.id],
+          <String>[for (final MyRoute r in reread.routes) r.id],
           <String>['a', 'b'],
           reason: 'the re-read must expose data the first read could not see',
         );

@@ -28,9 +28,12 @@ import '../../../core/api/rm_api_client.dart';
 import '../../../core/api/rm_error_code.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/api/rm_response.dart';
+import '../../../core/routes/my_route.dart';
 import '../../../core/routes/published_route.dart';
 import '../../../core/routes/route_decoder.dart';
 import '../../../core/session/rm_session.dart';
+import '../../../core/trips/trip_decoder.dart';
+import '../../../core/trips/trip_lifecycle.dart';
 
 /// How many routes a page asks for.
 ///
@@ -42,7 +45,9 @@ const int kMyRoutesPageSize = 20;
 final class MyRoutesResult {
   const MyRoutesResult({required this.routes, required this.nextCursor});
 
-  final List<PublishedRoute> routes;
+  /// Rows carry the lifecycle; a cancelled or published route on its own does
+  /// not. See [MyRoute].
+  final List<MyRoute> routes;
 
   /// The token that continues the list, or null when there is nothing after.
   final String? nextCursor;
@@ -59,7 +64,23 @@ abstract interface class MyRoutesRepository {
   ///
   /// Naturally idempotent: cancelling something already cancelled is the same
   /// cancellation observed again, and answers 200 with the same route.
+  ///
+  /// Answers a plain [PublishedRoute]: the cancel response carries no
+  /// lifecycle, and this does not invent one.
   Future<PublishedRoute> cancel(String routeId);
+
+  /// Says the journey on [routeId] is under way.
+  ///
+  /// Naturally idempotent on the route itself — there is at most one trip per
+  /// journey — so a retry after a lost response is the same start observed
+  /// again and answers with the same `started_at`.
+  Future<TripLifecycle> startTrip(String routeId);
+
+  /// Says the journey was made.
+  Future<TripLifecycle> completeTrip(String routeId);
+
+  /// Says the journey was abandoned. No reason is sent; none is stored.
+  Future<TripLifecycle> abortTrip(String routeId);
 }
 
 class ApiMyRoutesRepository implements MyRoutesRepository {
@@ -108,6 +129,47 @@ class ApiMyRoutesRepository implements MyRoutesRepository {
     return RouteDecoder.route(response.json?['route'], response.status);
   }
 
+  @override
+  Future<TripLifecycle> startTrip(String routeId) =>
+      // 201 the first time, 200 for a repeat. Both are successes describing the
+      // same trip, and which one arrived is not product truth: the lifecycle in
+      // the body is. Nothing upstream is told them apart, unlike asking for a
+      // seat, where the client mints the id and a retry has to be recognisable.
+      _command(routeId, 'start', accepting: const <int>{201, 200});
+
+  @override
+  Future<TripLifecycle> completeTrip(String routeId) =>
+      // No 201: nothing is created. The trip already exists and this names the
+      // state it should end in.
+      _command(routeId, 'complete', accepting: const <int>{200});
+
+  @override
+  Future<TripLifecycle> abortTrip(String routeId) =>
+      _command(routeId, 'abort', accepting: const <int>{200});
+
+  /// One of the three lifecycle commands.
+  ///
+  /// All bodyless, for the reason cancellation is: each names its own target
+  /// state, so repeating it is the same command observed again and needs
+  /// nothing to make it safe. No `Idempotency-Key`, no `expected_status`, no
+  /// client timestamp, no ids, no coordinates.
+  Future<TripLifecycle> _command(
+    String routeId,
+    String verb, {
+    required Set<int> accepting,
+  }) async {
+    final RmResponse response = await _session.send(
+      (Map<String, String> headers) =>
+          _client.post('/api/v1/routes/$routeId/trip/$verb', headers: headers),
+    );
+
+    // A 2xx the contract does not document is not this contract, and is
+    // refused rather than read as one of the ones that are.
+    if (!accepting.contains(response.status)) throw _malformed(response);
+
+    return TripDecoder.lifecycle(response.json?['trip'], response.status);
+  }
+
   MyRoutesResult _decodePage(RmResponse response) {
     final Object? routes = response.json?['routes'];
 
@@ -124,12 +186,12 @@ class ApiMyRoutesRepository implements MyRoutesRepository {
     if (cursor != null && cursor is! String) throw _malformed(response);
 
     return MyRoutesResult(
-      routes: <PublishedRoute>[
+      routes: <MyRoute>[
         // A row that will not decode fails the page. Skipping it would leave a
         // list quietly short — and the member is the one person who would
         // notice a journey missing and have no way to explain it.
         for (final Object? entry in routes)
-          RouteDecoder.route(entry, response.status),
+          RouteDecoder.myRoute(entry, response.status),
       ],
       nextCursor: cursor as String?,
     );

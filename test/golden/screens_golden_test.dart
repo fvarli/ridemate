@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
@@ -83,8 +84,8 @@ void main() {
             FakeMyRoutesRepository(
               pages: <MyRoutesResult>[
                 MyRoutesResult(
-                  routes: <PublishedRoute>[
-                    fakeRoute(
+                  routes: <MyRoute>[
+                    fakeMyRoute(
                       id: '01991b00-0000-7000-8000-000000000001',
                       originLabel: 'Kadıköy, Vapur İskelesi',
                       destinationLabel: 'Levent, Metro İstasyonu',
@@ -93,7 +94,7 @@ void main() {
                         RideRuleId.quiet,
                       },
                     ),
-                    fakeRoute(
+                    fakeMyRoute(
                       id: '01991b00-0000-7000-8000-000000000002',
                       originLabel: 'Maslak, Atatürk Oto Sanayi',
                       destinationLabel: 'Ataşehir, Palladium',
@@ -104,7 +105,7 @@ void main() {
                       rules: const <RideRuleId>{},
                       departureState: DepartureState.past,
                     ),
-                    fakeRoute(
+                    fakeMyRoute(
                       id: '01991b00-0000-7000-8000-000000000003',
                       originLabel: 'İTÜ Ayazağa, Metro İstasyonu',
                       destinationLabel: 'Kadıköy, Vapur İskelesi',

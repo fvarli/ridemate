@@ -38,6 +38,10 @@ const String _routeId = '01991c00-0000-7000-8000-000000000001';
 Map<String, Object?> _route({
   String status = 'published',
   String departureState = 'upcoming',
+  String trip = 'not_started',
+  Object? startedAt,
+  Object? completedAt,
+  Object? abortedAt,
 }) => <String, Object?>{
   'id': _routeId,
   'origin': <String, Object?>{'id': 'p1', 'label': 'Kadıköy, Vapur İskelesi'},
@@ -56,6 +60,14 @@ Map<String, Object?> _route({
     'quiet': false,
   },
   'driver': <String, Object?>{'display_name': 'İrem Yılmaz', 'initials': 'İY'},
+  // A fourth fact this projection always carries, independent of the three
+  // above it.
+  'trip': <String, Object?>{
+    'state': trip,
+    'started_at': startedAt,
+    'completed_at': completedAt,
+    'aborted_at': abortedAt,
+  },
 };
 
 Map<String, Object?> _mine({

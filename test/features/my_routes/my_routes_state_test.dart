@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/trips/trip_decoder.dart';
+import 'package:ridemate/core/trips/trip_lifecycle.dart';
 import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/my_routes/domain/my_routes_page.dart';
@@ -45,7 +48,7 @@ void main() {
   }
 
   MyRoutesResult page(List<String> ids, {String? next}) => MyRoutesResult(
-    routes: <PublishedRoute>[for (final String id in ids) fakeRoute(id: id)],
+    routes: <MyRoute>[for (final String id in ids) fakeMyRoute(id: id)],
     nextCursor: next,
   );
 
@@ -56,7 +59,7 @@ void main() {
   }
 
   List<String> idsOf(MyRoutesPage page) => <String>[
-    for (final PublishedRoute r in page.routes) r.id,
+    for (final MyRoute r in page.routes) r.id,
   ];
 
   group('The first page', () {
@@ -311,9 +314,9 @@ void main() {
       final MyRoutesPage after = c.read(myRoutesProvider).value!;
       // Still three, still in the same order: cancelling preserves history.
       expect(idsOf(after), <String>['a', 'b', 'c']);
-      expect(after.routes[1].status, RouteStatus.cancelled);
-      expect(after.routes[0].status, RouteStatus.published);
-      expect(after.routes[2].status, RouteStatus.published);
+      expect(after.routes[1].route.status, RouteStatus.cancelled);
+      expect(after.routes[0].route.status, RouteStatus.published);
+      expect(after.routes[2].route.status, RouteStatus.published);
     });
 
     /// CARRIES WEIGHT. Cancelling withdraws a journey; it does not erase it.
@@ -405,7 +408,7 @@ void main() {
         // Nothing removed, nothing marked cancelled, nothing else touched.
         expect(idsOf(after), idsOf(before), reason: '$failure');
         expect(
-          after.routes.first.status,
+          after.routes.first.route.status,
           RouteStatus.published,
           reason: '$failure',
         );
@@ -447,7 +450,7 @@ void main() {
       await c.read(myRoutesProvider.notifier).cancel('a');
 
       expect(
-        c.read(myRoutesProvider).value!.routes.single.status,
+        c.read(myRoutesProvider).value!.routes.single.route.status,
         RouteStatus.published,
       );
     });
@@ -469,7 +472,7 @@ void main() {
 
       expect(routes.cancelled, <String>['a', 'a']);
       expect(
-        c.read(myRoutesProvider).value!.routes.single.status,
+        c.read(myRoutesProvider).value!.routes.single.route.status,
         RouteStatus.cancelled,
       );
     });
@@ -504,14 +507,216 @@ void main() {
 
       expect(failure, isNull);
 
-      final PublishedRoute after = c
-          .read(myRoutesProvider)
-          .value!
-          .routes
-          .single;
-      expect(after.status, RouteStatus.cancelled);
-      expect(after.cancelledAt, '2026-08-28T10:00:00+00:00');
-      expect(after.departureState, DepartureState.past);
+      final MyRoute after = c.read(myRoutesProvider).value!.routes.single;
+      expect(after.route.status, RouteStatus.cancelled);
+      expect(after.route.cancelledAt, '2026-08-28T10:00:00+00:00');
+      expect(after.route.departureState, DepartureState.past);
+    });
+  });
+
+  group('Saying whether a journey was made', () {
+    /// CARRIES WEIGHT. The row changes to the server's answer, not to one
+    /// assumed from which button was pressed.
+    test('the row takes the lifecycle the server returned', () async {
+      final ProviderContainer c = container(<MyRoutesResult>[
+        page(<String>['a']),
+      ]);
+      await loaded(c);
+
+      routes.tripResult = fakeTrip(
+        state: TripState.inProgress,
+        startedAt: '2026-09-11T07:05:00Z',
+      );
+
+      final RmFailure? failure = await c
+          .read(myRoutesProvider.notifier)
+          .startTrip('a');
+
+      expect(failure, isNull);
+      expect(routes.tripCommands, <String>['start a']);
+
+      final MyRoute after = c.read(myRoutesProvider).value!.routes.single;
+      expect(after.trip.state, TripState.inProgress);
+      expect(after.trip.startedAt, DateTime.utc(2026, 9, 11, 7, 5));
+      // And the journey beside it is untouched: starting does not republish.
+      expect(after.route.status, RouteStatus.published);
+    });
+
+    test('each command sends its own verb for its own route', () async {
+      final ProviderContainer c = container(<MyRoutesResult>[
+        page(<String>['a', 'b', 'c']),
+      ]);
+      await loaded(c);
+
+      await c.read(myRoutesProvider.notifier).startTrip('a');
+      await c.read(myRoutesProvider.notifier).completeTrip('b');
+      await c.read(myRoutesProvider.notifier).abortTrip('c');
+
+      expect(routes.tripCommands, <String>['start a', 'complete b', 'abort c']);
+
+      // And each answer lands on its own row. One command must not move the
+      // lifecycle of a journey it was not about.
+      expect(
+        <TripState>[
+          for (final MyRoute r in c.read(myRoutesProvider).value!.routes)
+            r.trip.state,
+        ],
+        <TripState>[
+          TripState.inProgress,
+          TripState.completed,
+          TripState.aborted,
+        ],
+      );
+    });
+
+    /// CARRIES WEIGHT. Nothing is optimistic, so a refused command leaves the
+    /// journey exactly as the server last described it.
+    test('a refusal changes no row', () async {
+      for (final TripRefusal refusal in TripRefusal.values) {
+        final ProviderContainer c = container(<MyRoutesResult>[
+          page(<String>['a']),
+        ]);
+        await loaded(c);
+
+        routes.tripFailure = RmFailure.fromBackend(
+          status: 409,
+          code: RmErrorCode.conflict,
+          reason: refusal.wire,
+        );
+
+        final RmFailure? failure = await c
+            .read(myRoutesProvider.notifier)
+            .startTrip('a');
+
+        expect(failure?.tripRefusal, refusal, reason: refusal.wire);
+
+        final MyRoutesPage after = c.read(myRoutesProvider).value!;
+        expect(
+          after.routes.single.trip.state,
+          TripState.notStarted,
+          reason: 'a journey the backend would not start did not start',
+        );
+        expect(after.isChangingTrip('a'), isFalse, reason: refusal.wire);
+      }
+    });
+
+    /// The row is never touched while the command is in flight either.
+    test('nothing changes until the server has answered', () async {
+      final ProviderContainer c = container(<MyRoutesResult>[
+        page(<String>['a']),
+      ]);
+      await loaded(c);
+
+      routes.hold();
+      final Future<RmFailure?> pending = c
+          .read(myRoutesProvider.notifier)
+          .completeTrip('a');
+
+      final MyRoutesPage during = c.read(myRoutesProvider).value!;
+      expect(during.isChangingTrip('a'), isTrue);
+      expect(
+        during.routes.single.trip.state,
+        TripState.notStarted,
+        reason: 'the lifecycle may not move before the server says so',
+      );
+
+      routes.release();
+      await pending;
+
+      expect(c.read(myRoutesProvider).value!.isChangingTrip('a'), isFalse);
+    });
+
+    test('a second tap while one is in flight is the same intention', () async {
+      final ProviderContainer c = container(<MyRoutesResult>[
+        page(<String>['a']),
+      ]);
+      await loaded(c);
+
+      routes.hold();
+      final Future<RmFailure?> first = c
+          .read(myRoutesProvider.notifier)
+          .startTrip('a');
+      final RmFailure? second = await c
+          .read(myRoutesProvider.notifier)
+          .startTrip('a');
+
+      expect(second, isNull);
+      expect(routes.tripCommands, <String>['start a'], reason: 'sent once');
+
+      routes.release();
+      await first;
+    });
+
+    /// Two journeys transition independently; neither waits on the other.
+    test('one journey transitioning does not block another', () async {
+      final ProviderContainer c = container(<MyRoutesResult>[
+        page(<String>['a', 'b']),
+      ]);
+      await loaded(c);
+
+      routes.hold();
+      final Future<RmFailure?> a = c
+          .read(myRoutesProvider.notifier)
+          .startTrip('a');
+      final Future<RmFailure?> b = c
+          .read(myRoutesProvider.notifier)
+          .startTrip('b');
+
+      final MyRoutesPage during = c.read(myRoutesProvider).value!;
+      expect(during.isChangingTrip('a'), isTrue);
+      expect(during.isChangingTrip('b'), isTrue);
+
+      routes.release();
+      await Future.wait(<Future<RmFailure?>>[a, b]);
+
+      expect(routes.tripCommands, <String>['start a', 'start b']);
+    });
+
+    /// Cancelling answers with a plain route, and the lifecycle survives it.
+    ///
+    /// CARRIES WEIGHT. Reading a missing lifecycle out of that response would
+    /// silently reset a finished journey to `not_started` on screen.
+    test('withdrawing a journey does not erase whether it was made', () async {
+      final ProviderContainer c = container(<MyRoutesResult>[
+        page(<String>['a']),
+      ]);
+      await loaded(c);
+
+      routes.tripResult = fakeTrip(
+        state: TripState.completed,
+        startedAt: '2026-09-11T07:05:00Z',
+        completedAt: '2026-09-11T07:45:00Z',
+      );
+      await c.read(myRoutesProvider.notifier).completeTrip('a');
+
+      routes.cancelResult = fakeRoute(id: 'a', status: RouteStatus.cancelled);
+      await c.read(myRoutesProvider.notifier).cancel('a');
+
+      final MyRoute after = c.read(myRoutesProvider).value!.routes.single;
+      expect(after.route.status, RouteStatus.cancelled);
+      expect(after.trip.state, TripState.completed);
+      expect(after.trip.completedAt, DateTime.utc(2026, 9, 11, 7, 45));
+    });
+
+    /// The two in-flight sets are separate, so one control does not disable
+    /// the other.
+    test('cancelling and transitioning are tracked apart', () async {
+      final ProviderContainer c = container(<MyRoutesResult>[
+        page(<String>['a']),
+      ]);
+      await loaded(c);
+
+      routes.hold();
+      final Future<RmFailure?> pending = c
+          .read(myRoutesProvider.notifier)
+          .abortTrip('a');
+
+      final MyRoutesPage during = c.read(myRoutesProvider).value!;
+      expect(during.isChangingTrip('a'), isTrue);
+      expect(during.isCancelling('a'), isFalse);
+
+      routes.release();
+      await pending;
     });
   });
 }

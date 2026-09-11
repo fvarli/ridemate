@@ -36,7 +36,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
-import 'package:ridemate/core/routes/published_route.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
 import 'package:ridemate/features/create_route/presentation/create_route_screen.dart';
 import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
@@ -301,7 +301,7 @@ void main() {
         ..failure = null
         ..chain(<MyRoutesResult>[
           MyRoutesResult(
-            routes: <PublishedRoute>[fakeRoute(originLabel: 'Gerçek')],
+            routes: <MyRoute>[fakeMyRoute(originLabel: 'Gerçek')],
             nextCursor: null,
           ),
         ]);

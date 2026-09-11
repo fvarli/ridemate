@@ -12,13 +12,14 @@
 //
 // A single model would let a screen read a field the server never sends it.
 //
-// TWO INDEPENDENT TRUTHS
+// THREE INDEPENDENT TRUTHS
 //
 // A request's own status is history — what this member asked and what answer
 // they got. The route's status and departure state are the journey as it stands
-// now. `accepted` beside `cancelled` is not a contradiction to be reconciled;
-// it is two facts, and the client renders both. Nothing here synthesises a
-// third state to explain them away.
+// now. Its trip lifecycle is whether it was actually made. `accepted` beside
+// `cancelled`, or beside `aborted`, is not a contradiction to be reconciled; it
+// is separate facts, and the client renders each. Nothing here synthesises a
+// further state to explain them away.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/foundation.dart';
@@ -27,6 +28,7 @@ import '../places/place.dart';
 import '../routes/departure.dart';
 import '../routes/published_route.dart';
 import '../routes/ride_rule.dart';
+import '../trips/trip_lifecycle.dart';
 
 /// Where one asking stands.
 ///
@@ -127,6 +129,7 @@ final class SeatRequestRoute {
     required this.seatsOffered,
     required this.rules,
     required this.driver,
+    required this.trip,
   });
 
   final String id;
@@ -149,6 +152,14 @@ final class SeatRequestRoute {
   final int seatsOffered;
   final Set<RideRuleId> rules;
   final SeatRequestMember driver;
+
+  /// Whether the journey was made — a fourth fact beside [status],
+  /// [departureState] and the asking's own status.
+  ///
+  /// A passenger may hold an accepted request on a journey that is under way,
+  /// on one that finished, and on one cancelled before it ever began. All three
+  /// are said plainly; nothing here reconciles them into a single verdict.
+  final TripLifecycle trip;
 }
 
 /// A member, in the two fields a profile has.

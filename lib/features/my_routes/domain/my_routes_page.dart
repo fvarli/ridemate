@@ -16,7 +16,9 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/api/rm_failure.dart';
+import '../../../core/routes/my_route.dart';
 import '../../../core/routes/published_route.dart';
+import '../../../core/trips/trip_lifecycle.dart';
 
 @immutable
 final class MyRoutesPage {
@@ -26,10 +28,15 @@ final class MyRoutesPage {
     this.isLoadingMore = false,
     this.loadMoreFailure,
     this.cancelling = const <String>{},
+    this.changingTrip = const <String>{},
   });
 
   /// The routes loaded so far, in the order the server returned them.
-  final List<PublishedRoute> routes;
+  ///
+  /// Each carries whether its journey was made. That lifecycle is the server's
+  /// and is only ever replaced by something the server returned — never
+  /// computed here from a status, a departure or a clock.
+  final List<MyRoute> routes;
 
   /// The opaque token that continues the list. Null means the end.
   final String? nextCursor;
@@ -49,20 +56,30 @@ final class MyRoutesPage {
   /// cancelling is a no-op. Nothing is queued.
   final Set<String> cancelling;
 
+  /// Route ids with a trip lifecycle command in flight.
+  ///
+  /// Kept apart from [cancelling] rather than folded into one "busy" set: they
+  /// disable different controls, and one set would make withdrawing a journey
+  /// and starting it look like the same thing to a screen.
+  final Set<String> changingTrip;
+
   bool get hasMore => nextCursor != null;
 
   bool get isEmpty => routes.isEmpty;
 
   bool isCancelling(String routeId) => cancelling.contains(routeId);
 
+  bool isChangingTrip(String routeId) => changingTrip.contains(routeId);
+
   MyRoutesPage copyWith({
-    List<PublishedRoute>? routes,
+    List<MyRoute>? routes,
     String? nextCursor,
     bool clearNextCursor = false,
     bool? isLoadingMore,
     RmFailure? loadMoreFailure,
     bool clearLoadMoreFailure = false,
     Set<String>? cancelling,
+    Set<String>? changingTrip,
   }) {
     return MyRoutesPage(
       routes: routes ?? this.routes,
@@ -75,6 +92,7 @@ final class MyRoutesPage {
           ? null
           : loadMoreFailure ?? this.loadMoreFailure,
       cancelling: cancelling ?? this.cancelling,
+      changingTrip: changingTrip ?? this.changingTrip,
     );
   }
 
@@ -84,10 +102,28 @@ final class MyRoutesPage {
   /// published, and dropping it from the list would erase their own history
   /// from the only screen that shows it. Position is kept, because the server's
   /// ordering is by publication and cancelling does not republish.
+  /// The row's lifecycle is carried across untouched. Cancellation answers
+  /// with a plain route and says nothing about a trip, so taking one from that
+  /// response would mean inventing it.
   MyRoutesPage withRouteReplaced(PublishedRoute route) => copyWith(
-    routes: <PublishedRoute>[
-      for (final PublishedRoute existing in routes)
-        if (existing.id == route.id) route else existing,
+    routes: <MyRoute>[
+      for (final MyRoute existing in routes)
+        if (existing.id == route.id) existing.withRoute(route) else existing,
+    ],
+  );
+
+  /// This page with the journey on [routeId] carrying [trip].
+  ///
+  /// The whole of what a lifecycle command changes. The route beside it is
+  /// untouched: starting a journey does not republish it, and finishing one
+  /// does not withdraw it.
+  MyRoutesPage withTripReplaced(String routeId, TripLifecycle trip) => copyWith(
+    routes: <MyRoute>[
+      for (final MyRoute existing in routes)
+        if (existing.id == routeId)
+          MyRoute(route: existing.route, trip: trip)
+        else
+          existing,
     ],
   );
 
@@ -96,19 +132,20 @@ final class MyRoutesPage {
   /// The keyset makes duplicates unlikely rather than impossible, and a route
   /// rendered twice would look like a route published twice. Defensive only:
   /// nothing is reordered, and the server's sequence is preserved exactly.
-  MyRoutesPage appended(List<PublishedRoute> next, String? cursor) {
+  MyRoutesPage appended(List<MyRoute> next, String? cursor) {
     final Set<String> known = <String>{
-      for (final PublishedRoute route in routes) route.id,
+      for (final MyRoute route in routes) route.id,
     };
 
     return MyRoutesPage(
-      routes: <PublishedRoute>[
+      routes: <MyRoute>[
         ...routes,
-        for (final PublishedRoute route in next)
+        for (final MyRoute route in next)
           if (known.add(route.id)) route,
       ],
       nextCursor: cursor,
       cancelling: cancelling,
+      changingTrip: changingTrip,
     );
   }
 }

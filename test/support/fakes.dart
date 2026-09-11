@@ -18,10 +18,13 @@ import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/core/profile/profile.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/routes/route_decoder.dart';
 import 'package:ridemate/core/session/rm_session.dart';
+import 'package:ridemate/core/trips/trip_decoder.dart';
+import 'package:ridemate/core/trips/trip_lifecycle.dart';
 import 'package:ridemate/features/create_route/data/place_repository.dart';
 import 'package:ridemate/features/create_route/data/route_repository.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
@@ -458,6 +461,13 @@ class FakeMyRoutesRepository implements MyRoutesRepository {
   /// Every route id handed to [cancel].
   final List<String> cancelled = <String>[];
 
+  /// What the lifecycle commands answer with, when they are allowed to answer.
+  TripLifecycle? tripResult;
+  RmFailure? tripFailure;
+
+  /// Every lifecycle command sent, as `'<verb> <routeId>'` in order.
+  final List<String> tripCommands = <String>[];
+
   int get callCount => cursors.length;
 
   Completer<void>? _gate;
@@ -500,6 +510,43 @@ class FakeMyRoutesRepository implements MyRoutesRepository {
     return cancelResult ??
         fakeRoute(id: routeId, status: RouteStatus.cancelled);
   }
+
+  @override
+  Future<TripLifecycle> startTrip(String routeId) =>
+      _trip('start', routeId, TripState.inProgress);
+
+  @override
+  Future<TripLifecycle> completeTrip(String routeId) =>
+      _trip('complete', routeId, TripState.completed);
+
+  @override
+  Future<TripLifecycle> abortTrip(String routeId) =>
+      _trip('abort', routeId, TripState.aborted);
+
+  Future<TripLifecycle> _trip(
+    String verb,
+    String routeId,
+    TripState reached,
+  ) async {
+    tripCommands.add('$verb $routeId');
+
+    await _gate?.future;
+
+    final RmFailure? failure = tripFailure;
+    if (failure != null) throw failure;
+
+    return tripResult ??
+        fakeTrip(
+          state: reached,
+          startedAt: '2026-09-11T07:05:00Z',
+          completedAt: reached == TripState.completed
+              ? '2026-09-11T07:45:00Z'
+              : null,
+          abortedAt: reached == TripState.aborted
+              ? '2026-09-11T07:45:00Z'
+              : null,
+        );
+  }
 }
 
 /// A route shaped exactly as the server sends one.
@@ -518,7 +565,40 @@ PublishedRoute fakeRoute({
   Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
   RouteStatus status = RouteStatus.published,
   String? cancelledAt,
-}) => RouteDecoder.route(<String, Object?>{
+}) => RouteDecoder.route(
+  fakeRouteJson(
+    id: id,
+    originLabel: originLabel,
+    destinationLabel: destinationLabel,
+    recurrence: recurrence,
+    departureDate: departureDate,
+    departureTime: departureTime,
+    departureState: departureState,
+    seatsOffered: seatsOffered,
+    rules: rules,
+    status: status,
+    cancelledAt: cancelledAt,
+  ),
+  200,
+);
+
+/// The wire object a route arrives as.
+///
+/// Shared by [fakeRoute] and [fakeMyRoute] so the two projections cannot drift
+/// apart in a fixture the way they must not drift apart on the wire.
+Map<String, Object?> fakeRouteJson({
+  String id = '01991b00-0000-7000-8000-000000000001',
+  String originLabel = 'Sunucu Yeri Bir',
+  String destinationLabel = 'Sunucu Yeri İki',
+  Recurrence recurrence = Recurrence.weekdays,
+  String? departureDate,
+  String departureTime = '08:25',
+  DepartureState departureState = DepartureState.upcoming,
+  int seatsOffered = 3,
+  Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
+  RouteStatus status = RouteStatus.published,
+  String? cancelledAt,
+}) => <String, Object?>{
   'id': id,
   'origin': <String, Object?>{
     'id': '01991a00-0000-7000-8000-00000000000a',
@@ -538,6 +618,81 @@ PublishedRoute fakeRoute({
   'status': status.name,
   'published_at': '2026-08-28T09:41:00+00:00',
   'cancelled_at': cancelledAt,
+};
+
+/// The `trip` object, exactly as the backend sends it.
+///
+/// All three timestamps are always present; the ones that have not happened are
+/// null. A fixture that omitted a key would be a shape the API never produces.
+Map<String, Object?> fakeTripJson({
+  TripState state = TripState.notStarted,
+  String? startedAt,
+  String? completedAt,
+  String? abortedAt,
+}) => <String, Object?>{
+  'state': state.wire,
+  'started_at': startedAt,
+  'completed_at': completedAt,
+  'aborted_at': abortedAt,
+};
+
+/// The lifecycle, through the real decoder.
+TripLifecycle fakeTrip({
+  TripState state = TripState.notStarted,
+  String? startedAt,
+  String? completedAt,
+  String? abortedAt,
+}) => TripDecoder.lifecycle(
+  fakeTripJson(
+    state: state,
+    startedAt: startedAt,
+    completedAt: completedAt,
+    abortedAt: abortedAt,
+  ),
+  200,
+);
+
+/// A route as its own member sees it: the journey plus whether it was made.
+///
+/// Decoder-backed like [fakeRoute], so a row here is always a shape
+/// `GET /me/routes` could actually return — `trip` included, which that
+/// endpoint always sends and publication never does.
+MyRoute fakeMyRoute({
+  String id = '01991b00-0000-7000-8000-000000000001',
+  String originLabel = 'Sunucu Yeri Bir',
+  String destinationLabel = 'Sunucu Yeri İki',
+  Recurrence recurrence = Recurrence.weekdays,
+  String? departureDate,
+  String departureTime = '08:25',
+  DepartureState departureState = DepartureState.upcoming,
+  int seatsOffered = 3,
+  Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
+  RouteStatus status = RouteStatus.published,
+  String? cancelledAt,
+  TripState trip = TripState.notStarted,
+  String? startedAt,
+  String? completedAt,
+  String? abortedAt,
+}) => RouteDecoder.myRoute(<String, Object?>{
+  ...fakeRouteJson(
+    id: id,
+    originLabel: originLabel,
+    destinationLabel: destinationLabel,
+    recurrence: recurrence,
+    departureDate: departureDate,
+    departureTime: departureTime,
+    departureState: departureState,
+    seatsOffered: seatsOffered,
+    rules: rules,
+    status: status,
+    cancelledAt: cancelledAt,
+  ),
+  'trip': fakeTripJson(
+    state: trip,
+    startedAt: startedAt,
+    completedAt: completedAt,
+    abortedAt: abortedAt,
+  ),
 }, 200);
 
 /// A discovered route shaped exactly as the discovery endpoint sends one.

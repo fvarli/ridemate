@@ -13,6 +13,7 @@ import '../api/rm_failure.dart';
 import '../routes/departure.dart';
 import '../routes/published_route.dart';
 import '../routes/route_decoder.dart';
+import '../trips/trip_decoder.dart';
 import 'seat_request.dart';
 
 abstract final class SeatRequestDecoder {
@@ -137,6 +138,9 @@ abstract final class SeatRequestDecoder {
       seatsOffered: seats,
       rules: RouteDecoder.rules(value['rules'], status),
       driver: member(value['driver'], status),
+      // Required, like the route's own status: this projection always carries
+      // it. Discovery's does not, and neither does the plain route.
+      trip: TripDecoder.within(value, status),
     );
   }
 

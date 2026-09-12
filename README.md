@@ -9,7 +9,7 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 15 — members can rate a journey they shared.**
+**Phase 15 — members can rate each other once a Trip is marked completed.**
 The design system (Phase 1) is done, and Onboarding, Home, Search, Match Results, Route
 Details, Create route, Chat and Profile are implemented, plus the screens the design implies
 and never draws: phone entry and passcode entry, and the ones it does not draw at all — My
@@ -26,9 +26,11 @@ catalogue endpoints and Match Results renders the journeys the server returns, n
 
 **Asking for a seat is real** (Phase 13), **whether a journey was made is real** (Phase 14 —
 the driver says a trip started, completed or was abandoned, and nothing infers it from a
-clock), and **reviews are real** (Phase 15): after a completed journey each side may rate the
-other once, from one to five, within fourteen days. A rating is released to the person it is
-about only when they have rated back or the window has closed.
+clock), and **reviews are real** (Phase 15): once the driver has marked the Trip completed,
+each side may rate the other once, from one to five, within fourteen days. A rating is
+released to the person it is about only when they have rated back or the window has closed.
+As in Phase 14, `completed` is a state the driver put the Trip in — not evidence that anybody
+boarded, was collected or travelled.
 
 Active Trip, the Safety Center and now **Verification** are built and tested but reachable
 **only in debug builds**. Verification joined them because its email step reads `Doğrulandı`

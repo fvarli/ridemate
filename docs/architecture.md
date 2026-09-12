@@ -878,10 +878,10 @@ to decide whether to *offer* the control. **It never computes the window.** Noth
 holds a deadline, subtracts two instants or reads the clock; the server refuses with
 `review_window_closed` and the screen says what it said.
 
-**Route status is deliberately not consulted.** A driver may withdraw a plan after making the
-journey, and the journey still happened, so a cancelled route with a completed trip stays
-rateable. A client that "corrected" that would erase a member's right to rate a journey they
-actually took.
+**Route status is deliberately not consulted.** A driver may withdraw a plan after marking its
+trip completed, and that record stands, so a cancelled route with a completed trip stays
+rateable. A client that "corrected" that would withhold a rating the server still permits —
+on the strength of a route status that says nothing about the lifecycle.
 
 **The retry identity is `{id, rating}`, frozen together.** The client mints the review's
 UUIDv7 once per intent, and after an indeterminate failure it resends the same id **and the
@@ -1147,7 +1147,7 @@ the screen** rather than inventing them.
 | 12 | **Discovery** ✅ | a real search over published journeys, and a card reduced to what the server knows |
 | 13 | **Seat requests** ✅ | a discovered route gained something to do, and approval rate a source. Seat availability did **not** become a client quantity: the server publishes no remaining count |
 | 14 | **Trip lifecycle** ✅ | whether a journey was actually made — the fact a trip count would have to count |
-| 15 | **Reviews** ✅ | private feedback between two people who shared a journey. **Not** the match card's rating: nothing computes an average, so that field stays withdrawn and the design's Reviews screen was retired rather than migrated |
+| 15 | **Reviews** ✅ | private feedback between the two parties to a completed trip. **Not** the match card's rating: nothing computes an average, so that field stays withdrawn and the design's Reviews screen was retired rather than migrated |
 | 16 | **Verification** | the verified state and its badge |
 | 17 | **Trust Score** | depends on 13–16; the match card is finally whole |
 

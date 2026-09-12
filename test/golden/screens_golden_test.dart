@@ -33,7 +33,6 @@ import 'package:ridemate/features/profile/application/my_profile_providers.dart'
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
 import 'package:ridemate/features/reviews/application/review_action_providers.dart';
 import 'package:ridemate/features/reviews/data/review_repository.dart';
-import 'package:ridemate/features/reviews/fixture/presentation/reviews_screen.dart';
 import 'package:ridemate/features/reviews/presentation/received_reviews_screen.dart';
 import 'package:ridemate/features/safety/presentation/safety_screen.dart';
 import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
@@ -409,11 +408,13 @@ void main() {
     });
   });
 
-  /// The real screen: what the backend released about this member.
+  /// What the backend released about this member.
   ///
   /// Two rows, both sides of a relationship, and a page that ends — the shape
-  /// the baseline needs to show a rating, a role and a journey without any of
-  /// the figures the fixture below invents.
+  /// the baseline needs to show a rating, a role and a journey. The design's
+  /// own Reviews screen had baselines here until Phase 15 retired it; what it
+  /// drew — a 4.9 average over 73 reviews, a histogram and four tag counts —
+  /// is not something this product computes anywhere.
   group('Received reviews', () {
     List<Override> backend() => <Override>[
       reviewRepositoryProvider.overrideWithValue(
@@ -448,20 +449,6 @@ void main() {
         await expectLater(
           find.byType(ReceivedReviewsScreen),
           matchesGoldenFile('goldens/received_reviews_${brightness.name}.png'),
-        );
-      });
-    }
-  });
-
-  /// The design's Reviews screen, kept only as a design artifact: nothing
-  /// shipped reaches it any more. F4 retires it.
-  group('Reviews', () {
-    for (final Brightness brightness in Brightness.values) {
-      testWidgets(brightness.name, (WidgetTester tester) async {
-        await pump(tester, const ReviewsScreen(), brightness: brightness);
-        await expectLater(
-          find.byType(ReviewsScreen),
-          matchesGoldenFile('goldens/reviews_${brightness.name}.png'),
         );
       });
     }

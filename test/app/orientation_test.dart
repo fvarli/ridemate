@@ -32,7 +32,6 @@ import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
-import 'package:ridemate/features/reviews/fixture/presentation/reviews_screen.dart';
 import 'package:ridemate/features/safety/presentation/safety_screen.dart';
 import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
 import 'package:ridemate/features/verification/presentation/verification_screen.dart';
@@ -60,7 +59,6 @@ void main() {
     'Chat': const ChatScreen(),
     'Active trip': const ActiveTripScreen(),
     'Profile': const ProfileScreen(),
-    'Reviews': const ReviewsScreen(),
     'Safety centre': const SafetyScreen(),
   };
 

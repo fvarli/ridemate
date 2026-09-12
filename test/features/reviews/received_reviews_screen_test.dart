@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ridemate/core/a11y/rm_a11y.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/reviews/review.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
@@ -35,6 +36,10 @@ import 'package:ridemate/l10n/app_localizations_tr.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
+import '../../support/pump.dart';
+
+/// The narrowest phone the project supports.
+const Size kNarrowPhone = Size(360, 800);
 
 void main() {
   setUpAll(loadRideMateFonts);
@@ -385,6 +390,91 @@ void main() {
 
       expect(reviews.cursors, <String?>[null, 'one', 'one']);
       expect(find.byType(ReceivedReviewCard), findsNWidgets(2));
+    });
+  });
+
+  /// The density the design's own Reviews screen used to cover.
+  ///
+  /// That screen was tested at 1.6 and at two widths; retiring it in Phase 15
+  /// would have quietly lowered what this surface is checked at, so the real
+  /// one picks the coverage up. A rating row, a two-line journey and a name
+  /// that can be long share one card, which is exactly where a Row overflows.
+  group('It holds together when the text grows', () {
+    Future<void> pumpDense(
+      WidgetTester tester, {
+      Size size = const Size(393, 852),
+      double textScale = 1,
+      TextDirection textDirection = TextDirection.ltr,
+      Locale locale = const Locale('tr'),
+    }) async {
+      await tester.pumpRmScreen(
+        const ReceivedReviewsScreen(),
+        surfaceSize: size,
+        textScaler: TextScaler.linear(textScale),
+        textDirection: textDirection,
+        locale: locale,
+        overrides: <Override>[
+          reviewRepositoryProvider.overrideWithValue(
+            FakeReviewRepository(
+              pages: <MyReviewsResult>[
+                page(<ReceivedReview>[
+                  fakeReceivedReview(
+                    id: 'a',
+                    rating: 4,
+                    displayName: 'Ayşegül Küçükkaya Demirtaş',
+                    initials: 'AD',
+                  ),
+                  fakeReceivedReview(
+                    id: 'b',
+                    rating: 2,
+                    role: 'passenger',
+                    origin: 'Kadıköy, Rıhtım Caddesi Vapur İskelesi',
+                    destination: 'Levent, Büyükdere Caddesi Metro İstasyonu',
+                  ),
+                ], next: 'one'),
+              ],
+            ),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('at the maximum supported text scale', (
+      WidgetTester tester,
+    ) async {
+      await pumpDense(tester, textScale: RmA11y.maxTextScale);
+
+      expect(find.byType(ReceivedReviewCard), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('on the narrowest phone, with the text grown', (
+      WidgetTester tester,
+    ) async {
+      await pumpDense(tester, size: kNarrowPhone, textScale: 1.3);
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('in English, where the strings are a different length', (
+      WidgetTester tester,
+    ) async {
+      await pumpDense(
+        tester,
+        size: kNarrowPhone,
+        textScale: 1.3,
+        locale: const Locale('en'),
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      await pumpDense(tester, textDirection: TextDirection.rtl);
+
+      expect(find.byType(ReceivedReviewCard), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
     });
   });
 

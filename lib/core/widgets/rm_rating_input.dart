@@ -5,13 +5,13 @@
 // rating on a single review is an invitation for some screen to average them,
 // and RideMate publishes no aggregate at all.
 //
-// DELIBERATELY NOT `StarRow`
+// A CONTROL, NOT A DISPLAY
 //
-// That one belongs to the Reviews fixture. It takes a `double`, fills every
-// star regardless of it, and collapses the row into one node that announces a
-// number — correct for displaying an invented figure, and wrong for a control
-// somebody operates. Reusing it would also pull a real feature into the fixture
-// directory the reviews guard watches.
+// The design's own star row — retired with the Reviews fixture in Phase 15 —
+// took a `double`, filled every star regardless of it, and collapsed the row
+// into one node announcing a number. Correct for displaying an invented
+// figure, wrong for a control somebody operates. [RmRatingDisplay] is the
+// read-only half, and it is a separate widget for the same reason.
 //
 // EACH STAR IS ITS OWN NODE
 //

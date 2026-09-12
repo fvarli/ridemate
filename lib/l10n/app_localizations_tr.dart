@@ -669,68 +669,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileMyReviews => 'Hakkımdaki değerlendirmeler';
 
   @override
-  String get reviewsTitle => 'Değerlendirmeler';
-
-  @override
-  String reviewsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count değerlendirme',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get reviewsTagPunctual => 'Dakik';
-
-  @override
-  String get reviewsTagSafeDriving => 'Güvenli sürüş';
-
-  @override
-  String get reviewsTagFriendly => 'Güler yüzlü';
-
-  @override
-  String get reviewsTagCleanCar => 'Temiz araç';
-
-  @override
-  String reviewsTagLabel(String label, String count) {
-    return '$label · $count';
-  }
-
-  @override
-  String get reviewsContextRegularRoute => 'Düzenli rota';
-
-  @override
-  String get reviewsMockBodyFirst =>
-      'Çok güvenli ve dakik bir yolculuktu. Selin gerçekten güler yüzlü, kesinlikle tekrar tercih ederim.';
-
-  @override
-  String get reviewsMockBodySecond =>
-      'Her sabah aynı saatte, tertemiz araç. Trafikte sohbet etmek güzel.';
-
-  @override
-  String reviewsRatingSemanticLabel(String rating) {
-    return '5 üzerinden $rating';
-  }
-
-  @override
-  String reviewsDistributionSemanticLabel(String stars, String share) {
-    return '$stars yıldız: değerlendirmelerin $share kadarı';
-  }
-
-  @override
-  String reviewsEntrySemanticLabel(
-    String author,
-    String age,
-    String context,
-    String rating,
-    String body,
-  ) {
-    return '$author, $age, $context. $rating. $body';
-  }
-
-  @override
   String get safetyTitle => 'Güvenlik Merkezi';
 
   @override

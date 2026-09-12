@@ -5,7 +5,8 @@
 //
 //   1. every string a member can read is localized, in a product whose source
 //      language is Turkish;
-//   2. no control a member can press does nothing without saying so.
+//   2. no control a member can press does nothing without saying so;
+//   3. no reputation figure exists anywhere in the shipped tree.
 //
 // The second is the rule the rest of the codebase already follows — eleven
 // localized "this did not happen" messages exist — and the Home shortcuts were
@@ -160,6 +161,83 @@ void main() {
           isNot(key(en)),
           reason: 'an untranslated string usually means a copy-paste',
         );
+      }
+    });
+  });
+
+  /// CARRIES WEIGHT. Reputation does not come back by the side door.
+  ///
+  /// Phase 15 shipped reviews and, in the same phase, **deleted** the design's
+  /// Reviews screen rather than making its figures honest: a 4.9 average over
+  /// 73 reviews, a four-bar histogram and four tag counts, none of which
+  /// anything computed. RideMate publishes no average, no total and no
+  /// distribution — not on a profile, not to the member the reviews are about,
+  /// nowhere.
+  ///
+  /// The guard that used to watch the fixture directory went with it, so the
+  /// rule is stated over the whole shipped tree instead. It is deliberately
+  /// review-specific: `trustScore` and Home's rating badge are other phases'
+  /// fixtures and are not this test's business.
+  group('No review aggregate exists', () {
+    test('nothing in lib names one', () {
+      final List<String> offenders = <String>[];
+
+      for (final FileSystemEntity entity in Directory(
+        'lib',
+      ).listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+
+        final List<String> lines = entity.readAsLinesSync();
+        for (int i = 0; i < lines.length; i++) {
+          final String line = lines[i];
+          // The prohibitions are written down in headers explaining why they
+          // are prohibited, so comments are not scanned.
+          if (line.trimLeft().startsWith('//')) continue;
+
+          for (final String banned in <String>[
+            'averageRating',
+            'reviewCount',
+            'RatingBucket',
+            'ratingDistribution',
+            'aggregateRatings',
+            'ratingFromDistribution',
+            'weightedAverage',
+            'mockReviews',
+            'ReviewsSnapshot',
+            'ReviewEntry',
+            'ReviewTag',
+          ]) {
+            if (line.contains(banned)) {
+              offenders.add('${entity.path}:${i + 1} — $banned');
+            }
+          }
+        }
+      }
+
+      expect(
+        offenders,
+        isEmpty,
+        reason: 'a reputation figure has reappeared in the shipped tree',
+      );
+    });
+
+    /// The copy, not just the code: a figure can ship as a string.
+    test('no locale carries the retired screen\'s figures', () {
+      for (final String path in <String>[
+        'lib/l10n/app_tr.arb',
+        'lib/l10n/app_en.arb',
+      ]) {
+        final String source = File(path).readAsStringSync();
+
+        for (final String banned in <String>[
+          '"reviewsTitle"',
+          '"reviewsCount"',
+          '"reviewsTagPunctual"',
+          '"reviewsEntrySemanticLabel"',
+          '"reviewsDistributionSemanticLabel"',
+        ]) {
+          expect(source.contains(banned), isFalse, reason: '$path: $banned');
+        }
       }
     });
   });

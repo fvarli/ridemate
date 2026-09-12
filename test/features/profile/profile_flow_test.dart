@@ -137,9 +137,8 @@ void main() {
   /// average over 73 reviews, a histogram and four tag counts, none of which
   /// anything computed. That was a fixture beside other fixtures while the
   /// profile was imaginary; beside a real account's real name it is the app
-  /// telling somebody a figure about themselves. The fixture still exists for
-  /// F4 to retire, and nothing shipped can reach it — see the import guard in
-  /// `reviews_domain_test`.
+  /// telling somebody a figure about themselves. That screen is gone, and
+  /// `release_copy_test` keeps its figures from coming back anywhere.
   testWidgets('reviews is reachable in release builds, and it is the real '
       'screen', (WidgetTester tester) async {
     final ProviderContainer container = await _pumpApp(tester);

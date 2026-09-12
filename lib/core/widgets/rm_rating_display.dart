@@ -7,13 +7,12 @@
 // nobody can change: a screen reader should hear the rating once, as a number
 // out of five, not walk five stars to work it out.
 //
-// DELIBERATELY NOT `StarRow` EITHER
+// IT SHOWS THE NUMBER, WHICH THE DESIGN'S ROW DID NOT
 //
-// The fixture's row takes a `double` and fills every star regardless of it,
-// because the design draws five gold stars beside an invented 4.9. Here the
-// number is real and one member's own, so the stars must actually show it —
-// and the widget must not live in the fixture directory a real screen is
-// forbidden to import.
+// The comp draws five gold stars beside an invented 4.9, and the fixture row
+// that reproduced it filled all five whatever the rating was. Here the number
+// is real and one member's own, so the stars actually show it. This widget
+// owns D-reviews-1 now: five icons under one semantics node.
 //
 // ONE RATING, NEVER AN AGGREGATE
 //

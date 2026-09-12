@@ -365,10 +365,12 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
       ),
       // Above the shell: the comp draws a back control and no tab bar.
       //
-      // Phase 15 pointed this at the real screen. The design's Reviews screen
-      // is still in the tree under `features/reviews/fixture/`, and it is no
-      // longer reachable from anywhere — an average nothing computed, beside a
-      // member's real name, is the one claim this route must never carry.
+      // Phase 15 pointed this at the real screen and deleted the design's own,
+      // which showed a 4.9 average over 73 reviews that nothing computed. An
+      // invented figure about a member, beside their real name, is the one
+      // claim this route must never carry — and this product publishes no
+      // average, count or distribution anywhere, so there was nothing to keep
+      // the old screen waiting for.
       GoRoute(
         path: AppRoutes.reviewsPath,
         name: AppRoutes.reviews,

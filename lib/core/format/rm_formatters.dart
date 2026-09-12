@@ -57,9 +57,6 @@ class RmFormatters {
   /// metadata, e.g. `Doğrulanmış · 128 yolculuk · 2 ortak rota`.
   static const String separator = ' · ';
 
-  /// Route arrow, e.g. `Kadıköy → Levent`.
-  static const String routeArrow = ' → ';
-
   AppLocalizations get _strings {
     final AppLocalizations? l = _l10n;
     if (l == null) {

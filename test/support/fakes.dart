@@ -16,6 +16,8 @@ import 'package:ridemate/core/api/rm_response.dart';
 import 'package:ridemate/core/id/rm_uuid.dart';
 import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/core/profile/profile.dart';
+import 'package:ridemate/core/reviews/review.dart';
+import 'package:ridemate/core/reviews/review_decoder.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/my_route.dart';
@@ -33,6 +35,7 @@ import 'package:ridemate/features/discovery/data/discovery_repository.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 import 'package:ridemate/features/profile/data/profile_repository.dart';
+import 'package:ridemate/features/reviews/data/review_repository.dart';
 
 /// In-memory [OnboardingRepository].
 ///
@@ -812,4 +815,131 @@ DiscoveredRoute fakeDiscoveredRoute({
   },
   // Required on the wire; null is the ordinary case.
   'my_seat_request': mySeatRequest,
+}, 200);
+
+/// A scripted [ReviewRepository], in the [FakeMyRoutesRepository] idiom.
+///
+/// Pages keyed by the cursor that asks for them, so a test says what the server
+/// would answer rather than how many times it was called — and so a cursor the
+/// controller invented instead of echoing back fails loudly with a
+/// `StateError` rather than quietly returning the first page again.
+class FakeReviewRepository implements ReviewRepository {
+  FakeReviewRepository({List<MyReviewsResult>? pages, this.failure}) {
+    chain(pages ?? <MyReviewsResult>[]);
+  }
+
+  /// Fails every call the way an unreachable backend does.
+  factory FakeReviewRepository.offline() =>
+      FakeReviewRepository(failure: const RmFailure.transport());
+
+  /// One page holding nothing and offering no position — what the backend
+  /// answers a member nothing has been released about.
+  factory FakeReviewRepository.empty() => FakeReviewRepository(
+    pages: <MyReviewsResult>[
+      const MyReviewsResult(reviews: <ReceivedReview>[], nextCursor: null),
+    ],
+  );
+
+  /// Pages keyed by the cursor that asks for them; the first is keyed null.
+  final Map<String?, MyReviewsResult> pages = <String?, MyReviewsResult>{};
+
+  /// Links [pages] together: the first answers no cursor, and each subsequent
+  /// one answers the cursor its predecessor returned.
+  void chain(List<MyReviewsResult> ordered) {
+    pages.clear();
+
+    String? key;
+    for (final MyReviewsResult page in ordered) {
+      pages[key] = page;
+      key = page.nextCursor;
+    }
+  }
+
+  /// Set to make reads fail; clear it to let them succeed.
+  RmFailure? failure;
+
+  /// Every cursor handed to [mine], in order. The first is null.
+  final List<String?> cursors = <String?>[];
+
+  /// Every limit asked for.
+  final List<int> limits = <int>[];
+
+  int get callCount => cursors.length;
+
+  /// What submitting answers with. F3 touches no command; this exists so the
+  /// one fake can stand in for the whole interface.
+  MyReview? submitResult;
+  RmFailure? submitFailure;
+
+  Completer<void>? _gate;
+
+  /// Holds every request open until [release], the way a real network does.
+  void hold() => _gate ??= Completer<void>();
+
+  void release() {
+    _gate?.complete();
+    _gate = null;
+  }
+
+  @override
+  Future<MyReviewsResult> mine({String? cursor, int limit = 20}) async {
+    cursors.add(cursor);
+    limits.add(limit);
+
+    await _gate?.future;
+
+    final RmFailure? failure = this.failure;
+    if (failure != null) throw failure;
+
+    final MyReviewsResult? page = pages[cursor];
+    if (page == null) {
+      throw StateError('no page scripted for cursor $cursor');
+    }
+
+    return page;
+  }
+
+  @override
+  Future<MyReview> submitReview({
+    required String requestId,
+    required String reviewId,
+    required int rating,
+  }) async {
+    final RmFailure? failure = submitFailure;
+    if (failure != null) throw failure;
+
+    final MyReview? result = submitResult;
+    if (result == null) throw StateError('no submit result scripted');
+
+    return result;
+  }
+}
+
+/// A released review, built from the wire shape so the decoder stays in the
+/// loop: a fake constructed field by field would keep passing after the server
+/// changed a key.
+ReceivedReview fakeReceivedReview({
+  String id = '01993a00-0000-7000-8000-000000000001',
+  int rating = 5,
+  String role = 'driver',
+  String displayName = 'İrem Yılmaz',
+  String initials = 'İY',
+  String origin = 'Kadıköy, Vapur İskelesi',
+  String destination = 'Levent, Metro İstasyonu',
+  String departureDate = '2026-09-24',
+  String departureTime = '08:25',
+}) => ReviewDecoder.received(<String, Object?>{
+  ...fakeReceivedReviewJson(
+    id: id,
+    rating: rating,
+    role: role,
+    displayName: displayName,
+    initials: initials,
+  ),
+  'journey': <String, Object?>{
+    'origin': origin,
+    'destination': destination,
+    'departure_date': departureDate,
+    'departure_time': departureTime,
+  },
 }, 200);

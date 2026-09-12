@@ -1217,10 +1217,10 @@ abstract class AppLocalizations {
   /// **'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.'**
   String get chatSendUnavailable;
 
-  /// Profil listesi satırı; değerlendirmeler ekranını açar.
+  /// Profil listesi satırı; üyenin kendisi hakkında aldığı geri bildirimleri açar. Üyenin yazdıkları değil — bu yüzden "Değerlendirmelerim" değil.
   ///
   /// In tr, this message translates to:
-  /// **'Değerlendirmelerim'**
+  /// **'Hakkımdaki değerlendirmeler'**
   String get profileMyReviews;
 
   /// Değerlendirmeler ekranının başlığı.
@@ -2038,6 +2038,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Rotalarını yeniden yükleyip tekrar dene.'**
   String get tripStatusNotFoundBody;
+
+  /// Üyenin kendisi hakkında aldığı değerlendirmeleri gösteren ekranın başlığı. Bir itibar sayfası değildir: ortalama, toplam ya da herkese açık bir puan yoktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hakkındaki değerlendirmeler'**
+  String get receivedReviewsTitle;
+
+  /// Sunucunun döndürdüğü sıra, olduğu gibi söylenir. İstemci hiçbir şeyi sıralamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'En son gönderilenler önce'**
+  String get receivedReviewsSubtitle;
+
+  /// Sunucu yanıt verdi ve yayımlanmış hiçbir değerlendirme döndürmedi. ASLA 'kimse seni değerlendirmedi' demez: yayımlanmamış değerlendirmeler olabilir ve istemcinin bunu bilmesine izin verilmez. Hata DEĞİLDİR.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görüntülenebilecek bir geri bildirim yok'**
+  String get receivedReviewsEmpty;
+
+  /// Yokluğu açıklamaya çalışmaz. Karşı tarafın ne yaptığına dair hiçbir iddia taşımaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni geri bildirimler burada görünür.'**
+  String get receivedReviewsEmptyBody;
+
+  /// Bir sonraki sayfayı ister. Sunucu imleç gönderdiği sürece görünür.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get receivedReviewsLoadMore;
+
+  /// Sonraki sayfa gelmedi. Ekrandaki geri bildirimler yerinde kalır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki geri bildirimler yüklenemedi'**
+  String get receivedReviewsLoadMoreFailed;
+
+  /// Değerlendirmeyi yazanın o yolculuktaki tarafı. Sunucunun gönderdiği role göre yazılır, ekrandan çıkarılmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürücü'**
+  String get receivedReviewsRoleDriver;
+
+  /// Değerlendirmeyi yazanın o yolculuktaki tarafı. Sunucunun gönderdiği role göre yazılır, ekrandan çıkarılmaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolcu'**
+  String get receivedReviewsRolePassenger;
+
+  /// Tek bir değerlendirmenin puanı. Tam sayıdır: ondalık bir değer birden çok puanın ortalandığını ima ederdi.
+  ///
+  /// In tr, this message translates to:
+  /// **'5 üzerinden {rating}'**
+  String receivedReviewRatingSemanticLabel(int rating);
+
+  /// Değerlendirmenin gönderildiği an. Ne zaman yayımlandığını ya da neden yayımlandığını söylemez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderildi: {when}'**
+  String receivedReviewSubmittedAt(String when);
+
+  /// Bir geri bildirim kartının ekran okuyucuya okunan tam hâli. Yolculuk, oku görmeyen biri için de anlaşılır olsun diye buraya da yazılır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{member}, {role}. {rating}. {journey}, {departure}'**
+  String receivedReviewCardSemanticLabel(
+    String member,
+    String role,
+    String rating,
+    String journey,
+    String departure,
+  );
 }
 
 class _AppLocalizationsDelegate

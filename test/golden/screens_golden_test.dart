@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
+import 'package:ridemate/core/reviews/review.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/my_route.dart';
@@ -30,7 +31,10 @@ import 'package:ridemate/features/onboarding/application/onboarding_controller.d
 import 'package:ridemate/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
-import 'package:ridemate/features/reviews/presentation/reviews_screen.dart';
+import 'package:ridemate/features/reviews/application/review_action_providers.dart';
+import 'package:ridemate/features/reviews/data/review_repository.dart';
+import 'package:ridemate/features/reviews/fixture/presentation/reviews_screen.dart';
+import 'package:ridemate/features/reviews/presentation/received_reviews_screen.dart';
 import 'package:ridemate/features/safety/presentation/safety_screen.dart';
 import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
 import 'package:ridemate/features/verification/presentation/verification_screen.dart';
@@ -405,6 +409,52 @@ void main() {
     });
   });
 
+  /// The real screen: what the backend released about this member.
+  ///
+  /// Two rows, both sides of a relationship, and a page that ends — the shape
+  /// the baseline needs to show a rating, a role and a journey without any of
+  /// the figures the fixture below invents.
+  group('Received reviews', () {
+    List<Override> backend() => <Override>[
+      reviewRepositoryProvider.overrideWithValue(
+        FakeReviewRepository(
+          pages: <MyReviewsResult>[
+            MyReviewsResult(
+              reviews: <ReceivedReview>[
+                fakeReceivedReview(id: 'a', rating: 5),
+                fakeReceivedReview(
+                  id: 'b',
+                  rating: 3,
+                  role: 'passenger',
+                  displayName: 'Mert Aydın',
+                  initials: 'MA',
+                ),
+              ],
+              nextCursor: null,
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(
+          tester,
+          const ReceivedReviewsScreen(),
+          brightness: brightness,
+          overrides: backend(),
+        );
+        await expectLater(
+          find.byType(ReceivedReviewsScreen),
+          matchesGoldenFile('goldens/received_reviews_${brightness.name}.png'),
+        );
+      });
+    }
+  });
+
+  /// The design's Reviews screen, kept only as a design artifact: nothing
+  /// shipped reaches it any more. F4 retires it.
   group('Reviews', () {
     for (final Brightness brightness in Brightness.values) {
       testWidgets(brightness.name, (WidgetTester tester) async {

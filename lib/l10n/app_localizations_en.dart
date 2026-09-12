@@ -669,7 +669,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Message was not sent. Messaging is not available yet.';
 
   @override
-  String get profileMyReviews => 'My reviews';
+  String get profileMyReviews => 'Reviews about me';
 
   @override
   String get reviewsTitle => 'Reviews';
@@ -1187,4 +1187,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tripStatusNotFoundBody => 'Reload your routes and try again.';
+
+  @override
+  String get receivedReviewsTitle => 'Reviews about you';
+
+  @override
+  String get receivedReviewsSubtitle => 'Most recently sent first';
+
+  @override
+  String get receivedReviewsEmpty => 'No feedback is available yet';
+
+  @override
+  String get receivedReviewsEmptyBody => 'New feedback will appear here.';
+
+  @override
+  String get receivedReviewsLoadMore => 'Show more';
+
+  @override
+  String get receivedReviewsLoadMoreFailed =>
+      'The next feedback could not be loaded';
+
+  @override
+  String get receivedReviewsRoleDriver => 'Driver';
+
+  @override
+  String get receivedReviewsRolePassenger => 'Passenger';
+
+  @override
+  String receivedReviewRatingSemanticLabel(int rating) {
+    return '$rating out of 5';
+  }
+
+  @override
+  String receivedReviewSubmittedAt(String when) {
+    return 'Sent: $when';
+  }
+
+  @override
+  String receivedReviewCardSemanticLabel(
+    String member,
+    String role,
+    String rating,
+    String journey,
+    String departure,
+  ) {
+    return '$member, $role. $rating. $journey, $departure';
+  }
 }

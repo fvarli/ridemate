@@ -11,12 +11,12 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/format/rm_formatters.dart';
-import '../../../../core/icons/rm_icons.dart';
-import '../../../../core/theme/tokens/rm_colors.dart';
-import '../../../../core/theme/tokens/rm_sizing.dart';
-import '../../../../core/widgets/rm_icon.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../../core/format/rm_formatters.dart';
+import '../../../../../core/icons/rm_icons.dart';
+import '../../../../../core/theme/tokens/rm_colors.dart';
+import '../../../../../core/theme/tokens/rm_sizing.dart';
+import '../../../../../core/widgets/rm_icon.dart';
+import '../../../../../l10n/app_localizations.dart';
 
 /// How many stars the scale has. The design draws five.
 const int kStarCount = 5;

@@ -129,8 +129,12 @@ abstract final class AppRoutes {
   static const String profileEdit = 'profileEdit';
   static const String profileEditPath = '/profile/edit';
 
-  /// A member's reputation in full, reached from Profile. Above the shell:
-  /// the comp draws a back control and no tab bar.
+  /// The feedback this member has received, reached from Profile. Above the
+  /// shell: the comp draws a back control and no tab bar.
+  ///
+  /// Deliberately NOT a reputation page. The path is the design's, but what it
+  /// opens publishes no average, no total and no score — only the individual
+  /// reviews the backend has released, and only to the member they are about.
   static const String reviews = 'reviews';
   static const String reviewsPath = '/reviews';
 

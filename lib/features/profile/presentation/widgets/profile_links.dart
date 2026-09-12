@@ -70,8 +70,10 @@ class ProfileLinks extends StatelessWidget {
           onTap: onOpenMyRequests,
         ),
         const SizedBox(height: RmSpacing.sm),
-        // Still fixture-backed, and still only a link. It opens a screen that
-        // makes its own claims; this row makes none.
+        // What other members said about this one, as the backend released it.
+        // The row names whose reviews these are: "Değerlendirmelerim" would
+        // read as the ones the member wrote, which is a different list and one
+        // this app does not publish.
         RmListRow(
           title: l10n.profileMyReviews,
           icon: RmIcons.star,

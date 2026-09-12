@@ -11,12 +11,12 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/format/rm_formatters.dart';
-import '../../../../core/theme/tokens/rm_colors.dart';
-import '../../../../core/theme/tokens/rm_spacing.dart';
-import '../../../../core/theme/tokens/rm_typography.dart';
-import '../../../../core/widgets/rm_card.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../../core/format/rm_formatters.dart';
+import '../../../../../core/theme/tokens/rm_colors.dart';
+import '../../../../../core/theme/tokens/rm_spacing.dart';
+import '../../../../../core/theme/tokens/rm_typography.dart';
+import '../../../../../core/widgets/rm_card.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../domain/review_entry.dart';
 import 'rating_distribution.dart';
 import 'star_row.dart';

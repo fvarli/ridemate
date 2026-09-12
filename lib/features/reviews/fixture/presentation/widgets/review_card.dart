@@ -14,16 +14,16 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/format/rm_formatters.dart';
-import '../../../../core/icons/rm_icons.dart';
-import '../../../../core/theme/tokens/rm_colors.dart';
-import '../../../../core/theme/tokens/rm_sizing.dart';
-import '../../../../core/theme/tokens/rm_spacing.dart';
-import '../../../../core/theme/tokens/rm_typography.dart';
-import '../../../../core/widgets/rm_avatar.dart';
-import '../../../../core/widgets/rm_card.dart';
-import '../../../../core/widgets/rm_icon.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../../core/format/rm_formatters.dart';
+import '../../../../../core/icons/rm_icons.dart';
+import '../../../../../core/theme/tokens/rm_colors.dart';
+import '../../../../../core/theme/tokens/rm_sizing.dart';
+import '../../../../../core/theme/tokens/rm_spacing.dart';
+import '../../../../../core/theme/tokens/rm_typography.dart';
+import '../../../../../core/widgets/rm_avatar.dart';
+import '../../../../../core/widgets/rm_card.dart';
+import '../../../../../core/widgets/rm_icon.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../domain/review_entry.dart';
 
 /// One review.

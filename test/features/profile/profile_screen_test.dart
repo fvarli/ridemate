@@ -78,7 +78,7 @@ void main() {
     expect(find.text('İY'), findsOneWidget);
     expect(find.text('Adını düzenle'), findsOneWidget);
     expect(find.text('Rotalarım'), findsOneWidget);
-    expect(find.text('Değerlendirmelerim'), findsOneWidget);
+    expect(find.text('Hakkımdaki değerlendirmeler'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

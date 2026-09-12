@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — Profile navigation
 //
-// Three rows now, all of them links: edit the name, My Routes, Reviews.
+// Four rows now, all of them links: edit the name, My Routes, My Requests,
+// and the feedback this member has received.
 //
 // The comp's fourth row — `Doğrulama rozetleri`, with a `4 / 5` count and no
 // chevron — is gone, and the test that pinned its deliberate inertness went
@@ -26,7 +27,8 @@ import 'package:ridemate/features/profile/application/my_profile_providers.dart'
 import 'package:ridemate/features/profile/presentation/profile_edit_screen.dart';
 import 'package:ridemate/features/profile/presentation/profile_screen.dart';
 import 'package:ridemate/features/profile/presentation/widgets/profile_links.dart';
-import 'package:ridemate/features/reviews/presentation/reviews_screen.dart';
+import 'package:ridemate/features/reviews/application/review_action_providers.dart';
+import 'package:ridemate/features/reviews/presentation/received_reviews_screen.dart';
 
 import '../../support/fakes.dart';
 
@@ -44,6 +46,12 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
         ),
         rmSessionProvider.overrideWithValue(FakeSession()),
         profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+        // The Reviews row opens a server-backed screen now, so the read has to
+        // be answered or the navigation assertion would be testing an error
+        // state that happened to be on the right route.
+        reviewRepositoryProvider.overrideWithValue(
+          FakeReviewRepository.empty(),
+        ),
       ],
       child: const RideMateApp(),
     ),
@@ -79,12 +87,27 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(_profileRows.last);
     await tester.pumpAndSettle();
-    expect(find.byType(ReviewsScreen), findsOneWidget);
-    expect(find.text('Değerlendirmeler'), findsOneWidget);
+    expect(find.byType(ReceivedReviewsScreen), findsOneWidget);
+    expect(find.text('Hakkındaki değerlendirmeler'), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Geri'));
     await tester.pumpAndSettle();
     expect(find.byType(ProfileScreen), findsOneWidget);
+  });
+
+  /// CARRIES WEIGHT. The row says whose reviews these are.
+  ///
+  /// "Değerlendirmelerim" reads as the ones this member wrote — a different
+  /// list, and one the app does not publish to anybody.
+  testWidgets('there is exactly one Reviews entry, and it is not ambiguous', (
+    WidgetTester tester,
+  ) async {
+    final ProviderContainer container = await _pumpApp(tester);
+    container.read(routerProvider).goNamed(AppRoutes.profile);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hakkımdaki değerlendirmeler'), findsOneWidget);
+    expect(find.text('Değerlendirmelerim'), findsNothing);
   });
 
   /// The row the phase added, and the only one that changes something.
@@ -108,17 +131,25 @@ void main() {
     expect(find.byType(ProfileScreen), findsOneWidget);
   });
 
-  testWidgets('reviews is reachable in release builds', (
-    WidgetTester tester,
-  ) async {
-    // Unlike Active Trip, nothing about this screen is withheld: it shows
-    // presentation data and offers no action, so it carries no claim a real
-    // member should not meet.
+  /// CARRIES WEIGHT. The route is the design's; what it opens is not.
+  ///
+  /// Until Phase 15 this path opened the design's Reviews screen — a 4.9
+  /// average over 73 reviews, a histogram and four tag counts, none of which
+  /// anything computed. That was a fixture beside other fixtures while the
+  /// profile was imaginary; beside a real account's real name it is the app
+  /// telling somebody a figure about themselves. The fixture still exists for
+  /// F4 to retire, and nothing shipped can reach it — see the import guard in
+  /// `reviews_domain_test`.
+  testWidgets('reviews is reachable in release builds, and it is the real '
+      'screen', (WidgetTester tester) async {
     final ProviderContainer container = await _pumpApp(tester);
     container.read(routerProvider).goNamed(AppRoutes.reviews);
     await tester.pumpAndSettle();
 
-    expect(find.byType(ReviewsScreen), findsOneWidget);
+    expect(find.byType(ReceivedReviewsScreen), findsOneWidget);
+    // Nothing the fixture claimed survives on this route.
+    expect(find.text('4,9'), findsNothing);
+    expect(find.textContaining('73'), findsNothing);
   });
 
   testWidgets('reviews reached directly falls back to home', (
@@ -132,6 +163,6 @@ void main() {
     // nothing is worse than no back control.
     await tester.tap(find.bySemanticsLabel('Geri'));
     await tester.pumpAndSettle();
-    expect(find.byType(ReviewsScreen), findsNothing);
+    expect(find.byType(ReceivedReviewsScreen), findsNothing);
   });
 }

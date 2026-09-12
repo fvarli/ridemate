@@ -35,7 +35,7 @@ import '../../features/profile/application/profile_gate.dart';
 import '../../features/profile/presentation/profile_edit_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
-import '../../features/reviews/presentation/reviews_screen.dart';
+import '../../features/reviews/presentation/received_reviews_screen.dart';
 import '../../features/safety/presentation/safety_screen.dart';
 import '../../features/seat_requests/presentation/my_requests_screen.dart';
 import '../../features/seat_requests/presentation/route_requests_screen.dart';
@@ -364,11 +364,16 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
             const ProfileEditScreen(),
       ),
       // Above the shell: the comp draws a back control and no tab bar.
+      //
+      // Phase 15 pointed this at the real screen. The design's Reviews screen
+      // is still in the tree under `features/reviews/fixture/`, and it is no
+      // longer reachable from anywhere — an average nothing computed, beside a
+      // member's real name, is the one claim this route must never carry.
       GoRoute(
         path: AppRoutes.reviewsPath,
         name: AppRoutes.reviews,
         builder: (BuildContext context, GoRouterState state) =>
-            const ReviewsScreen(),
+            const ReceivedReviewsScreen(),
       ),
       // Above the shell: the comp draws no tab bar. Reached from Route Details
       // in every build, and from Active Trip in debug ones.

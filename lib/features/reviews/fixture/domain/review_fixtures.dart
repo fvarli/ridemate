@@ -10,9 +10,9 @@
 // moment the app is opened in English.
 // ─────────────────────────────────────────────────────────────
 
-import '../../../core/format/rm_formatters.dart';
-import '../../../core/widgets/rm_avatar.dart';
-import '../../../l10n/app_localizations.dart';
+import '../../../../core/format/rm_formatters.dart';
+import '../../../../core/widgets/rm_avatar.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'review_entry.dart';
 
 /// The rating histogram, exactly as drawn.

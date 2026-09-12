@@ -10,10 +10,10 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/format/rm_formatters.dart';
-import '../../../../core/theme/tokens/rm_spacing.dart';
-import '../../../../core/widgets/rm_chip.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../../core/format/rm_formatters.dart';
+import '../../../../../core/theme/tokens/rm_spacing.dart';
+import '../../../../../core/widgets/rm_chip.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../domain/review_entry.dart';
 
 /// The attribute tag cloud.

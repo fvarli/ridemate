@@ -12,10 +12,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/widgets/rm_chip.dart';
 import 'package:ridemate/core/widgets/rm_icon.dart';
 import 'package:ridemate/core/widgets/rm_meters.dart';
-import 'package:ridemate/features/reviews/presentation/reviews_screen.dart';
-import 'package:ridemate/features/reviews/presentation/widgets/rating_distribution.dart';
-import 'package:ridemate/features/reviews/presentation/widgets/review_card.dart';
-import 'package:ridemate/features/reviews/presentation/widgets/star_row.dart';
+import 'package:ridemate/features/reviews/fixture/presentation/reviews_screen.dart';
+import 'package:ridemate/features/reviews/fixture/presentation/widgets/rating_distribution.dart';
+import 'package:ridemate/features/reviews/fixture/presentation/widgets/review_card.dart';
+import 'package:ridemate/features/reviews/fixture/presentation/widgets/star_row.dart';
 
 import '../../support/fonts.dart';
 import '../../support/pump.dart';

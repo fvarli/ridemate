@@ -87,6 +87,10 @@ void main() {
         'lib/features/discovery/application/discovery_search_providers.dart',
         'lib/features/my_routes/application/my_routes_providers.dart',
         'lib/features/profile/application/my_profile_providers.dart',
+        // The released reviews about this member. A read like any other — and
+        // one where eleven silent attempts would be especially wrong, because
+        // an empty answer and a failed one mean very different things here.
+        'lib/features/reviews/application/received_reviews_providers.dart',
         // Two paginated READ surfaces in one file: a member's own askings and
         // the ones on a journey they published. Asking, withdrawing, accepting
         // and declining are commands and are deliberately not here — they are

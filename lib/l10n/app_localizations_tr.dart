@@ -666,7 +666,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Mesaj gönderilmedi. Mesajlaşma özelliği henüz eklenmedi.';
 
   @override
-  String get profileMyReviews => 'Değerlendirmelerim';
+  String get profileMyReviews => 'Hakkımdaki değerlendirmeler';
 
   @override
   String get reviewsTitle => 'Değerlendirmeler';
@@ -1186,4 +1186,51 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get tripStatusNotFoundBody =>
       'Rotalarını yeniden yükleyip tekrar dene.';
+
+  @override
+  String get receivedReviewsTitle => 'Hakkındaki değerlendirmeler';
+
+  @override
+  String get receivedReviewsSubtitle => 'En son gönderilenler önce';
+
+  @override
+  String get receivedReviewsEmpty => 'Görüntülenebilecek bir geri bildirim yok';
+
+  @override
+  String get receivedReviewsEmptyBody =>
+      'Yeni geri bildirimler burada görünür.';
+
+  @override
+  String get receivedReviewsLoadMore => 'Daha fazla göster';
+
+  @override
+  String get receivedReviewsLoadMoreFailed =>
+      'Sonraki geri bildirimler yüklenemedi';
+
+  @override
+  String get receivedReviewsRoleDriver => 'Sürücü';
+
+  @override
+  String get receivedReviewsRolePassenger => 'Yolcu';
+
+  @override
+  String receivedReviewRatingSemanticLabel(int rating) {
+    return '5 üzerinden $rating';
+  }
+
+  @override
+  String receivedReviewSubmittedAt(String when) {
+    return 'Gönderildi: $when';
+  }
+
+  @override
+  String receivedReviewCardSemanticLabel(
+    String member,
+    String role,
+    String rating,
+    String journey,
+    String departure,
+  ) {
+    return '$member, $role. $rating. $journey, $departure';
+  }
 }

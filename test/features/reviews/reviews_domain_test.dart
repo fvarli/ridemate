@@ -10,8 +10,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/widgets/rm_avatar.dart';
-import 'package:ridemate/features/reviews/domain/review_entry.dart';
-import 'package:ridemate/features/reviews/domain/review_fixtures.dart';
+import 'package:ridemate/features/reviews/fixture/domain/review_entry.dart';
+import 'package:ridemate/features/reviews/fixture/domain/review_fixtures.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 import 'package:ridemate/l10n/app_localizations_en.dart';
 import 'package:ridemate/l10n/app_localizations_tr.dart';
@@ -28,46 +28,80 @@ String codeOf(String path) => File(path)
     })
     .join('\n');
 
-/// The fixture half of the feature, named file by file.
+/// The fixture half of the feature, which is now a directory.
 ///
-/// The Reviews feature has two halves now. Phase 15 added a real repository, a
-/// real controller and a real rating sheet, all reading a real endpoint — the
-/// very things these guards were written to say did not exist. Scanning the
-/// whole directory turned a guard about invented figures into one forbidding
-/// the feature from ever becoming real, and it had to be relaxed twice in one
-/// slice before that was obvious.
+/// The Reviews feature had two halves living in one tree. Phase 15 added a real
+/// repository, a real controller, a real rating sheet and a real screen — the
+/// very things these guards were written to say did not exist — so a scan of
+/// `lib/features/reviews` turned a guard about invented figures into one
+/// forbidding the feature from ever becoming real. It had to be relaxed twice
+/// in one slice, and the second relaxation replaced it with a list of file
+/// names, which is a guard that can go stale without saying so.
 ///
-/// So the subject is listed rather than filtered. What it still protects is
-/// exactly what it always did: the FIXTURE computes nothing, claims no
-/// moderation, and reaches no repository of its own — because a screen of
-/// invented figures that started rendering half-real ones would be the worst
-/// of both. `package:http` stays banned across the feature by
+/// F3 moved the cause rather than the symptom: the fixture is an island under
+/// [kFixtureRoot], and the guard is a path rule again. What it protects is
+/// exactly what it always did — the FIXTURE computes nothing, claims no
+/// moderation, and reaches no repository of its own, because a screen of
+/// invented figures that started rendering half-real ones would be the worst of
+/// both. `package:http` stays banned across the whole feature by
 /// `api_boundary_test`, which enforces it everywhere outside `lib/core/api`.
-///
-/// [fixtureFilesExist] fails if one of these is renamed, so the list cannot
-/// quietly empty itself.
-const List<String> kReviewFixtureFiles = <String>[
-  'lib/features/reviews/domain/review_entry.dart',
-  'lib/features/reviews/domain/review_fixtures.dart',
-  'lib/features/reviews/presentation/reviews_screen.dart',
-  'lib/features/reviews/presentation/widgets/rating_distribution.dart',
-  'lib/features/reviews/presentation/widgets/review_card.dart',
-  'lib/features/reviews/presentation/widgets/review_tags.dart',
-  'lib/features/reviews/presentation/widgets/reviews_summary_card.dart',
-  'lib/features/reviews/presentation/widgets/star_row.dart',
-];
+const String kFixtureRoot = 'lib/features/reviews/fixture';
 
-Iterable<String> reviewsSources() => kReviewFixtureFiles;
+/// Every Dart file in the island.
+Iterable<String> reviewsSources() => Directory(kFixtureRoot)
+    .listSync(recursive: true)
+    .whereType<File>()
+    .map((File f) => f.path)
+    .where((String path) => path.endsWith('.dart'));
+
+/// Every Dart file shipped in the app.
+Iterable<File> libSources() => Directory('lib')
+    .listSync(recursive: true)
+    .whereType<File>()
+    .where((File f) => f.path.endsWith('.dart'));
 
 void main() {
   final AppLocalizations l10n = AppLocalizationsTr();
 
-  test('every named fixture file still exists', () {
-    // A name-based list can go stale silently. This is what stops a rename
-    // turning these guards into assertions about nothing.
-    for (final String path in kReviewFixtureFiles) {
-      expect(File(path).existsSync(), isTrue, reason: path);
+  test('the fixture island is still there to guard', () {
+    // A directory scan over a directory that no longer exists asserts nothing
+    // at all, quietly. F4 retires the island; until then it is here.
+    expect(Directory(kFixtureRoot).existsSync(), isTrue);
+    expect(reviewsSources(), isNotEmpty);
+  });
+
+  /// CARRIES WEIGHT. This is what makes "production cannot reach the fixture"
+  /// a structural fact rather than a claim.
+  ///
+  /// The design's Reviews screen shows a 4.9 average over 73 reviews, a
+  /// histogram and four tag counts, none of which anything computes. Beside a
+  /// member's real name that is not a placeholder, it is the app telling
+  /// somebody a figure about themselves. Phase 15 gave `/reviews` a real
+  /// screen; nothing shipped may reach the old one, by route or by import.
+  test('nothing outside the island imports it', () {
+    final List<String> offenders = <String>[];
+
+    for (final File file in libSources()) {
+      if (file.path.startsWith(kFixtureRoot)) continue;
+
+      final List<String> lines = file.readAsLinesSync();
+      for (int i = 0; i < lines.length; i++) {
+        if (!lines[i].startsWith('import ')) continue;
+        // Both spellings: a package: import and a relative one that climbs
+        // back into the island.
+        if (lines[i].contains('features/reviews/fixture/') ||
+            lines[i].contains('/fixture/domain/') ||
+            lines[i].contains('/fixture/presentation/')) {
+          offenders.add('${file.path}:${i + 1}');
+        }
+      }
     }
+
+    expect(
+      offenders,
+      isEmpty,
+      reason: 'the fixture is reachable from shipped code',
+    );
   });
 
   group('The fixture reproduces the design', () {
@@ -193,9 +227,7 @@ void main() {
     test('a review author carries no verification or presence claim', () {
       // The comp draws a bare avatar on both cards. Whether the author is a
       // verified member is a claim this screen has no source for.
-      final String source = codeOf(
-        'lib/features/reviews/domain/review_entry.dart',
-      );
+      final String source = codeOf('$kFixtureRoot/domain/review_entry.dart');
       expect(source, isNot(contains('RmVerification')));
       expect(source, isNot(contains('RmPresence')));
     });
@@ -206,9 +238,7 @@ void main() {
       final ReviewsSnapshot s = mockReviews(l10n);
       expect(s.entries.first.context, contains('→'));
       expect(s.entries.last.context, l10n.reviewsContextRegularRoute);
-      final String source = codeOf(
-        'lib/features/reviews/domain/review_entry.dart',
-      );
+      final String source = codeOf('$kFixtureRoot/domain/review_entry.dart');
       expect(source, isNot(contains('origin')));
       expect(source, isNot(contains('destination')));
     });

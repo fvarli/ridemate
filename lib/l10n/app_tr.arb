@@ -765,9 +765,9 @@
     "description": "Gönder düğmesine basıldığında gösterilen geçici bilgi. Mesajın gönderilmediğini açıkça söylemelidir; yazılan metin alanda kalır ve konuşmaya hiçbir şey eklenmez."
   },
 
-  "profileMyReviews": "Değerlendirmelerim",
+  "profileMyReviews": "Hakkımdaki değerlendirmeler",
   "@profileMyReviews": {
-    "description": "Profil listesi satırı; değerlendirmeler ekranını açar."
+    "description": "Profil listesi satırı; üyenin kendisi hakkında aldığı geri bildirimleri açar. Üyenin yazdıkları değil — bu yüzden \"Değerlendirmelerim\" değil."
   },
   "reviewsTitle": "Değerlendirmeler",
   "@reviewsTitle": {
@@ -1395,5 +1395,62 @@
   "tripStatusNotFoundBody": "Rotalarını yeniden yükleyip tekrar dene.",
   "@tripStatusNotFoundBody": {
     "description": "Tek bir rotayı okuyan bir uç nokta yok; liste yeniden okunur."
+  },
+  "receivedReviewsTitle": "Hakkındaki değerlendirmeler",
+  "@receivedReviewsTitle": {
+    "description": "Üyenin kendisi hakkında aldığı değerlendirmeleri gösteren ekranın başlığı. Bir itibar sayfası değildir: ortalama, toplam ya da herkese açık bir puan yoktur."
+  },
+  "receivedReviewsSubtitle": "En son gönderilenler önce",
+  "@receivedReviewsSubtitle": {
+    "description": "Sunucunun döndürdüğü sıra, olduğu gibi söylenir. İstemci hiçbir şeyi sıralamaz."
+  },
+  "receivedReviewsEmpty": "Görüntülenebilecek bir geri bildirim yok",
+  "@receivedReviewsEmpty": {
+    "description": "Sunucu yanıt verdi ve yayımlanmış hiçbir değerlendirme döndürmedi. ASLA 'kimse seni değerlendirmedi' demez: yayımlanmamış değerlendirmeler olabilir ve istemcinin bunu bilmesine izin verilmez. Hata DEĞİLDİR."
+  },
+  "receivedReviewsEmptyBody": "Yeni geri bildirimler burada görünür.",
+  "@receivedReviewsEmptyBody": {
+    "description": "Yokluğu açıklamaya çalışmaz. Karşı tarafın ne yaptığına dair hiçbir iddia taşımaz."
+  },
+  "receivedReviewsLoadMore": "Daha fazla göster",
+  "@receivedReviewsLoadMore": {
+    "description": "Bir sonraki sayfayı ister. Sunucu imleç gönderdiği sürece görünür."
+  },
+  "receivedReviewsLoadMoreFailed": "Sonraki geri bildirimler yüklenemedi",
+  "@receivedReviewsLoadMoreFailed": {
+    "description": "Sonraki sayfa gelmedi. Ekrandaki geri bildirimler yerinde kalır."
+  },
+  "receivedReviewsRoleDriver": "Sürücü",
+  "@receivedReviewsRoleDriver": {
+    "description": "Değerlendirmeyi yazanın o yolculuktaki tarafı. Sunucunun gönderdiği role göre yazılır, ekrandan çıkarılmaz."
+  },
+  "receivedReviewsRolePassenger": "Yolcu",
+  "@receivedReviewsRolePassenger": {
+    "description": "Değerlendirmeyi yazanın o yolculuktaki tarafı. Sunucunun gönderdiği role göre yazılır, ekrandan çıkarılmaz."
+  },
+  "receivedReviewRatingSemanticLabel": "5 üzerinden {rating}",
+  "@receivedReviewRatingSemanticLabel": {
+    "description": "Tek bir değerlendirmenin puanı. Tam sayıdır: ondalık bir değer birden çok puanın ortalandığını ima ederdi.",
+    "placeholders": {
+      "rating": { "type": "int" }
+    }
+  },
+  "receivedReviewSubmittedAt": "Gönderildi: {when}",
+  "@receivedReviewSubmittedAt": {
+    "description": "Değerlendirmenin gönderildiği an. Ne zaman yayımlandığını ya da neden yayımlandığını söylemez.",
+    "placeholders": {
+      "when": { "type": "String", "example": "11 Eylül 2026 · 10:05" }
+    }
+  },
+  "receivedReviewCardSemanticLabel": "{member}, {role}. {rating}. {journey}, {departure}",
+  "@receivedReviewCardSemanticLabel": {
+    "description": "Bir geri bildirim kartının ekran okuyucuya okunan tam hâli. Yolculuk, oku görmeyen biri için de anlaşılır olsun diye buraya da yazılır.",
+    "placeholders": {
+      "member": { "type": "String" },
+      "role": { "type": "String" },
+      "rating": { "type": "String" },
+      "journey": { "type": "String" },
+      "departure": { "type": "String" }
+    }
   }
 }

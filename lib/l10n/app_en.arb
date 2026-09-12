@@ -195,7 +195,7 @@
   "chatSend": "Send",
   "chatSendUnavailable": "Message was not sent. Messaging is not available yet.",
 
-  "profileMyReviews": "My reviews",
+  "profileMyReviews": "Reviews about me",
   "reviewsTitle": "Reviews",
   "reviewsCount": "{count, plural, =1{1 review} other{{count} reviews}}",
   "reviewsTagPunctual": "Punctual",
@@ -338,5 +338,16 @@
   "tripStatusCompletedAt": "Completed at",
   "tripStatusAbortedAt": "Abandoned at",
   "tripStatusNotFound": "This route is not in your list",
-  "tripStatusNotFoundBody": "Reload your routes and try again."
+  "tripStatusNotFoundBody": "Reload your routes and try again.",
+  "receivedReviewsTitle": "Reviews about you",
+  "receivedReviewsSubtitle": "Most recently sent first",
+  "receivedReviewsEmpty": "No feedback is available yet",
+  "receivedReviewsEmptyBody": "New feedback will appear here.",
+  "receivedReviewsLoadMore": "Show more",
+  "receivedReviewsLoadMoreFailed": "The next feedback could not be loaded",
+  "receivedReviewsRoleDriver": "Driver",
+  "receivedReviewsRolePassenger": "Passenger",
+  "receivedReviewRatingSemanticLabel": "{rating} out of 5",
+  "receivedReviewSubmittedAt": "Sent: {when}",
+  "receivedReviewCardSemanticLabel": "{member}, {role}. {rating}. {journey}, {departure}"
 }

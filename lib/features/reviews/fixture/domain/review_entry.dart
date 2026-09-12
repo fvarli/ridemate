@@ -24,7 +24,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../../../core/widgets/rm_avatar.dart';
+import '../../../../core/widgets/rm_avatar.dart';
 
 /// One bar of the rating histogram.
 @immutable

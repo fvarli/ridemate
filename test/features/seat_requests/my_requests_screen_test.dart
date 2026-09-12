@@ -51,6 +51,7 @@ MySeatRequest _request({
   withdrawnAt: status == SeatRequestStatus.withdrawn
       ? DateTime.utc(2026, 9, 9, 9)
       : null,
+  myReview: null,
   route: SeatRequestRoute(
     id: 'route-$id',
     origin: const Place(id: 'p1', label: 'Kadıköy'),

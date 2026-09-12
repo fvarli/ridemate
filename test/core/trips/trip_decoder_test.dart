@@ -192,6 +192,8 @@ void main() {
         'requested_at': '2026-09-10T08:00:00Z',
         'decided_at': '2026-09-10T09:00:00Z',
         'withdrawn_at': null,
+        // Required on this projection since Phase 15; absent is drift.
+        'my_review': null,
         'route': <String, Object?>{
           ...fakeRouteJson(
             recurrence: Recurrence.once,
@@ -227,6 +229,8 @@ void main() {
           'requested_at': '2026-09-10T08:00:00Z',
           'decided_at': null,
           'withdrawn_at': null,
+          // Required on this projection since Phase 15; absent is drift.
+          'my_review': null,
           'route': <String, Object?>{
             ...fakeRouteJson(
               recurrence: Recurrence.once,

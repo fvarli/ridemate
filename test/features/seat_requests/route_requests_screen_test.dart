@@ -43,6 +43,7 @@ IncomingSeatRequest _incoming({
   withdrawnAt: status == SeatRequestStatus.withdrawn
       ? DateTime.utc(2026, 9, 9, 9)
       : null,
+  myReview: null,
   passenger: SeatRequestMember(displayName: passenger, initials: initials),
 );
 

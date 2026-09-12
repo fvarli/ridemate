@@ -103,6 +103,7 @@ MySeatRequest _accepted(String id, String routeId) => MySeatRequest(
   requestedAt: DateTime.utc(2026, 9, 9, 8),
   decidedAt: null,
   withdrawnAt: null,
+  myReview: null,
   route: SeatRequestRoute(
     id: routeId,
     origin: const Place(id: 'p1', label: 'Kadıköy'),

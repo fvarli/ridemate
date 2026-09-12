@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import '../api/rm_failure.dart';
+import '../reviews/review_decoder.dart';
 import '../routes/departure.dart';
 import '../routes/published_route.dart';
 import '../routes/route_decoder.dart';
@@ -57,6 +58,10 @@ abstract final class SeatRequestDecoder {
       decidedAt: _optionalInstant(value, 'decided_at', status),
       withdrawnAt: _optionalInstant(value, 'withdrawn_at', status),
       route: _route(value['route'], status),
+      // Required and nullable: a response without the key is not this
+      // contract, and reading absence as "not reviewed" would offer the
+      // control on a journey this member has already rated.
+      myReview: ReviewDecoder.within(value, status),
     );
   }
 
@@ -74,6 +79,10 @@ abstract final class SeatRequestDecoder {
       decidedAt: _optionalInstant(value, 'decided_at', status),
       withdrawnAt: _optionalInstant(value, 'withdrawn_at', status),
       passenger: member(value['passenger'], status),
+      // Required and nullable: a response without the key is not this
+      // contract, and reading absence as "not reviewed" would offer the
+      // control on a journey this member has already rated.
+      myReview: ReviewDecoder.within(value, status),
     );
   }
 

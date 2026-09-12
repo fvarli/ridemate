@@ -25,6 +25,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../places/place.dart';
+import '../reviews/review.dart';
 import '../routes/departure.dart';
 import '../routes/published_route.dart';
 import '../routes/ride_rule.dart';
@@ -194,6 +195,7 @@ final class MySeatRequest implements SeatRequestRow {
     required this.decidedAt,
     required this.withdrawnAt,
     required this.route,
+    required this.myReview,
   });
 
   @override
@@ -209,6 +211,14 @@ final class MySeatRequest implements SeatRequestRow {
   final DateTime? withdrawnAt;
 
   final SeatRequestRoute route;
+
+  /// What this member has already said about the journey, or null.
+  ///
+  /// Null when they have written nothing — and also when the driver has written
+  /// something the server has not released yet. The two are identical here on
+  /// purpose: knowing the other side had already rated you would bias the
+  /// rating you are about to give.
+  final MyReview? myReview;
 }
 
 /// One asking on a journey the caller published.
@@ -224,6 +234,7 @@ final class IncomingSeatRequest implements SeatRequestRow {
     required this.decidedAt,
     required this.withdrawnAt,
     required this.passenger,
+    required this.myReview,
   });
 
   @override
@@ -234,4 +245,8 @@ final class IncomingSeatRequest implements SeatRequestRow {
   final DateTime? decidedAt;
   final DateTime? withdrawnAt;
   final SeatRequestMember passenger;
+
+  /// What this driver has already said about the passenger, or null. See
+  /// [MySeatRequest.myReview] for why null means two things at once.
+  final MyReview? myReview;
 }

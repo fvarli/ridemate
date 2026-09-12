@@ -28,12 +28,24 @@ String codeOf(String path) => File(path)
     })
     .join('\n');
 
-/// Every Dart file under the Reviews feature.
+/// The fixture half of the feature: the screen and the figures it draws.
+///
+/// `data/` is deliberately excluded. It arrived in Phase 15 and is a real
+/// repository reading a real endpoint — the thing these guards were written to
+/// say did not exist yet. What they still protect is that the FIXTURE computes
+/// nothing and claims no moderation, and that the fixture screen reaches no
+/// repository of its own; scanning `data/` would have turned a guard about
+/// invented figures into one forbidding the feature from ever becoming real.
+///
+/// `package:http` stays banned there too, by `api_boundary_test`, which
+/// enforces it for every file outside `lib/core/api` rather than for this
+/// directory alone.
 Iterable<String> reviewsSources() => Directory('lib/features/reviews')
     .listSync(recursive: true)
     .whereType<File>()
     .map((File f) => f.path)
-    .where((String p) => p.endsWith('.dart'));
+    .where((String p) => p.endsWith('.dart'))
+    .where((String p) => !p.contains('/data/'));
 
 void main() {
   final AppLocalizations l10n = AppLocalizationsTr();
@@ -132,6 +144,11 @@ void main() {
       expect(total, greaterThan(s.reviewCount));
     });
 
+    /// The fixture screen still reaches nothing and moderates nothing.
+    ///
+    /// `ReviewRepository` stays banned HERE: a real one exists under `data/`
+    /// now, and the fixture presentation reading it is exactly how a screen of
+    /// invented figures starts rendering half-real ones.
     test('no service, repository or moderation machinery is introduced', () {
       for (final String path in reviewsSources()) {
         final String source = codeOf(path);

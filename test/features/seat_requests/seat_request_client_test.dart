@@ -76,6 +76,7 @@ Map<String, Object?> _mine({
   String? decidedAt,
   String? withdrawnAt,
   Map<String, Object?>? route,
+  Map<String, Object?>? myReview,
 }) => <String, Object?>{
   'id': id,
   'status': status,
@@ -83,11 +84,15 @@ Map<String, Object?> _mine({
   'decided_at': decidedAt,
   'withdrawn_at': withdrawnAt,
   'route': route ?? _route(),
+  // Required and nullable on this projection, like `my_seat_request` on
+  // discovery: absent is drift, not an unreviewed relationship.
+  'my_review': myReview,
 };
 
 Map<String, Object?> _incoming({
   String id = _requestId,
   String status = 'pending',
+  Map<String, Object?>? myReview,
 }) => <String, Object?>{
   'id': id,
   'status': status,
@@ -98,6 +103,7 @@ Map<String, Object?> _incoming({
     'display_name': 'Ayşe Demir',
     'initials': 'AD',
   },
+  'my_review': myReview,
 };
 
 void main() {

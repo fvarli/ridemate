@@ -695,6 +695,82 @@ MyRoute fakeMyRoute({
   ),
 }, 200);
 
+/// The wire object one of a member's own askings arrives as.
+///
+/// `my_review` is required on this projection and may be null — absent is
+/// drift, not an unreviewed relationship.
+Map<String, Object?> fakeMySeatRequestJson({
+  String id = '01991d00-0000-7000-8000-000000000001',
+  String status = 'accepted',
+  Map<String, Object?>? myReview,
+}) => <String, Object?>{
+  'id': id,
+  'status': status,
+  'requested_at': '2026-09-10T08:00:00Z',
+  'decided_at': '2026-09-10T09:00:00Z',
+  'withdrawn_at': null,
+  'my_review': myReview,
+  'route': <String, Object?>{
+    ...fakeRouteJson(recurrence: Recurrence.once, departureDate: '2026-09-24'),
+    'driver': <String, Object?>{
+      'display_name': 'İrem Yılmaz',
+      'initials': 'İY',
+    },
+    'trip': fakeTripJson(),
+  },
+};
+
+/// The wire object one asking on the caller's own journey arrives as.
+Map<String, Object?> fakeIncomingSeatRequestJson({
+  String id = '01991d00-0000-7000-8000-000000000001',
+  String status = 'accepted',
+  Map<String, Object?>? myReview,
+}) => <String, Object?>{
+  'id': id,
+  'status': status,
+  'requested_at': '2026-09-10T08:00:00Z',
+  'decided_at': '2026-09-10T09:00:00Z',
+  'withdrawn_at': null,
+  'passenger': <String, Object?>{
+    'display_name': 'Ayşe Demir',
+    'initials': 'AD',
+  },
+  'my_review': myReview,
+};
+
+/// The `review` object a submission response carries.
+Map<String, Object?> fakeReviewJson({
+  String id = '01993a00-0000-7000-8000-000000000001',
+  int rating = 5,
+  String submittedAt = '2026-09-25T09:14:00Z',
+}) => <String, Object?>{
+  'id': id,
+  'rating': rating,
+  'submitted_at': submittedAt,
+};
+
+/// One released review about the caller, as the feed sends it.
+Map<String, Object?> fakeReceivedReviewJson({
+  String id = '01993a00-0000-7000-8000-000000000001',
+  int rating = 5,
+  String role = 'driver',
+  String displayName = 'İrem Yılmaz',
+  String initials = 'İY',
+}) => <String, Object?>{
+  ...fakeReviewJson(id: id, rating: rating),
+  'reviewer': <String, Object?>{
+    'display_name': displayName,
+    'initials': initials,
+    'role': role,
+  },
+  'journey': <String, Object?>{
+    'origin': 'Kadıköy, Vapur İskelesi',
+    'destination': 'Levent, Metro İstasyonu',
+    'departure_date': '2026-09-24',
+    'departure_time': '08:25',
+  },
+};
+
 /// A discovered route shaped exactly as the discovery endpoint sends one.
 ///
 /// Decoder-backed for the same reason [fakeRoute] is: a double that skipped the

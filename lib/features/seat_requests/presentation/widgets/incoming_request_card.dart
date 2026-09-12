@@ -17,6 +17,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/reviews/review.dart';
 import '../../../../core/seat_requests/seat_request.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
@@ -32,6 +33,8 @@ class IncomingRequestCard extends StatelessWidget {
     required this.isDeciding,
     required this.onAccept,
     required this.onDecline,
+    required this.onRate,
+    required this.journeyWasMade,
     super.key,
   });
 
@@ -42,6 +45,24 @@ class IncomingRequestCard extends StatelessWidget {
 
   final VoidCallback onAccept;
   final VoidCallback onDecline;
+
+  /// Opens the rating control for this relationship.
+  final VoidCallback onRate;
+
+  /// Whether the server says this journey was completed.
+  ///
+  /// Passed in rather than read off the row: the driver's incoming projection
+  /// carries no route and no trip, so the screen fetches it from the owner's
+  /// own list. **Absent is false** — a projection that has not loaded is not
+  /// evidence that a journey was made.
+  final bool journeyWasMade;
+
+  /// Whether there is a journey here to rate. See [MyRequestCard] for why the
+  /// route's status and the review window are both absent from this rule.
+  bool get _canRate =>
+      request.status == SeatRequestStatus.accepted &&
+      journeyWasMade &&
+      request.myReview == null;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +99,25 @@ class IncomingRequestCard extends StatelessWidget {
             _statusLabel(l10n),
             style: RmTypography.body.copyWith(color: c.ink),
           ),
+          // What this driver said, and never what the passenger did.
+          if (request.myReview case final MyReview mine) ...<Widget>[
+            const SizedBox(height: RmSpacing.xs),
+            Text(
+              l10n.reviewSubmitted(mine.rating),
+              style: RmTypography.caption.copyWith(color: c.sub),
+            ),
+          ],
+          if (_canRate) ...<Widget>[
+            const SizedBox(height: RmSpacing.sm),
+            RmButton(
+              label: l10n.reviewSubmit,
+              semanticLabel: l10n.reviewSubmitSemanticLabel(passenger),
+              size: RmButtonSize.sm,
+              variant: RmButtonVariant.outline,
+              fullWidth: false,
+              onPressed: onRate,
+            ),
+          ],
           if (request.status == SeatRequestStatus.pending) ...<Widget>[
             const SizedBox(height: RmSpacing.sm),
             // Wrap, not Row: two labelled actions do not fit beside each other

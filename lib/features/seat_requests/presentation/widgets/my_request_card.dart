@@ -31,12 +31,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/rm_text_conventions.dart';
+import '../../../../core/reviews/review.dart';
 import '../../../../core/routes/departure.dart';
 import '../../../../core/routes/published_route.dart';
 import '../../../../core/seat_requests/seat_request.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
 import '../../../../core/theme/tokens/rm_spacing.dart';
 import '../../../../core/theme/tokens/rm_typography.dart';
+import '../../../../core/trips/trip_lifecycle.dart';
 import '../../../../core/trips/trip_state_copy.dart';
 import '../../../../core/widgets/rm_avatar.dart';
 import '../../../../core/widgets/rm_button.dart';
@@ -48,12 +50,32 @@ class MyRequestCard extends StatelessWidget {
     required this.request,
     required this.isWithdrawing,
     required this.onWithdraw,
+    required this.onRate,
     super.key,
   });
 
   final MySeatRequest request;
   final bool isWithdrawing;
   final VoidCallback onWithdraw;
+
+  /// Opens the rating control for this relationship.
+  final VoidCallback onRate;
+
+  /// Whether there is a journey here to rate.
+  ///
+  /// THREE SERVER FACTS, AND NOT ONE LOCAL ONE. The seat was agreed, the driver
+  /// reported the journey made, and this member has not rated it. **The route's
+  /// status is deliberately not consulted**: a withdrawn plan says nothing
+  /// about a journey that was already made, and the backend allows exactly this
+  /// combination.
+  ///
+  /// The fourteen-day window is NOT computed here. It is the server's, and a
+  /// client that worked it out would eventually hide a control the API would
+  /// have accepted — or offer one it refuses — and would do so silently.
+  bool get _canRate =>
+      request.status == SeatRequestStatus.accepted &&
+      request.route.trip.state == TripState.completed &&
+      request.myReview == null;
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +153,28 @@ class MyRequestCard extends StatelessWidget {
             tripStateLine(l10n, route.trip.state),
             style: RmTypography.caption.copyWith(color: c.sub),
           ),
+          // What this member said, and never what the other one did. Whether
+          // the driver has rated them — or whether anything has been released
+          // — is a fact the server withholds until it releases both.
+          if (request.myReview case final MyReview mine) ...<Widget>[
+            const SizedBox(height: RmSpacing.xs),
+            Text(
+              l10n.reviewSubmitted(mine.rating),
+              style: RmTypography.caption.copyWith(color: c.sub),
+            ),
+          ],
+          if (_canRate) ...<Widget>[
+            const SizedBox(height: RmSpacing.sm),
+            RmButton(
+              label: l10n.reviewSubmit,
+              semanticLabel: l10n.reviewSubmitSemanticLabel(
+                route.driver.displayName,
+              ),
+              size: RmButtonSize.sm,
+              variant: RmButtonVariant.outline,
+              onPressed: onRate,
+            ),
+          ],
           if (request.status == SeatRequestStatus.pending) ...<Widget>[
             const SizedBox(height: RmSpacing.sm),
             RmButton(

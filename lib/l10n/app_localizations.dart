@@ -1889,6 +1889,102 @@ abstract class AppLocalizations {
   /// **'{route} rotasını iptal et'**
   String myRoutesCancelSemanticLabel(String route);
 
+  /// Tamamlanmış ve kabul edilmiş bir ilişki için değerlendirme kontrolünü açar. Yolculuğun fiziksel olarak yapıldığını KANITLAMAZ; sunucunun bildiği tek şey sürücünün tamamlandı demesidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuğu değerlendir'**
+  String get reviewSubmit;
+
+  /// Kontrolün hangi ilişkiye ait olduğunu söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'{member} ile yaptığın yolculuğu değerlendir'**
+  String reviewSubmitSemanticLabel(String member);
+
+  /// Değerlendirme sayfasının başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuğu değerlendir'**
+  String get reviewSheetTitle;
+
+  /// Ne olduğunu ve ne OLMADIĞINI söyler: özel geri bildirim, herkese açık itibar değil.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değerlendirmen yalnızca değerlendirdiğin kişiye gösterilir; o da seni değerlendirdiğinde ya da süre dolduğunda. Puan ortalaması, sayısı veya herkese açık bir profil yok.'**
+  String get reviewSheetBody;
+
+  /// Her yıldızın ekran okuyucudaki adı.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =1{1 yıldız} other{{count} yıldız}}'**
+  String reviewStarSemanticLabel(int count);
+
+  /// Değerlendirmeyi gönderir. Puan seçilene kadar ve gönderim sürerken kapalıdır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get reviewSend;
+
+  /// Sayfayı kapatır. Cevabı bilinmeyen bir denemeyi iptal etmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Vazgeç'**
+  String get reviewDismiss;
+
+  /// Üyenin kendi verdiği puan. Karşı tarafın ne yazdığı ya da yazıp yazmadığı asla gösterilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değerlendirmen: {rating}/5'**
+  String reviewSubmitted(int rating);
+
+  /// Sunucu kabul ettikten SONRA gösterilir, öncesinde değil.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değerlendirmen kaydedildi.'**
+  String get reviewSubmittedToast;
+
+  /// Cevabı bilinmeyen bir denemeyi AYNI kimlik ve AYNI puanla tekrarlar. Puanı değiştirmek için önce denemeden vazgeçilmeli.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aynı değerlendirmeyi tekrar gönder'**
+  String get reviewRetry;
+
+  /// Cevabı bilinmeyen denemeyi bırakır. Sunucuya ilk deneme ulaşmışsa yeni gönderim doğru biçimde zaten değerlendirildi yanıtı alır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu denemeden vazgeç'**
+  String get reviewAbandon;
+
+  /// Ağ hatası: gidip gitmediği bilinmiyor, bu yüzden tekrar aynı kimlikle gider.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değerlendirmen gönderilemedi. Aynı puanla tekrar deneyebilirsin.'**
+  String get reviewIndeterminate;
+
+  /// Süreye sunucu karar verir; istemci hiçbir zaman hesaplamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuğun değerlendirme süresi doldu.'**
+  String get reviewWindowClosed;
+
+  /// Ekrandaki satır eskimiş; liste sunucudan yeniden okunur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuğu zaten değerlendirmişsin.'**
+  String get reviewAlreadyReviewed;
+
+  /// İstek kabul edilmemiş ya da yolculuk tamamlanmamış. Her ikisi de satırın eskidiğini söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk artık değerlendirilemiyor.'**
+  String get reviewNotEligible;
+
+  /// Aynı kimlik başka bir değerlendirmeye ait. Sessizce yeni kimlik üretilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu değerlendirme gönderilemedi. Listeyi yenileyip tekrar dene.'**
+  String get reviewIdConflict;
+
   /// Tek bir yolculuğun sunucudaki durumunu gösteren ekranın başlığı.
   ///
   /// In tr, this message translates to:

@@ -16,12 +16,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/places/place.dart';
+import 'package:ridemate/core/reviews/review.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/seat_requests/seat_request.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/core/trips/trip_lifecycle.dart';
+import 'package:ridemate/core/widgets/rm_button.dart';
+import 'package:ridemate/core/widgets/rm_rating_input.dart';
+import 'package:ridemate/features/reviews/application/review_action_providers.dart';
+import 'package:ridemate/features/reviews/data/review_repository.dart';
 import 'package:ridemate/features/seat_requests/application/seat_request_providers.dart';
 import 'package:ridemate/features/seat_requests/data/seat_request_repository.dart';
 import 'package:ridemate/features/seat_requests/presentation/my_requests_screen.dart';
@@ -39,6 +44,7 @@ MySeatRequest _request({
   String driver = 'İrem Yılmaz',
   String initials = 'İY',
   TripState trip = TripState.notStarted,
+  MyReview? myReview,
 }) => MySeatRequest(
   id: id,
   status: status,
@@ -51,7 +57,7 @@ MySeatRequest _request({
   withdrawnAt: status == SeatRequestStatus.withdrawn
       ? DateTime.utc(2026, 9, 9, 9)
       : null,
-  myReview: null,
+  myReview: myReview,
   route: SeatRequestRoute(
     id: 'route-$id',
     origin: const Place(id: 'p1', label: 'Kadıköy'),
@@ -144,11 +150,18 @@ class _Requests implements SeatRequestRepository {
 void main() {
   setUpAll(loadRideMateFonts);
 
-  Future<void> pump(WidgetTester tester, _Requests backend) async {
+  Future<void> pump(
+    WidgetTester tester,
+    _Requests backend, {
+    RmFailure? reviewFails,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
           seatRequestRepositoryProvider.overrideWithValue(backend),
+          reviewRepositoryProvider.overrideWithValue(
+            _StubReviews(failWith: reviewFails),
+          ),
         ],
         child: MaterialApp(
           theme: RmTheme.of(Brightness.light),
@@ -862,4 +875,234 @@ void main() {
       handle.dispose();
     });
   });
+
+  group('Rating a completed journey', () {
+    MySeatRequest rateable({MyReview? myReview}) => _request(
+      status: SeatRequestStatus.accepted,
+      trip: TripState.completed,
+      myReview: myReview,
+    );
+
+    Future<void> show(
+      WidgetTester tester,
+      MySeatRequest request, {
+      RmFailure? reviewFails,
+    }) async {
+      await pump(
+        tester,
+        _Requests(
+          pages: <MySeatRequestsResult>[
+            MySeatRequestsResult(
+              requests: <MySeatRequest>[request],
+              nextCursor: null,
+            ),
+          ],
+        ),
+        reviewFails: reviewFails,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    /// CARRIES WEIGHT. Three server facts, and not one local one.
+    testWidgets('an agreed seat on a completed journey offers it', (
+      WidgetTester tester,
+    ) async {
+      await show(tester, rateable());
+
+      expect(find.text(l10nOf(tester).reviewSubmit), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. Route status is not an eligibility gate.
+    ///
+    /// Withdrawing a plan says nothing about a journey that was already made,
+    /// and the backend allows exactly this combination.
+    testWidgets('a withdrawn plan with a completed journey still offers it', (
+      WidgetTester tester,
+    ) async {
+      await show(
+        tester,
+        _request(
+          status: SeatRequestStatus.accepted,
+          trip: TripState.completed,
+          routeStatus: RouteStatus.cancelled,
+        ),
+      );
+
+      expect(find.text(l10nOf(tester).reviewSubmit), findsOneWidget);
+    });
+
+    testWidgets('no other combination offers it', (WidgetTester tester) async {
+      for (final (SeatRequestStatus status, TripState trip)
+          in <(SeatRequestStatus, TripState)>[
+            (SeatRequestStatus.pending, TripState.completed),
+            (SeatRequestStatus.declined, TripState.completed),
+            (SeatRequestStatus.withdrawn, TripState.completed),
+            (SeatRequestStatus.accepted, TripState.notStarted),
+            (SeatRequestStatus.accepted, TripState.inProgress),
+            (SeatRequestStatus.accepted, TripState.aborted),
+          ]) {
+        await show(tester, _request(status: status, trip: trip));
+
+        expect(
+          find.text(l10nOf(tester).reviewSubmit),
+          findsNothing,
+          reason: '${status.wire} + ${trip.wire}',
+        );
+      }
+    });
+
+    /// CARRIES WEIGHT. Their own rating, and nothing about the other side.
+    testWidgets('an already-rated journey shows what this member said', (
+      WidgetTester tester,
+    ) async {
+      await show(
+        tester,
+        rateable(
+          myReview: MyReview(
+            id: '01993a00-0000-7000-8000-000000000001',
+            rating: 4,
+            submittedAt: DateTime.utc(2026, 9, 25, 9, 14),
+          ),
+        ),
+      );
+
+      expect(find.text(l10nOf(tester).reviewSubmitted(4)), findsOneWidget);
+      expect(find.text(l10nOf(tester).reviewSubmit), findsNothing);
+
+      // Nothing about whether the driver rated anybody, or whether anything
+      // has been released.
+      final Iterable<String> rendered = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((Text t) => (t.data ?? '').toLowerCase());
+
+      for (final String forbidden in <String>[
+        'sürücü değerlendirdi',
+        'yayımlandı',
+        'karşı taraf',
+        'bekliyor',
+      ]) {
+        expect(
+          rendered.any((String s) => s.contains(forbidden)),
+          isFalse,
+          reason: forbidden,
+        );
+      }
+    });
+
+    /// CARRIES WEIGHT. A 404 is not a refusal and must not read as one.
+    ///
+    /// The sheet closes on a settled failure, so the listing is where a member
+    /// learns what happened — and being told "you already rated this" when the
+    /// server said no such thing would be the app inventing an answer.
+    testWidgets('a not-found is not presented as already reviewed', (
+      WidgetTester tester,
+    ) async {
+      await show(
+        tester,
+        rateable(),
+        reviewFails: const RmFailure.fromBackend(
+          status: 404,
+          code: RmErrorCode.notFound,
+        ),
+      );
+      await tester.tap(find.text(l10nOf(tester).reviewSubmit));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.bySemanticsLabel(l10nOf(tester).reviewStarSemanticLabel(4)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nOf(tester).reviewSend));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).reviewAlreadyReviewed), findsNothing);
+      expect(find.text(l10nOf(tester).errorUnexpected), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. An indeterminate failure is its own thing.
+    ///
+    /// Nobody knows whether it landed, so the sheet stays open, the rating
+    /// locks to what was sent, and the control becomes "send the same rating
+    /// again" — not the generic network sentence, which says nothing about the
+    /// one property that matters here.
+    testWidgets('a lost response keeps the sheet, the rating and the id', (
+      WidgetTester tester,
+    ) async {
+      await show(tester, rateable(), reviewFails: const RmFailure.transport());
+      await tester.tap(find.text(l10nOf(tester).reviewSubmit));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.bySemanticsLabel(l10nOf(tester).reviewStarSemanticLabel(4)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nOf(tester).reviewSend));
+      await tester.pumpAndSettle();
+
+      // Still open, and saying the one thing that distinguishes this case.
+      expect(find.text(l10nOf(tester).reviewSheetTitle), findsOneWidget);
+      expect(find.text(l10nOf(tester).reviewIndeterminate), findsOneWidget);
+      expect(find.text(l10nOf(tester).errorNetwork), findsNothing);
+
+      // The control now resends, and giving up is its own named act.
+      expect(find.text(l10nOf(tester).reviewRetry), findsOneWidget);
+      expect(find.text(l10nOf(tester).reviewAbandon), findsOneWidget);
+
+      // And the stars are locked: the submission is what it was.
+      final RmRatingInput stars = tester.widget<RmRatingInput>(
+        find.byType(RmRatingInput),
+      );
+      expect(stars.value, 4);
+      expect(stars.onChanged, isNull);
+    });
+
+    /// The control opens the sheet rather than submitting where it stands.
+    testWidgets('tapping it opens the rating control', (
+      WidgetTester tester,
+    ) async {
+      await show(tester, rateable());
+
+      await tester.tap(find.text(l10nOf(tester).reviewSubmit));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).reviewSheetTitle), findsOneWidget);
+      // Five stars, each its own reachable choice.
+      expect(
+        find.bySemanticsLabel(l10nOf(tester).reviewStarSemanticLabel(3)),
+        findsOneWidget,
+      );
+      // Nothing can be sent until one is chosen.
+      final RmButton send = tester.widget<RmButton>(
+        find.widgetWithText(RmButton, l10nOf(tester).reviewSend),
+      );
+      expect(send.onPressed, isNull);
+    });
+  });
+}
+
+/// A review backend a test can steer.
+class _StubReviews implements ReviewRepository {
+  const _StubReviews({this.failWith});
+
+  final RmFailure? failWith;
+
+  @override
+  Future<MyReview> submitReview({
+    required String requestId,
+    required String reviewId,
+    required int rating,
+  }) async {
+    final RmFailure? failure = failWith;
+    if (failure != null) throw failure;
+
+    return MyReview(
+      id: reviewId,
+      rating: rating,
+      submittedAt: DateTime.utc(2026, 9, 25, 9, 14),
+    );
+  }
+
+  @override
+  Future<MyReviewsResult> mine({String? cursor, int limit = 20}) async =>
+      const MyReviewsResult(reviews: <ReceivedReview>[], nextCursor: null);
 }

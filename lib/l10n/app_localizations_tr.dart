@@ -1096,6 +1096,69 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get reviewSubmit => 'Yolculuğu değerlendir';
+
+  @override
+  String reviewSubmitSemanticLabel(String member) {
+    return '$member ile yaptığın yolculuğu değerlendir';
+  }
+
+  @override
+  String get reviewSheetTitle => 'Bu yolculuğu değerlendir';
+
+  @override
+  String get reviewSheetBody =>
+      'Değerlendirmen yalnızca değerlendirdiğin kişiye gösterilir; o da seni değerlendirdiğinde ya da süre dolduğunda. Puan ortalaması, sayısı veya herkese açık bir profil yok.';
+
+  @override
+  String reviewStarSemanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count yıldız',
+      one: '1 yıldız',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewSend => 'Gönder';
+
+  @override
+  String get reviewDismiss => 'Vazgeç';
+
+  @override
+  String reviewSubmitted(int rating) {
+    return 'Değerlendirmen: $rating/5';
+  }
+
+  @override
+  String get reviewSubmittedToast => 'Değerlendirmen kaydedildi.';
+
+  @override
+  String get reviewRetry => 'Aynı değerlendirmeyi tekrar gönder';
+
+  @override
+  String get reviewAbandon => 'Bu denemeden vazgeç';
+
+  @override
+  String get reviewIndeterminate =>
+      'Değerlendirmen gönderilemedi. Aynı puanla tekrar deneyebilirsin.';
+
+  @override
+  String get reviewWindowClosed => 'Bu yolculuğun değerlendirme süresi doldu.';
+
+  @override
+  String get reviewAlreadyReviewed => 'Bu yolculuğu zaten değerlendirmişsin.';
+
+  @override
+  String get reviewNotEligible => 'Bu yolculuk artık değerlendirilemiyor.';
+
+  @override
+  String get reviewIdConflict =>
+      'Bu değerlendirme gönderilemedi. Listeyi yenileyip tekrar dene.';
+
+  @override
   String get tripStatusTitle => 'Yolculuk durumu';
 
   @override

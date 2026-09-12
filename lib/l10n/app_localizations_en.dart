@@ -1098,6 +1098,69 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reviewSubmit => 'Rate this trip';
+
+  @override
+  String reviewSubmitSemanticLabel(String member) {
+    return 'Rate the trip you shared with $member';
+  }
+
+  @override
+  String get reviewSheetTitle => 'Rate this trip';
+
+  @override
+  String get reviewSheetBody =>
+      'Your rating is shown only to the person you rate, once they rate you too or the period ends. There is no average, no count and no public profile.';
+
+  @override
+  String reviewStarSemanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stars',
+      one: '1 star',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewSend => 'Send';
+
+  @override
+  String get reviewDismiss => 'Not now';
+
+  @override
+  String reviewSubmitted(int rating) {
+    return 'Your rating: $rating/5';
+  }
+
+  @override
+  String get reviewSubmittedToast => 'Your rating was saved.';
+
+  @override
+  String get reviewRetry => 'Send the same rating again';
+
+  @override
+  String get reviewAbandon => 'Give up on this attempt';
+
+  @override
+  String get reviewIndeterminate =>
+      'Your rating could not be sent. You can try again with the same rating.';
+
+  @override
+  String get reviewWindowClosed => 'The review period for this trip has ended.';
+
+  @override
+  String get reviewAlreadyReviewed => 'You have already rated this trip.';
+
+  @override
+  String get reviewNotEligible => 'This trip can no longer be rated.';
+
+  @override
+  String get reviewIdConflict =>
+      'That rating could not be sent. Refresh the list and try again.';
+
+  @override
   String get tripStatusTitle => 'Trip status';
 
   @override

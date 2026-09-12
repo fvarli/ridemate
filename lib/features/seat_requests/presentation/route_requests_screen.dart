@@ -29,15 +29,21 @@ import '../../../app/router/app_routes.dart';
 import '../../../core/api/rm_error_copy.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/icons/rm_icons.dart';
+import '../../../core/routes/my_route.dart';
 import '../../../core/seat_requests/seat_request.dart';
 import '../../../core/seat_requests/seat_request_decoder.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
 import '../../../core/theme/tokens/rm_spacing.dart';
 import '../../../core/theme/tokens/rm_typography.dart';
+import '../../../core/trips/trip_lifecycle.dart';
 import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../my_routes/application/my_routes_providers.dart';
+import '../../my_routes/domain/my_routes_page.dart';
+import '../../reviews/presentation/review_failure_copy.dart';
+import '../../reviews/presentation/widgets/rate_trip_sheet.dart';
 import '../application/seat_request_providers.dart';
 import '../domain/seat_request_page.dart';
 import 'widgets/incoming_request_card.dart';
@@ -163,9 +169,32 @@ class _RequestList extends ConsumerWidget {
   final String routeId;
   final SeatRequestPage<IncomingSeatRequest> page;
 
+  /// Whether the server says this journey was made.
+  ///
+  /// THE DRIVER'S OWN LIST IS THE SOURCE, because the incoming projection is
+  /// not: it carries a passenger and a status and no journey at all. This
+  /// screen is reached from a My Routes card, so that page is already loaded.
+  ///
+  /// **Absent is false.** A row that has not loaded, or has fallen off the
+  /// page, is not evidence that a journey was completed — and offering a rating
+  /// on that basis would be the client inventing the one fact the whole feature
+  /// turns on.
+  bool _journeyWasMade(WidgetRef ref) {
+    final MyRoutesPage? routes = ref.watch(myRoutesProvider).value;
+
+    if (routes == null) return false;
+
+    for (final MyRoute row in routes.routes) {
+      if (row.id == routeId) return row.trip.state == TripState.completed;
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = AppLocalizations.of(context);
+    final bool journeyWasMade = _journeyWasMade(ref);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -188,6 +217,8 @@ class _RequestList extends ConsumerWidget {
                 _decide(context, ref, page.requests[i], accept: true),
             onDecline: () =>
                 _decide(context, ref, page.requests[i], accept: false),
+            onRate: () => _rate(context, ref, routeId, page.requests[i].id),
+            journeyWasMade: journeyWasMade,
           ),
         ],
         if (page.loadMoreFailure != null) ...<Widget>[
@@ -261,6 +292,37 @@ class _RequestList extends ConsumerWidget {
           l10n.routeRequestsRouteUnavailable,
         _ => l10n.routeRequestsDecisionFailed,
       };
+}
+
+/// Opens the rating control, then re-reads this journey's askings.
+///
+/// Refreshed whatever the server said — see the same note on My Seat Requests.
+Future<void> _rate(
+  BuildContext context,
+  WidgetRef ref,
+  String routeId,
+  String requestId,
+) async {
+  final AppLocalizations l10n = AppLocalizations.of(context);
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+
+  final RmFailure? failure = await rateTrip(context, requestId: requestId);
+
+  ref.read(incomingSeatRequestsProvider(routeId).notifier).refresh();
+
+  // Said either way. A settled refusal closes the sheet, so without this the
+  // member would watch it disappear and be told nothing at all.
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(
+          failure == null
+              ? l10n.reviewSubmittedToast
+              : reviewFailureCopy(l10n, failure),
+        ),
+      ),
+    );
 }
 
 class _Empty extends StatelessWidget {

@@ -28,27 +28,47 @@ String codeOf(String path) => File(path)
     })
     .join('\n');
 
-/// The fixture half of the feature: the screen and the figures it draws.
+/// The fixture half of the feature, named file by file.
 ///
-/// `data/` is deliberately excluded. It arrived in Phase 15 and is a real
-/// repository reading a real endpoint — the thing these guards were written to
-/// say did not exist yet. What they still protect is that the FIXTURE computes
-/// nothing and claims no moderation, and that the fixture screen reaches no
-/// repository of its own; scanning `data/` would have turned a guard about
-/// invented figures into one forbidding the feature from ever becoming real.
+/// The Reviews feature has two halves now. Phase 15 added a real repository, a
+/// real controller and a real rating sheet, all reading a real endpoint — the
+/// very things these guards were written to say did not exist. Scanning the
+/// whole directory turned a guard about invented figures into one forbidding
+/// the feature from ever becoming real, and it had to be relaxed twice in one
+/// slice before that was obvious.
 ///
-/// `package:http` stays banned there too, by `api_boundary_test`, which
-/// enforces it for every file outside `lib/core/api` rather than for this
-/// directory alone.
-Iterable<String> reviewsSources() => Directory('lib/features/reviews')
-    .listSync(recursive: true)
-    .whereType<File>()
-    .map((File f) => f.path)
-    .where((String p) => p.endsWith('.dart'))
-    .where((String p) => !p.contains('/data/'));
+/// So the subject is listed rather than filtered. What it still protects is
+/// exactly what it always did: the FIXTURE computes nothing, claims no
+/// moderation, and reaches no repository of its own — because a screen of
+/// invented figures that started rendering half-real ones would be the worst
+/// of both. `package:http` stays banned across the feature by
+/// `api_boundary_test`, which enforces it everywhere outside `lib/core/api`.
+///
+/// [fixtureFilesExist] fails if one of these is renamed, so the list cannot
+/// quietly empty itself.
+const List<String> kReviewFixtureFiles = <String>[
+  'lib/features/reviews/domain/review_entry.dart',
+  'lib/features/reviews/domain/review_fixtures.dart',
+  'lib/features/reviews/presentation/reviews_screen.dart',
+  'lib/features/reviews/presentation/widgets/rating_distribution.dart',
+  'lib/features/reviews/presentation/widgets/review_card.dart',
+  'lib/features/reviews/presentation/widgets/review_tags.dart',
+  'lib/features/reviews/presentation/widgets/reviews_summary_card.dart',
+  'lib/features/reviews/presentation/widgets/star_row.dart',
+];
+
+Iterable<String> reviewsSources() => kReviewFixtureFiles;
 
 void main() {
   final AppLocalizations l10n = AppLocalizationsTr();
+
+  test('every named fixture file still exists', () {
+    // A name-based list can go stale silently. This is what stops a rename
+    // turning these guards into assertions about nothing.
+    for (final String path in kReviewFixtureFiles) {
+      expect(File(path).existsSync(), isTrue, reason: path);
+    }
+  });
 
   group('The fixture reproduces the design', () {
     test('carries every figure the design shows', () {

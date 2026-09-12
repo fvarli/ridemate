@@ -42,6 +42,8 @@ import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../reviews/presentation/review_failure_copy.dart';
+import '../../reviews/presentation/widgets/rate_trip_sheet.dart';
 import '../application/seat_request_providers.dart';
 import '../domain/seat_request_page.dart';
 import 'widgets/my_request_card.dart';
@@ -193,6 +195,7 @@ class _RequestList extends ConsumerWidget {
             request: page.requests[i],
             isWithdrawing: page.isBusy(page.requests[i].id),
             onWithdraw: () => _withdraw(context, ref, page.requests[i]),
+            onRate: () => _rate(context, ref, page.requests[i].id),
           ),
         ],
         // Page two failing does not take page one off the screen.
@@ -251,6 +254,43 @@ class _RequestList extends ConsumerWidget {
         ),
       );
   }
+}
+
+/// Opens the rating control, then re-reads the list.
+///
+/// The listing is refreshed whatever the server said. On success its
+/// `my_review` is the truth and replaces anything this screen could have
+/// assumed; on `already_reviewed`, `seat_request_not_accepted` or
+/// `trip_not_completed` the row was stale, and re-reading is the only honest
+/// way to find out what it is now.
+///
+/// A transport failure keeps the sheet open instead of reaching here, because
+/// the same submission can still be sent again from there.
+Future<void> _rate(
+  BuildContext context,
+  WidgetRef ref,
+  String requestId,
+) async {
+  final AppLocalizations l10n = AppLocalizations.of(context);
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+
+  final RmFailure? failure = await rateTrip(context, requestId: requestId);
+
+  ref.read(mySeatRequestsProvider.notifier).refresh();
+
+  // Said either way. A settled refusal closes the sheet, so without this the
+  // member would watch it disappear and be told nothing at all.
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(
+          failure == null
+              ? l10n.reviewSubmittedToast
+              : reviewFailureCopy(l10n, failure),
+        ),
+      ),
+    );
 }
 
 class _Empty extends StatelessWidget {

@@ -1286,6 +1286,80 @@
     "placeholders": { "route": { "type": "String" } }
   },
 
+  "reviewSubmit": "Yolculuğu değerlendir",
+  "@reviewSubmit": {
+    "description": "Tamamlanmış ve kabul edilmiş bir ilişki için değerlendirme kontrolünü açar. Yolculuğun fiziksel olarak yapıldığını KANITLAMAZ; sunucunun bildiği tek şey sürücünün tamamlandı demesidir."
+  },
+  "reviewSubmitSemanticLabel": "{member} ile yaptığın yolculuğu değerlendir",
+  "@reviewSubmitSemanticLabel": {
+    "description": "Kontrolün hangi ilişkiye ait olduğunu söyler.",
+    "placeholders": {
+      "member": { "type": "String" }
+    }
+  },
+  "reviewSheetTitle": "Bu yolculuğu değerlendir",
+  "@reviewSheetTitle": {
+    "description": "Değerlendirme sayfasının başlığı."
+  },
+  "reviewSheetBody": "Değerlendirmen yalnızca değerlendirdiğin kişiye gösterilir; o da seni değerlendirdiğinde ya da süre dolduğunda. Puan ortalaması, sayısı veya herkese açık bir profil yok.",
+  "@reviewSheetBody": {
+    "description": "Ne olduğunu ve ne OLMADIĞINI söyler: özel geri bildirim, herkese açık itibar değil."
+  },
+  "reviewStarSemanticLabel": "{count, plural, =1{1 yıldız} other{{count} yıldız}}",
+  "@reviewStarSemanticLabel": {
+    "description": "Her yıldızın ekran okuyucudaki adı.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "reviewSend": "Gönder",
+  "@reviewSend": {
+    "description": "Değerlendirmeyi gönderir. Puan seçilene kadar ve gönderim sürerken kapalıdır."
+  },
+  "reviewDismiss": "Vazgeç",
+  "@reviewDismiss": {
+    "description": "Sayfayı kapatır. Cevabı bilinmeyen bir denemeyi iptal etmez."
+  },
+  "reviewSubmitted": "Değerlendirmen: {rating}/5",
+  "@reviewSubmitted": {
+    "description": "Üyenin kendi verdiği puan. Karşı tarafın ne yazdığı ya da yazıp yazmadığı asla gösterilmez.",
+    "placeholders": {
+      "rating": { "type": "int" }
+    }
+  },
+  "reviewSubmittedToast": "Değerlendirmen kaydedildi.",
+  "@reviewSubmittedToast": {
+    "description": "Sunucu kabul ettikten SONRA gösterilir, öncesinde değil."
+  },
+  "reviewRetry": "Aynı değerlendirmeyi tekrar gönder",
+  "@reviewRetry": {
+    "description": "Cevabı bilinmeyen bir denemeyi AYNI kimlik ve AYNI puanla tekrarlar. Puanı değiştirmek için önce denemeden vazgeçilmeli."
+  },
+  "reviewAbandon": "Bu denemeden vazgeç",
+  "@reviewAbandon": {
+    "description": "Cevabı bilinmeyen denemeyi bırakır. Sunucuya ilk deneme ulaşmışsa yeni gönderim doğru biçimde zaten değerlendirildi yanıtı alır."
+  },
+  "reviewIndeterminate": "Değerlendirmen gönderilemedi. Aynı puanla tekrar deneyebilirsin.",
+  "@reviewIndeterminate": {
+    "description": "Ağ hatası: gidip gitmediği bilinmiyor, bu yüzden tekrar aynı kimlikle gider."
+  },
+  "reviewWindowClosed": "Bu yolculuğun değerlendirme süresi doldu.",
+  "@reviewWindowClosed": {
+    "description": "Süreye sunucu karar verir; istemci hiçbir zaman hesaplamaz."
+  },
+  "reviewAlreadyReviewed": "Bu yolculuğu zaten değerlendirmişsin.",
+  "@reviewAlreadyReviewed": {
+    "description": "Ekrandaki satır eskimiş; liste sunucudan yeniden okunur."
+  },
+  "reviewNotEligible": "Bu yolculuk artık değerlendirilemiyor.",
+  "@reviewNotEligible": {
+    "description": "İstek kabul edilmemiş ya da yolculuk tamamlanmamış. Her ikisi de satırın eskidiğini söyler."
+  },
+  "reviewIdConflict": "Bu değerlendirme gönderilemedi. Listeyi yenileyip tekrar dene.",
+  "@reviewIdConflict": {
+    "description": "Aynı kimlik başka bir değerlendirmeye ait. Sessizce yeni kimlik üretilmez."
+  },
+
   "tripStatusTitle": "Yolculuk durumu",
   "@tripStatusTitle": {
     "description": "Tek bir yolculuğun sunucudaki durumunu gösteren ekranın başlığı."

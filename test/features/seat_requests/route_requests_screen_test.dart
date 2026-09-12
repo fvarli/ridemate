@@ -14,14 +14,20 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
+import 'package:ridemate/core/reviews/review.dart';
+import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/seat_requests/seat_request.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
+import 'package:ridemate/core/trips/trip_lifecycle.dart';
+import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
+import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/seat_requests/application/seat_request_providers.dart';
 import 'package:ridemate/features/seat_requests/data/seat_request_repository.dart';
 import 'package:ridemate/features/seat_requests/presentation/route_requests_screen.dart';
 import 'package:ridemate/features/seat_requests/presentation/widgets/incoming_request_card.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
 
+import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 
 const String _routeId = '01991c00-0000-7000-8000-000000000001';
@@ -31,6 +37,7 @@ IncomingSeatRequest _incoming({
   SeatRequestStatus status = SeatRequestStatus.pending,
   String passenger = 'Ayşe Demir',
   String initials = 'AD',
+  MyReview? myReview,
 }) => IncomingSeatRequest(
   id: id,
   status: status,
@@ -43,7 +50,7 @@ IncomingSeatRequest _incoming({
   withdrawnAt: status == SeatRequestStatus.withdrawn
       ? DateTime.utc(2026, 9, 9, 9)
       : null,
-  myReview: null,
+  myReview: myReview,
   passenger: SeatRequestMember(displayName: passenger, initials: initials),
 );
 
@@ -127,11 +134,43 @@ class _Incoming implements SeatRequestRepository {
 void main() {
   setUpAll(loadRideMateFonts);
 
-  Future<void> pump(WidgetTester tester, _Incoming backend) async {
+  Future<void> pump(
+    WidgetTester tester,
+    _Incoming backend, {
+    TripState? trip,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
           seatRequestRepositoryProvider.overrideWithValue(backend),
+          // The driver's incoming rows carry no journey, so the screen reads
+          // the trip from the owner's own list. Null means that list holds no
+          // such route — which must NOT read as a completed journey.
+          myRoutesRepositoryProvider.overrideWithValue(
+            FakeMyRoutesRepository(
+              pages: <MyRoutesResult>[
+                MyRoutesResult(
+                  routes: <MyRoute>[
+                    if (trip != null)
+                      fakeMyRoute(
+                        id: _routeId,
+                        trip: trip,
+                        startedAt: trip == TripState.notStarted
+                            ? null
+                            : '2026-09-11T07:05:00Z',
+                        completedAt: trip == TripState.completed
+                            ? '2026-09-11T07:45:00Z'
+                            : null,
+                        abortedAt: trip == TripState.aborted
+                            ? '2026-09-11T07:20:00Z'
+                            : null,
+                      ),
+                  ],
+                  nextCursor: null,
+                ),
+              ],
+            ),
+          ),
         ],
         child: MaterialApp(
           theme: RmTheme.of(Brightness.light),
@@ -576,6 +615,140 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(RouteRequestsScreen), findsOneWidget);
+    });
+  });
+
+  group('Rating a passenger', () {
+    _Incoming accepted({MyReview? myReview}) => _Incoming(
+      pages: <IncomingSeatRequestsResult>[
+        IncomingSeatRequestsResult(
+          requests: <IncomingSeatRequest>[
+            _incoming(status: SeatRequestStatus.accepted, myReview: myReview),
+          ],
+          nextCursor: null,
+        ),
+      ],
+    );
+
+    testWidgets('an agreed seat on a completed journey offers it', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester, accepted(), trip: TripState.completed);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).reviewSubmit), findsOneWidget);
+    });
+
+    testWidgets('no other journey state offers it', (
+      WidgetTester tester,
+    ) async {
+      for (final TripState state in <TripState>[
+        TripState.notStarted,
+        TripState.inProgress,
+        TripState.aborted,
+      ]) {
+        await pump(tester, accepted(), trip: state);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(l10nOf(tester).reviewSubmit),
+          findsNothing,
+          reason: state.wire,
+        );
+      }
+    });
+
+    /// CARRIES WEIGHT. A projection that is not there is not a completed trip.
+    ///
+    /// The driver's own list is the only source of the journey here, so an
+    /// absent row must read as "unknown", never as "made".
+    testWidgets('a journey missing from the owner list offers nothing', (
+      WidgetTester tester,
+    ) async {
+      await pump(tester, accepted());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).reviewSubmit), findsNothing);
+    });
+
+    /// CARRIES WEIGHT. A list that failed to load is not a completed journey.
+    ///
+    /// The `null` case is the owner's list still loading or erroring. It has to
+    /// read as "unknown", because an unreadable page is the weakest possible
+    /// evidence that a trip was made.
+    testWidgets('an unreadable owner list offers nothing', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            seatRequestRepositoryProvider.overrideWithValue(accepted()),
+            myRoutesRepositoryProvider.overrideWithValue(
+              FakeMyRoutesRepository.offline(),
+            ),
+          ],
+          child: MaterialApp(
+            theme: RmTheme.of(Brightness.light),
+            locale: const Locale('tr'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const RouteRequestsScreen(routeId: _routeId),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).reviewSubmit), findsNothing);
+    });
+
+    testWidgets('an unagreed seat offers nothing, however the journey went', (
+      WidgetTester tester,
+    ) async {
+      for (final SeatRequestStatus status in <SeatRequestStatus>[
+        SeatRequestStatus.pending,
+        SeatRequestStatus.declined,
+        SeatRequestStatus.withdrawn,
+      ]) {
+        await pump(
+          tester,
+          _Incoming(
+            pages: <IncomingSeatRequestsResult>[
+              IncomingSeatRequestsResult(
+                requests: <IncomingSeatRequest>[_incoming(status: status)],
+                nextCursor: null,
+              ),
+            ],
+          ),
+          trip: TripState.completed,
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(l10nOf(tester).reviewSubmit),
+          findsNothing,
+          reason: status.wire,
+        );
+      }
+    });
+
+    testWidgets('an already-rated passenger shows this driver own rating', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        accepted(
+          myReview: MyReview(
+            id: '01993a00-0000-7000-8000-000000000001',
+            rating: 2,
+            submittedAt: DateTime.utc(2026, 9, 25, 9, 14),
+          ),
+        ),
+        trip: TripState.completed,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nOf(tester).reviewSubmitted(2)), findsOneWidget);
+      expect(find.text(l10nOf(tester).reviewSubmit), findsNothing);
     });
   });
 }

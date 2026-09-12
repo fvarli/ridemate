@@ -5,7 +5,17 @@
 //
 // Not one per card and not one per verb. A member taps one card at a time, but
 // a failed asking has to keep its state while they scroll past it, so the
-// attempt is held against the route id rather than in the widget.
+// attempt is held here rather than in the widget.
+//
+// A JOURNEY IS A ROUTE ON A DATE, AND THE KEY SAYS SO
+//
+// Not the route id alone. A route is a plan and may run on many days, so two
+// askings about one plan are two askings — and sharing a key would make the
+// second tap a RETRY of the first: the same minted id would go out for a
+// different journey, which the backend answers `id_already_used`, or worse it
+// would replay and hand back the wrong asking. Nothing can reach that yet,
+// because the recurring gate still stands in front of the control; it is
+// written now so 16b cannot introduce it silently.
 //
 // THE ID IS MINTED ONCE PER INTENT, AND EVERY RETRY REUSES IT
 //
@@ -30,6 +40,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/rm_failure.dart';
+import '../../../core/routes/departure.dart';
 import '../../../core/seat_requests/seat_request.dart';
 import '../../../core/seat_requests/seat_request_decoder.dart';
 import '../../create_route/application/publication_providers.dart'
@@ -66,68 +77,78 @@ final class SeatRequestFailed extends SeatRequestAttempt {
   SeatRequestRefusal? get refusal => failure.seatRequestRefusal;
 }
 
+/// Which journey an asking is for: a plan, and the day it runs.
+///
+/// A record rather than a joined string, so two keys compare by what they mean
+/// instead of by how they were spelled — and so nothing has to agree on a
+/// separator that a place label or an id could contain.
+typedef JourneyKey = ({String routeId, DepartureDate serviceDate});
+
 /// What every journey's attempt is doing right now.
 final NotifierProvider<
   SeatRequestActionController,
-  Map<String, SeatRequestAttempt>
+  Map<JourneyKey, SeatRequestAttempt>
 >
 seatRequestActionProvider =
     NotifierProvider<
       SeatRequestActionController,
-      Map<String, SeatRequestAttempt>
+      Map<JourneyKey, SeatRequestAttempt>
     >(SeatRequestActionController.new, isAutoDispose: true);
 
 class SeatRequestActionController
-    extends Notifier<Map<String, SeatRequestAttempt>> {
+    extends Notifier<Map<JourneyKey, SeatRequestAttempt>> {
   /// The id each unresolved intent is carrying.
   ///
   /// Kept outside `state` because it is not something the UI renders: it is the
   /// identity of an attempt, and putting it on screen would invite a widget to
   /// show it.
-  final Map<String, String> _minted = <String, String>{};
+  final Map<JourneyKey, String> _minted = <JourneyKey, String>{};
 
   @override
-  Map<String, SeatRequestAttempt> build() =>
-      const <String, SeatRequestAttempt>{};
+  Map<JourneyKey, SeatRequestAttempt> build() =>
+      const <JourneyKey, SeatRequestAttempt>{};
 
-  SeatRequestAttempt? attemptFor(String routeId) => state[routeId];
+  SeatRequestAttempt? attemptFor(JourneyKey journey) => state[journey];
 
   /// Asks for a seat on one journey.
   ///
   /// Safe to call again after a failure: the same id goes back out, so the
   /// server answers about the same asking rather than being asked a second
   /// question.
-  Future<void> request(String routeId) async {
+  Future<void> request(JourneyKey journey) async {
     // Already in flight. A second tap joins the first rather than sending a
     // duplicate — and the backend would recognise it, but the member would
     // have watched two spinners to find that out.
-    if (state[routeId] is SeatRequestSending) return;
+    if (state[journey] is SeatRequestSending) return;
 
-    final String requestId = _idFor(routeId);
+    final String requestId = _idFor(journey);
 
-    _set(routeId, const SeatRequestSending());
+    _set(journey, const SeatRequestSending());
 
     try {
       final SeatRequested result = await ref
           .read(seatRequestRepositoryProvider)
-          .ask(routeId: routeId, requestId: requestId);
+          // The date is not sent: the server derives it from a one-off route,
+          // and 16a adds no wire field. It identifies the intent HERE, which
+          // is what keeps two dates from sharing one id.
+          .ask(routeId: journey.routeId, requestId: requestId);
 
       // Resolved: the id has done its job and this intent is over.
-      _minted.remove(routeId);
-      _clear(routeId);
+      _minted.remove(journey);
+      _clear(journey);
 
       // The server's own id and status, put on the one card it belongs to.
       ref
           .read(discoveryProvider.notifier)
           .markRequested(
-            routeId,
+            journey.routeId,
             MySeatRequestSummary(
               id: result.request.id,
               status: result.request.status,
             ),
           );
     } on RmFailure catch (failure) {
-      _set(routeId, SeatRequestFailed(failure));
+      _set(journey, SeatRequestFailed(failure));
 
       // Two refusals mean the client's picture of this journey is out of date,
       // and neither can be repaired locally.
@@ -149,7 +170,7 @@ class SeatRequestActionController
           refusal == SeatRequestRefusal.routeUnavailable) {
         // The id is spent either way: the server has an opinion about this
         // journey that a repeat of this attempt cannot change.
-        _minted.remove(routeId);
+        _minted.remove(journey);
         ref.read(discoveryProvider.notifier).refresh();
       }
     }
@@ -159,20 +180,20 @@ class SeatRequestActionController
   ///
   /// The id is deliberately kept: dismissing a message is not abandoning the
   /// intent, and a later retry must still be the same asking.
-  void dismiss(String routeId) => _clear(routeId);
+  void dismiss(JourneyKey journey) => _clear(journey);
 
   /// The id this journey's intent is carrying.
   ///
   /// One per journey, minted on the first attempt and returned unchanged to
   /// every retry until the intent resolves.
-  String _idFor(String routeId) =>
-      _minted[routeId] ??= ref.read(uuidGeneratorProvider).v7();
+  String _idFor(JourneyKey journey) =>
+      _minted[journey] ??= ref.read(uuidGeneratorProvider).v7();
 
-  void _set(String routeId, SeatRequestAttempt attempt) {
-    state = <String, SeatRequestAttempt>{...state, routeId: attempt};
+  void _set(JourneyKey journey, SeatRequestAttempt attempt) {
+    state = <JourneyKey, SeatRequestAttempt>{...state, journey: attempt};
   }
 
-  void _clear(String routeId) {
-    state = <String, SeatRequestAttempt>{...state}..remove(routeId);
+  void _clear(JourneyKey journey) {
+    state = <JourneyKey, SeatRequestAttempt>{...state}..remove(journey);
   }
 }

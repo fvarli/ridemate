@@ -199,7 +199,16 @@ class DiscoveredRouteCard extends StatelessWidget {
     // sat on. The card owns this fact, so it checks it.
     if (route.departureState != DepartureState.upcoming) return null;
 
-    return _RequestButton(routeId: route.id);
+    // An asking is for a journey, so the control cannot exist without the day
+    // it is about. A one-off route always carries one — the decoder refuses a
+    // route that does not — so this narrows a type rather than handling a case,
+    // and the answer to the impossible state is no control at all rather than
+    // one that cannot name what it is asking for.
+    final DepartureDate? serviceDate = route.departureDate;
+
+    if (serviceDate == null) return null;
+
+    return _RequestButton(routeId: route.id, serviceDate: serviceDate);
   }
 
   /// The departure as the driver chose it.
@@ -235,9 +244,15 @@ class DiscoveredRouteCard extends StatelessWidget {
 /// journey's attempt should rebuild when it changes, and the card itself has
 /// nothing to watch.
 class _RequestButton extends ConsumerWidget {
-  const _RequestButton({required this.routeId});
+  const _RequestButton({required this.routeId, required this.serviceDate});
 
   final String routeId;
+
+  /// The day this asking is for. Part of the intent's identity, so two dates
+  /// of one plan never share an attempt or the id it is carrying.
+  final DepartureDate serviceDate;
+
+  JourneyKey get _journey => (routeId: routeId, serviceDate: serviceDate);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -245,7 +260,7 @@ class _RequestButton extends ConsumerWidget {
     final RmColors c = context.rmColors;
     final SeatRequestAttempt? attempt = ref.watch(
       seatRequestActionProvider.select(
-        (Map<String, SeatRequestAttempt> all) => all[routeId],
+        (Map<JourneyKey, SeatRequestAttempt> all) => all[_journey],
       ),
     );
 
@@ -269,7 +284,7 @@ class _RequestButton extends ConsumerWidget {
               ? null
               : () => ref
                     .read(seatRequestActionProvider.notifier)
-                    .request(routeId),
+                    .request(_journey),
           loading: sending,
         ),
         if (attempt is SeatRequestFailed) ...<Widget>[

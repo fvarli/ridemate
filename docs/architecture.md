@@ -67,7 +67,8 @@ lib/
 │   ├── chat/                       # domain + presentation
 │   ├── trip/                       # domain + application + presentation
 │   ├── profile/                    # domain + application + presentation
-│   ├── reviews/                    # domain + presentation
+│   ├── seat_requests/              # data + domain + application + presentation
+│   ├── reviews/                    # data + domain + application + presentation
 │   └── safety/                     # domain + application + presentation (debug-only)
 └── l10n/                           # ARBs + committed generated localizations
 ```
@@ -115,8 +116,10 @@ belongs to no single feature (`format/`, `places/`).
 Phase 6 kept three features apart rather than merging them into one profile slice, and
 built **no shared `User` model**. Profile, Reviews and Safety each hold their own
 snapshot: a single user object would invite every screen to read fields it has no source
-for, and the three surfaces make genuinely different claims — verification, reputation,
-and emergency capability. Where they must agree, a test enforces it instead: Profile's
+for, and the three surfaces make genuinely different claims — verification, feedback
+received, and emergency capability. Phase 15 vindicated the split rather than undoing it:
+Reviews became real and still shares no type with Profile, because what the server sends
+about a member on one is nothing like what it sends on the other. Where they must agree, a test enforces it instead: Profile's
 `4 / 5` badge is asserted against `VerificationStepId.values.length`, and Profile does
 not import the verification feature to get there.
 
@@ -298,10 +301,15 @@ yolculuk daha` asserts eight points per journey — it ships as one opaque ARB m
 no placeholder so it cannot be parameterised into a rate, with a test on the ARB itself
 because no test of the code would catch it.
 
-**Reputation is the same rule.** Reviews' histogram weighted out is 4.90, its two visible
-cards average 4.9, and both equal the headline rating. All three are independent declared
-fixtures; the tests assert the agreements are coincidences rather than sources. There is
-no `aggregateRatings`, no `ratingFromDistribution` and no bucket-count derivation.
+**Reputation was not made honest — it was removed.** The design's Reviews screen showed a
+4.9 average over 73 reviews, a four-bar histogram and four tag counts, and for several
+phases the rule here was the Trust Score's: the figures are declared, their agreement is a
+coincidence, and no function derives one from another. Phase 15 ended that arrangement
+instead of maintaining it. Reviews became real, the backend publishes **no aggregate at
+all** — not an average, not a total, not a distribution, not even to the member the reviews
+are about — and the fixture screen was deleted rather than kept unreachable, because there
+are no conditions under which a computed 4.9 could return. `release_copy_test` now asserts
+no file under `lib/` names a review aggregate, in the code or in either ARB.
 
 ### Matching, ranking and cost sharing are never computed here
 
@@ -643,7 +651,9 @@ alone, and the next launch tries again from the same credential. Only a 401 or a
 it, because only the server can say it is unusable.
 
 **Still fixtures, and honestly so:** the Trust Score, its tier and its factors on Profile;
-Home; Route Details, with its offer, its person and its amounts; Active Trip; Reviews; Safety.
+Home; Route Details, with its offer, its person and its amounts; Active Trip; Safety.
+Reviews left this list in Phase 15 — not by becoming real, but by being replaced: see
+*Reputation was not made honest* above.
 Email, identity, selfie and licence verification do not exist on either side.
 
 Those surfaces make **no server claim at all**, which is what keeps their fixture amounts
@@ -842,9 +852,99 @@ estimate or elapsed time is computed anywhere.
 
 **Not in this phase, and not implied by it**: occurrences for recurring journeys (only one-off
 routes have a trip), GPS, live location, maps, navigation, realtime or polling, push, chat,
-SOS, boarding, attendance, no-show, passenger presence, review eligibility, ratings, trust,
-verification, payment or cost — and no automatic inference of any kind. Nothing completes a
+SOS, boarding, attendance, no-show, passenger presence, trust, verification, payment or
+cost — and no automatic inference of any kind. (Review eligibility and ratings were on this
+list until Phase 15, which built them **on top of** the lifecycle without changing it: a
+completed trip became something a review may be attached to, and still means only that the
+driver said so.) Nothing completes a
 trip on a schedule and nothing aborts one because time passed.
+
+### What Phase 15 made real, and the rules it runs on
+
+Two endpoints: `POST /api/v1/seat-requests/{requestId}/review` and
+`GET /api/v1/me/reviews`.
+
+**A review is private feedback, not a reputation.** There is no average, no total, no
+distribution, no tag count, no trust contribution and no public profile rating — on this
+client or on the server. The screen a member opens from Profile shows the individual ratings
+the backend released **about them**, and nobody else can see it. This is the phase where the
+design's figures could have come back with a source behind them, and the answer was that
+there is no source and will not be one.
+
+**Eligibility is the server's, and the client does no arithmetic.** A review may be submitted
+while the seat request is accepted, the trip is completed, and fourteen days have not passed.
+The client holds the first two — they arrive on the row it already has — and uses them only
+to decide whether to *offer* the control. **It never computes the window.** Nothing here
+holds a deadline, subtracts two instants or reads the clock; the server refuses with
+`review_window_closed` and the screen says what it said.
+
+**Route status is deliberately not consulted.** A driver may withdraw a plan after making the
+journey, and the journey still happened, so a cancelled route with a completed trip stays
+rateable. A client that "corrected" that would erase a member's right to rate a journey they
+actually took.
+
+**The retry identity is `{id, rating}`, frozen together.** The client mints the review's
+UUIDv7 once per intent, and after an indeterminate failure it resends the same id **and the
+same rating**, byte-for-byte. The rating cannot change while the attempt is unresolved:
+the backend compares the whole payload, so the same id carrying a different number answers
+`id_already_used` — a conflict the client would have invented, hit by a member who submitted
+four stars, lost the response, then chose five. Changing the rating requires abandoning the
+attempt explicitly, which clears both; the next submission is a new intent with a new id, and
+if the first had in fact landed it correctly receives `already_reviewed`. **A refusal never
+mints a replacement id**, because silently retrying under a new one is the bug it reports.
+
+**Release is never recomputed here.** A review about a member becomes visible when the other
+side has written one too **or** the window has closed, and which of those happened is
+withheld. The client could not work it out without knowing whether a review it may not see
+exists, which is precisely what the rule protects — so it holds what the backend returned and
+nothing else. Submitting a review does not make the counterpart's appear; only a fresh read
+can say that.
+
+**Empty is not "nobody reviewed you".** An empty page means the server released nothing.
+Unreleased reviews may exist, so the copy claims nothing about who did or did not write —
+the one sentence on the screen where getting it wrong would leak the fact the release rule
+exists to protect. A test asserts the wording in both locales.
+
+**`my_review` is the caller's own, and carries nothing about the other side.** Three fields —
+id, rating, submitted instant — present only on the two relationship listings. A card showing
+it says what this member said and never whether they were rated back.
+
+**The reviewer's side is read, not inferred.** `reviewer.role` comes from the server, because
+the same account is a driver on journeys it published and a passenger on journeys it asked to
+join, sometimes on the same day. A screen that decided from context would mislabel half its
+rows.
+
+**Nothing identifies anything.** `ReceivedReview` has no seat request, route, trip, account or
+place id and no coordinates — the server publishes none, and a field here is the first place
+one gets invented. The journey line exists for attribution, so a member can tell two ratings
+from the same person apart; it is not evidence that anybody travelled.
+
+**Not in this phase, and not implied by it**: review text, tags, photos, replies, editing,
+deletion, moderation, reporting, appeals, notifications, aggregates of any kind, a public or
+visitable profile, a rating on a discovery card, a trip count, a verified badge, a Trust
+Score, and any claim that a review proves attendance. A completed trip is still only the
+driver's own declaration.
+
+### The design's Reviews screen was retired, not migrated
+
+Every other fixture that met a real backend was rebuilt against it. This one was deleted.
+
+It drew a 4.9 headline over `73 değerlendirme`, a four-bar histogram and four tag counts.
+Those are aggregates, and Phase 15's central decision is that RideMate computes none — so
+there was nothing to migrate the screen *to*. Keeping it as a withheld design reference, the
+way Verification and Active Trip are kept, would have meant keeping it for a return that
+cannot happen: those two have a written list of conditions that would make them true, and no
+such list exists here.
+
+It was also still shipping. Thirteen ARB keys of invented reputation copy compiled into the
+release bundle for a screen no member could open, which is exactly the hybrid this document
+exists to prevent.
+
+The design record did not live in the Dart. `docs/claude-designs/RideMate App.dc.html` is
+immutable and `docs/design-system.md` keeps every Reviews observation — D-reviews-1, the
+comp's incoherent subject, `73 değerlendirme`, and the histogram's meter-semantics case.
+D-reviews-1 changed owner rather than disappearing: five icons under one semantics node is
+now `RmRatingDisplay`.
 
 ### Route Details is still a fixture, and nothing real walks into it
 
@@ -1032,7 +1132,7 @@ correct, and Phase 10 found no consumer for one.
 
 ## Roadmap
 
-Phase 15 onward, in dependency order. The ordering was not a preference: **Discovery could not
+Phase 16 onward, in dependency order. The ordering was not a preference: **Discovery could not
 come next**, and finding that out is what shaped Phase 10.
 
 The design's match card renders eleven data points and only four could be backend-owned at the
@@ -1047,7 +1147,7 @@ the screen** rather than inventing them.
 | 12 | **Discovery** ✅ | a real search over published journeys, and a card reduced to what the server knows |
 | 13 | **Seat requests** ✅ | a discovered route gained something to do, and approval rate a source. Seat availability did **not** become a client quantity: the server publishes no remaining count |
 | 14 | **Trip lifecycle** ✅ | whether a journey was actually made — the fact a trip count would have to count |
-| 15 | **Reviews** | ratings |
+| 15 | **Reviews** ✅ | private feedback between two people who shared a journey. **Not** the match card's rating: nothing computes an average, so that field stays withdrawn and the design's Reviews screen was retired rather than migrated |
 | 16 | **Verification** | the verified state and its badge |
 | 17 | **Trust Score** | depends on 13–16; the match card is finally whole |
 

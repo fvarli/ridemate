@@ -116,7 +116,7 @@ return when something can supply them.
 | **D-matches-2** | The card is **not tappable**, and there is **no seat-request action** on it | Route Details is still fixture-backed, so opening a real result would put a real name above an invented vehicle, plate and cost. A truthful card that goes nowhere beats a tap into fabricated details, and a request button that sends nothing would be the screen claiming the server accepted something. Both return in Phase 13. |
 | **D-matches-3** | The **sort row is removed**, not disabled | The comp offers *En iyi eşleşme · En yakın · En ucuz*. Each names a ranking, and the service performs none: results arrive newest-first and the header says so. A disabled or inert sort row still tells the member a ranking exists. |
 | **D-search-3** | Search **loses its seat stepper, its five trust filters, its date tile and its recent searches** | The endpoint accepts two place ids and refuses everything else. A `Doğrulanmış` chip beside real results reads as a filter the server applied; collecting the value and discarding it is how a member learns to trust a control that does nothing. `NE ZAMAN` goes with them — discovery searches published plans, not dates. The from/to card, the swap control and the docked CTA are untouched. |
-| **D-reviews-1** | The five-star row is **five icons under one semantics node** | The comp prints `★★★★★` literally. Beyond `D-icon-4`, five separate announcements say nothing the rating does not, so the row announces once as `5 üzerinden 4,9`. |
+| **D-reviews-1** | The five-star row is **five icons under one semantics node** | The comp prints `★★★★★` literally. Beyond `D-icon-4`, five separate announcements say nothing the rating does not, so the row announces once as `5 üzerinden 4`. Owned by `RmRatingDisplay` since Phase 15 retired the Reviews fixture; the decision outlived the screen it was written for. It does **not** extend to `RmRatingInput`, where five stars are five choices somebody makes and each needs its own reachable node. |
 | **D-safety-1** | The Safety Center has **no back control**, and its route is **absent from release builds** | Its comp has no back control, and `D-trip-1`'s reasoning applies: it is pushed from Active Trip in debug builds and there is nothing beneath a cold deep link. Withholding the route is separate and stronger — see §8. |
 | **D-safety-2** | Dark **keeps the block/report row and the full SOS promise** that the dark comp drops | The dark artboard omits `Kullanıcı engelle / bildir` entirely and shortens the SOS sentence. `D-home-1` already settled this class: dark re-palettes a screen, it never removes information from it — and a safety affordance that disappears at night is a regression. One ARB message also cannot be theme-dependent, so the light superset ships in both. |
 
@@ -393,7 +393,8 @@ A third case is a call-site pattern rather than a defect: `RmTrustRing` and
 `RmLinearMeter` publish their fill as a bare number. On a trust ring that number *is* the
 score; on Reviews' histogram a 92% bar beside a `5` announced "5, 92" and read as
 ninety-two reviews. Any meter whose fill is not self-evidently the thing being announced
-is wrapped and relabelled at the call site.
+is wrapped and relabelled at the call site. (That histogram went with the Reviews fixture in
+Phase 15; the rule stands, and `RmLinearMeter` still has call sites that need it.)
 
 ## 8. Missing states — must be designed as we build
 
@@ -492,11 +493,20 @@ the ones above it.
 
 *Profile and Reviews:*
 
+> **The comp's Reviews screen was retired in Phase 15 and never migrated.** Its figures are
+> aggregates, and the product computes none, so there was nothing to rebuild it against —
+> see *The design's Reviews screen was retired, not migrated* in `architecture.md`. The
+> observations below are kept as the record of what the design asked for and why it could not
+> ship; they no longer describe any code.
+
 * **The Reviews subject is incoherent in the comp.** Profile reaches the screen through
   `Değerlendirmelerim` — Elif's own — yet the first review praises Selin, and both
-  authors are drivers in the discovery fixtures. Reproduced as approved; the snapshot
-  models a `subject` so the question is visible rather than silently resolved.
-* **`73 değerlendirme` with two cards and no way to see more.** Reproduced.
+  authors are drivers in the discovery fixtures. Reproduced as approved at the time; the
+  snapshot modelled a `subject` so the question stayed visible rather than being silently
+  resolved. Phase 15 answered it in the product instead: the screen shows reviews **about**
+  the member, the row that opens it says so, and the question cannot recur.
+* **`73 değerlendirme` with two cards and no way to see more.** Reproduced at the time. The
+  real screen has no count at all and pages properly.
 * **`Doğrulama rozetleri` counts the five steps `/verification` models but does not link
   to them** — probably an oversight. Rendered inert, as drawn.
 * **`Üst %8` is a percentile claim about a member population that does not exist.**

@@ -9,11 +9,11 @@ emergency surfaces are first-class product concepts, not add-ons.
 
 ## Status
 
-**Phase 12 — members can find a journey.**
+**Phase 15 — members can rate a journey they shared.**
 The design system (Phase 1) is done, and Onboarding, Home, Search, Match Results, Route
-Details, Create route, Chat, Profile and Reviews are implemented, plus the two screens the
-design implies and never draws: phone entry and passcode entry, and one it does not draw at
-all — My Routes.
+Details, Create route, Chat and Profile are implemented, plus the screens the design implies
+and never draws: phone entry and passcode entry, and the ones it does not draw at all — My
+Routes, My Requests, Trip Status, and the reviews a member has received.
 
 **Signing in is real.** Phone number → one-time passcode → a session that survives a restart,
 rotates its credential, detects a stolen refresh token, and can be revoked. Registration and
@@ -23,6 +23,12 @@ the server decides which — so asking cannot reveal who is already a member.
 **Publishing, listing and cancelling a journey are real** (Phase 10), **the member's own name
 and initials are real** (Phase 11), and **discovery is real** (Phase 12): Search sends two
 catalogue endpoints and Match Results renders the journeys the server returns, newest first.
+
+**Asking for a seat is real** (Phase 13), **whether a journey was made is real** (Phase 14 —
+the driver says a trip started, completed or was abandoned, and nothing infers it from a
+clock), and **reviews are real** (Phase 15): after a completed journey each side may rate the
+other once, from one to five, within fourteen days. A rating is released to the person it is
+about only when they have rated back or the window has closed.
 
 Active Trip, the Safety Center and now **Verification** are built and tested but reachable
 **only in debug builds**. Verification joined them because its email step reads `Doğrulandı`
@@ -35,8 +41,8 @@ return.
 Messages is the one remaining placeholder, because the design has no conversation list.
 
 **Still mock presentation data** — the Trust Score with its tier and factors, Home, Route
-Details, Active Trip, Reviews and Safety. There is no identity-verification provider, no
-payments, no location and no maps vendor.
+Details, Active Trip and Safety. There is no identity-verification provider, no payments, no
+location and no maps vendor.
 
 **Production sign-in is not operational until an SMS adapter is configured.**
 
@@ -56,12 +62,17 @@ nothing to the conversation. Its safety banner also differs from the comp on pur
 approved wording tells you to pay inside the app, and there is no payment feature, so it
 keeps the safety advice without the false claim.
 
-Profile shows a Trust Score, a four-factor breakdown of it and a reputation summary.
-**None of it is calculated.** There is no scoring service, so every figure is copied from
-the design — including the ones that nearly reconcile: the four factors mean 91.5 against
-a displayed 92, and Reviews' histogram, its two visible cards and its headline rating all
-come to 4.9 by coincidence. Tests pin each of those as a coincidence, because turning one
-into a formula would be authoring the scoring policy rather than fixing a rounding error.
+Profile shows a Trust Score and a four-factor breakdown of it. **None of it is calculated.**
+There is no scoring service, so every figure is copied from the design — including the ones
+that nearly reconcile: the four factors mean 91.5 against a displayed 92. A test pins that as
+a coincidence, because turning it into a formula would be authoring the scoring policy rather
+than fixing a rounding error.
+
+The design's reputation summary — a 4.9 average over 73 reviews, a histogram and four tag
+counts — followed the same rule until Phase 15, which **removed it** rather than sourcing it.
+Reviews are real now and deliberately publish no aggregate: no average, no total, no
+distribution, not even to the member the reviews are about. A test asserts nothing in the
+shipped tree names one.
 
 **Active Trip and the Safety Center are debug-only.** Reaching a trip in progress
 honestly needs a request, an acceptance and a departure, none of which exist — and rather

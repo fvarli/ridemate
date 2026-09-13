@@ -119,9 +119,15 @@ final class DiscoveredRoute {
   /// is what says which journey a status belongs to, and taking the first would
   /// be picking a day nobody named.
   ///
-  /// Only journeys that can still be asked about appear here — the server drops
-  /// departed days and days outside the request horizon — so every entry
-  /// describes something the member could act on. Empty is the ordinary case.
+  /// PRESENT IS NOT THE SAME AS ACTIONABLE
+  ///
+  /// The days are bounded: the server lists only service dates it would still
+  /// offer, dropping departed days and days outside the request horizon. The
+  /// askings are not. A declined or withdrawn asking stays here while its day
+  /// is still offerable, and that entry is the point — a member gets one asking
+  /// per journey for its lifetime, so its presence says the asking for that day
+  /// is spent, not that there is something left to do. Empty is the ordinary
+  /// case, and only empty means the day is free to ask about.
   final List<MySeatRequestSummary> mySeatRequests;
 
   /// This route's asking for one day, or null if the caller has not asked.

@@ -90,13 +90,17 @@ abstract final class RouteDecoder {
   ///
   /// `trip` is required here and absent from [route], which mirrors the
   /// contract exactly: the owner's list is the only route projection that says
-  /// whether the journey was made.
+  /// whether the journey was made — and since Phase 16b it says `null` for a
+  /// recurring plan, which has a journey per day it runs and so has no
+  /// lifecycle of its own.
   static MyRoute myRoute(Object? value, int status) {
     if (value is! Map<String, Object?>) throw malformed(status);
 
     return MyRoute(
       route: route(value, status),
-      trip: TripDecoder.within(value, status),
+      // Required key, nullable value: a plan has no single journey, so its
+      // lifecycle is null rather than `not_started`. See TripDecoder.
+      trip: TripDecoder.withinNullable(value, status),
     );
   }
 
@@ -144,8 +148,9 @@ abstract final class RouteDecoder {
       seatsOffered: seats,
       rules: rules(value['rules'], status),
       driver: driver(value['driver'], status),
-      // Required on the wire, nullable in value. See SeatRequestDecoder.
-      mySeatRequest: SeatRequestDecoder.summary(value, status),
+      // Required on the wire and possibly empty, never absent. See
+      // SeatRequestDecoder.
+      mySeatRequests: SeatRequestDecoder.summaries(value, status),
     );
   }
 
@@ -197,13 +202,27 @@ abstract final class RouteDecoder {
   static RmFailure malformed(int status) =>
       RmFailure.fromBackend(status: status, code: RmErrorCode.unexpected);
 
+  /// A calendar day in `YYYY-MM-DD`, or null where the contract allows one.
+  ///
+  /// STRICT ABOUT THE SHAPE, AND ABOUT THE CALENDAR
+  ///
+  /// The contract's own pattern is four digits, two, two. Splitting on `-` and
+  /// parsing each part accepts `16-09-2026` as the year 16 — a value that then
+  /// travels back out in a path and 404s, with nothing in between to say why.
+  /// It also accepts `2026-02-30`, which is not a day; a client that held one
+  /// would address a journey the server has no row for.
+  ///
+  /// So the shape is checked, and then the parse is checked by writing the
+  /// result back and requiring it to equal what arrived — the only way to tell
+  /// "parsed" from "parsed into something else". This mirrors what the backend
+  /// does on the way in, which is the point: two ends of one contract should
+  /// refuse the same values.
   static DepartureDate? date(Object? value, int status) {
     if (value == null) return null;
     if (value is! String) throw malformed(status);
+    if (!_dayShape.hasMatch(value)) throw malformed(status);
 
     final List<String> parts = value.split('-');
-    if (parts.length != 3) throw malformed(status);
-
     final int? year = int.tryParse(parts[0]);
     final int? month = int.tryParse(parts[1]);
     final int? day = int.tryParse(parts[2]);
@@ -212,8 +231,24 @@ abstract final class RouteDecoder {
       throw malformed(status);
     }
 
-    return DepartureDate(year: year, month: month, day: day);
+    final DepartureDate parsed = DepartureDate(
+      year: year,
+      month: month,
+      day: day,
+    );
+
+    // A rollover is a different day, not a typo fixed: February the 30th
+    // becomes March the 2nd in a permissive reader, and nothing downstream
+    // could tell.
+    if (DateTime(year, month, day).day != day ||
+        DateTime(year, month, day).month != month) {
+      throw malformed(status);
+    }
+
+    return parsed;
   }
+
+  static final RegExp _dayShape = RegExp(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
 
   static DepartureTime time(String value, int status) {
     final List<String> parts = value.split(':');

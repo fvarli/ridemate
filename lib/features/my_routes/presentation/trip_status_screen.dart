@@ -238,18 +238,30 @@ class _Detail extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               _Line(label: l10n.tripStatusDeparture, value: _departure(l10n)),
-              const SizedBox(height: RmSpacing.md),
-              _Line(
-                label: l10n.tripStatusState,
-                value: tripStateLabel(l10n, row.trip.state),
-              ),
-              // What `in_progress` does not mean, said rather than assumed.
-              if (row.trip.state == TripState.inProgress) ...<Widget>[
-                const SizedBox(height: RmSpacing.xs),
-                Text(
-                  l10n.tripStatusStartedNote,
-                  style: RmTypography.caption.copyWith(color: c.sub),
+              // Null for a recurring plan, which has a journey per day it runs
+              // and so no lifecycle of its own. The screen says nothing about
+              // a state rather than saying `not_started` about a journey that
+              // does not exist — and with it go the Start and End controls,
+              // which would have nothing to address.
+              //
+              // FOR F2. A plan's driver needs to reach one dated journey from
+              // here, through the journey reads and the dated commands F1
+              // wires up. This is the smallest truthful thing to render until
+              // that screen is designed; it is not the answer.
+              if (row.trip case final TripLifecycle lifecycle) ...<Widget>[
+                const SizedBox(height: RmSpacing.md),
+                _Line(
+                  label: l10n.tripStatusState,
+                  value: tripStateLabel(l10n, lifecycle.state),
                 ),
+                // What `in_progress` does not mean, said rather than assumed.
+                if (lifecycle.state == TripState.inProgress) ...<Widget>[
+                  const SizedBox(height: RmSpacing.xs),
+                  Text(
+                    l10n.tripStatusStartedNote,
+                    style: RmTypography.caption.copyWith(color: c.sub),
+                  ),
+                ],
               ],
             ],
           ),
@@ -265,18 +277,18 @@ class _Detail extends ConsumerWidget {
     );
   }
 
-  bool get _canStart => row.trip.state == TripState.notStarted;
+  bool get _canStart => row.trip?.state == TripState.notStarted;
 
-  bool get _canEnd => row.trip.state == TripState.inProgress;
+  bool get _canEnd => row.trip?.state == TripState.inProgress;
 
   /// The timestamps that exist, and only those.
   List<Widget> _instants(AppLocalizations l10n, RmFormatters f) {
     final List<Widget> rows = <Widget>[];
 
     for (final (String label, DateTime? instant) in <(String, DateTime?)>[
-      (l10n.tripStatusStartedAt, row.trip.startedAt),
-      (l10n.tripStatusCompletedAt, row.trip.completedAt),
-      (l10n.tripStatusAbortedAt, row.trip.abortedAt),
+      (l10n.tripStatusStartedAt, row.trip?.startedAt),
+      (l10n.tripStatusCompletedAt, row.trip?.completedAt),
+      (l10n.tripStatusAbortedAt, row.trip?.abortedAt),
     ]) {
       if (instant == null) continue;
 

@@ -75,7 +75,7 @@ final class DiscoveredRoute {
     required this.seatsOffered,
     required this.rules,
     required this.driver,
-    required this.mySeatRequest,
+    required this.mySeatRequests,
   });
 
   final String id;
@@ -103,37 +103,77 @@ final class DiscoveredRoute {
 
   final DiscoveredDriver driver;
 
-  /// The caller's own asking about this journey, or null if they have not.
+  /// The caller's own askings about this route's journeys, earliest first.
   ///
   /// The one per-viewer field on an otherwise identical projection, and never
-  /// anybody else's. It is here so a card reloaded after a restart knows it
-  /// cannot ask again — without it the screen would offer an action the server
-  /// has already ruled out, and the member would find out by tapping.
+  /// anybody else's. It is here so a card reloaded after a restart knows which
+  /// journeys it cannot ask about again — without it the screen would offer an
+  /// action the server has already ruled out, and the member would find out by
+  /// tapping.
   ///
-  /// At most one exists: a member may create one seat request per journey for
-  /// that journey's lifetime, so a terminal status here never becomes
-  /// requestable again.
-  final MySeatRequestSummary? mySeatRequest;
+  /// A LIST, BECAUSE A ROUTE IS A PLAN
+  ///
+  /// A journey is a route on a date, so a member may hold one asking for Monday
+  /// and another for Tuesday on the same route. A one-off route carries at most
+  /// one entry. Nothing may collapse this to a single value: the service date
+  /// is what says which journey a status belongs to, and taking the first would
+  /// be picking a day nobody named.
+  ///
+  /// Only journeys that can still be asked about appear here — the server drops
+  /// departed days and days outside the request horizon — so every entry
+  /// describes something the member could act on. Empty is the ordinary case.
+  final List<MySeatRequestSummary> mySeatRequests;
 
-  /// The same journey, carrying the asking the server has confirmed.
+  /// This route's asking for one day, or null if the caller has not asked.
+  ///
+  /// The only way to read [mySeatRequests] for a single journey: a screen that
+  /// wants "the" asking must say which day it means, because a plan has one per
+  /// day it runs.
+  MySeatRequestSummary? seatRequestOn(DepartureDate? serviceDate) {
+    if (serviceDate == null) return null;
+
+    for (final MySeatRequestSummary summary in mySeatRequests) {
+      if (summary.serviceDate == serviceDate) return summary;
+    }
+
+    return null;
+  }
+
+  /// The same journey, carrying the asking the server has just confirmed.
   ///
   /// Everything else is copied unchanged: this exists to record one answer,
   /// not to let a screen edit a journey it does not own.
-  DiscoveredRoute withSeatRequest(MySeatRequestSummary summary) =>
-      DiscoveredRoute(
-        id: id,
-        origin: origin,
-        destination: destination,
-        recurrence: recurrence,
-        departureDate: departureDate,
-        departureTime: departureTime,
-        timezone: timezone,
-        departureState: departureState,
-        seatsOffered: seatsOffered,
-        rules: rules,
-        driver: driver,
-        mySeatRequest: summary,
-      );
+  ///
+  /// The summary REPLACES any entry for the same day and is otherwise inserted
+  /// in service-date order. That order is the server's, and this keeps it true
+  /// for the one row inserted locally rather than leaving the list sorted
+  /// everywhere except after a tap.
+  DiscoveredRoute withSeatRequest(MySeatRequestSummary summary) {
+    final List<MySeatRequestSummary> merged =
+        <MySeatRequestSummary>[
+          for (final MySeatRequestSummary existing in mySeatRequests)
+            if (existing.serviceDate != summary.serviceDate) existing,
+          summary,
+        ]..sort(
+          (MySeatRequestSummary a, MySeatRequestSummary b) =>
+              a.serviceDate.iso.compareTo(b.serviceDate.iso),
+        );
+
+    return DiscoveredRoute(
+      id: id,
+      origin: origin,
+      destination: destination,
+      recurrence: recurrence,
+      departureDate: departureDate,
+      departureTime: departureTime,
+      timezone: timezone,
+      departureState: departureState,
+      seatsOffered: seatsOffered,
+      rules: rules,
+      driver: driver,
+      mySeatRequests: merged,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -149,7 +189,8 @@ final class DiscoveredRoute {
           other.departureState == departureState &&
           other.seatsOffered == seatsOffered &&
           setEquals(other.rules, rules) &&
-          other.driver == driver;
+          other.driver == driver &&
+          listEquals(other.mySeatRequests, mySeatRequests);
 
   @override
   int get hashCode => Object.hash(
@@ -164,5 +205,6 @@ final class DiscoveredRoute {
     seatsOffered,
     Object.hashAllUnordered(rules),
     driver,
+    Object.hashAll(mySeatRequests),
   );
 }

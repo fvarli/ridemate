@@ -185,7 +185,10 @@ class _RequestList extends ConsumerWidget {
     if (routes == null) return false;
 
     for (final MyRoute row in routes.routes) {
-      if (row.id == routeId) return row.trip.state == TripState.completed;
+      // Null for a recurring plan: the plan has no completed journey of its
+      // own, so the answer at this level is no. FOR F2 — a plan's reviews
+      // belong to a dated journey, read from the journey endpoints.
+      if (row.id == routeId) return row.trip?.state == TripState.completed;
     }
 
     return false;

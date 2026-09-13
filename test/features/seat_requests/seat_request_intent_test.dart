@@ -50,6 +50,7 @@ class _Backend implements SeatRequestRepository {
   Future<SeatRequested> ask({
     required String routeId,
     required String requestId,
+    DepartureDate? serviceDate,
   }) async {
     requestIds.add(requestId);
 
@@ -92,6 +93,9 @@ class _Backend implements SeatRequestRepository {
 /// The server's answer, in the shape the projection has.
 MySeatRequest _pending(String id, String routeId) => MySeatRequest(
   id: id,
+  // The day the server recorded the asking for. The card keys on the route's
+  // own date, so for these one-off fixtures the two are the same journey.
+  serviceDate: const DepartureDate(year: 2026, month: 9, day: 14),
   status: SeatRequestStatus.pending,
   requestedAt: DateTime.utc(2026, 9, 13, 8),
   decidedAt: null,

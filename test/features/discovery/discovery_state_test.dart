@@ -17,6 +17,7 @@ import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
+import 'package:ridemate/core/seat_requests/seat_request.dart';
 import 'package:ridemate/features/discovery/application/discovery_search_providers.dart';
 import 'package:ridemate/features/discovery/data/discovery_repository.dart';
 
@@ -32,7 +33,7 @@ DiscoveredRoute _route(String id) => DiscoveredRoute(
   seatsOffered: 3,
   rules: const <RideRuleId>{RideRuleId.noSmoking},
   driver: const DiscoveredDriver(displayName: 'İrem Yılmaz', initials: 'İY'),
-  mySeatRequest: null,
+  mySeatRequests: const <MySeatRequestSummary>[],
 );
 
 /// A discovery endpoint a test can steer, recording what it was asked.

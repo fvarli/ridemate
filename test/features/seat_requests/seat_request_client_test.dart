@@ -79,13 +79,16 @@ Map<String, Object?> _mine({
   Map<String, Object?>? myReview,
 }) => <String, Object?>{
   'id': id,
+  // The journey this asking is for. Always present, never null — unlike the
+  // route's own `departure_date`, which is null for a plan.
+  'service_date': '2026-09-14',
   'status': status,
   'requested_at': '2026-09-09T08:00:00Z',
   'decided_at': decidedAt,
   'withdrawn_at': withdrawnAt,
   'route': route ?? _route(),
-  // Required and nullable on this projection, like `my_seat_request` on
-  // discovery: absent is drift, not an unreviewed relationship.
+  // Required and nullable on this projection: absent is drift, not an
+  // unreviewed relationship.
   'my_review': myReview,
 };
 
@@ -95,6 +98,7 @@ Map<String, Object?> _incoming({
   Map<String, Object?>? myReview,
 }) => <String, Object?>{
   'id': id,
+  'service_date': '2026-09-14',
   'status': status,
   'requested_at': '2026-09-09T08:00:00Z',
   'decided_at': null,
@@ -123,62 +127,256 @@ void main() {
     });
   });
 
-  group('Discovery carries the caller own request', () {
-    test('null when they have not asked', () {
-      expect(fakeDiscoveredRoute().mySeatRequest, isNull);
+  /// A discovery route with every key EXCEPT `my_seat_requests`.
+  ///
+  /// Built here rather than from [fakeDiscoveredRoute], which decodes: these
+  /// cases are about what the decoder refuses, so they need the raw body.
+  Map<String, Object?> discoveryWire() => <String, Object?>{
+    'id': _routeId,
+    'origin': <String, Object?>{'id': 'p1', 'label': 'A'},
+    'destination': <String, Object?>{'id': 'p2', 'label': 'B'},
+    'recurrence': 'weekdays',
+    'departure_date': null,
+    'departure_time': '08:25',
+    'timezone': 'Europe/Istanbul',
+    'departure_state': 'upcoming',
+    'seats_offered': 3,
+    'rules': <String, Object?>{
+      'no_smoking': true,
+      'music_ok': false,
+      'no_pets': false,
+      'quiet': false,
+    },
+    'driver': <String, Object?>{'display_name': 'İ Y', 'initials': 'İY'},
+  };
+
+  group('Every projection names its journey', () {
+    /// CARRIES WEIGHT. An asking is for one day, always.
+    ///
+    /// The route's `departure_date` is null for a plan; the asking's service
+    /// date never is. Without it a passenger's own list could not say which
+    /// Tuesday a pending request belongs to, and a driver's incoming list could
+    /// not tell Monday's asking from Tuesday's.
+    test('a passenger own asking carries the day it is for', () {
+      final MySeatRequest request = SeatRequestDecoder.mine(_mine(), 200);
+
+      expect(request.serviceDate.iso, '2026-09-14');
+    });
+
+    test('an incoming asking carries the day it is for', () {
+      final IncomingSeatRequest request = SeatRequestDecoder.incoming(
+        _incoming(),
+        200,
+      );
+
+      expect(request.serviceDate.iso, '2026-09-14');
+    });
+
+    /// The route it is about may still be a plan with no date of its own. The
+    /// two fields answer different questions and only one is ever null.
+    test('the asking has a day even where the route has none', () {
+      final MySeatRequest request = SeatRequestDecoder.mine(
+        _mine(
+          route: <String, Object?>{
+            ..._route(),
+            'recurrence': 'weekdays',
+            'departure_date': null,
+          },
+        ),
+        200,
+      );
+
+      expect(request.route.departureDate, isNull);
+      expect(request.serviceDate.iso, '2026-09-14');
+    });
+
+    test('a missing or null service date is refused on both projections', () {
+      final Map<String, Object?> mineWithout = _mine()..remove('service_date');
+      expect(
+        () => SeatRequestDecoder.mine(mineWithout, 200),
+        throwsA(isA<RmFailure>()),
+      );
+
+      expect(
+        () => SeatRequestDecoder.mine(<String, Object?>{
+          ..._mine(),
+          'service_date': null,
+        }, 200),
+        throwsA(isA<RmFailure>()),
+      );
+
+      final Map<String, Object?> incomingWithout = _incoming()
+        ..remove('service_date');
+      expect(
+        () => SeatRequestDecoder.incoming(incomingWithout, 200),
+        throwsA(isA<RmFailure>()),
+      );
+
+      expect(
+        () => SeatRequestDecoder.incoming(<String, Object?>{
+          ..._incoming(),
+          'service_date': null,
+        }, 200),
+        throwsA(isA<RmFailure>()),
+      );
+    });
+  });
+
+  group('Discovery carries the caller own askings', () {
+    test('empty when they have asked about none', () {
+      expect(fakeDiscoveredRoute().mySeatRequests, isEmpty);
     });
 
     test('each status, exactly as sent', () {
       for (final SeatRequestStatus status in SeatRequestStatus.values) {
         final DiscoveredRoute route = fakeDiscoveredRoute(
-          mySeatRequest: <String, Object?>{
-            'id': _requestId,
-            'status': status.wire,
-          },
+          mySeatRequests: <Map<String, Object?>>[
+            fakeMySeatRequestSummaryJson(id: _requestId, status: status.wire),
+          ],
         );
 
-        expect(route.mySeatRequest?.id, _requestId);
-        expect(route.mySeatRequest?.status, status);
+        expect(route.mySeatRequests.single.id, _requestId);
+        expect(route.mySeatRequests.single.status, status);
       }
+    });
+
+    /// CARRIES WEIGHT. THE REASON THIS BECAME A LIST.
+    ///
+    /// One plan, two days, two askings. Collapsed to a single value the card
+    /// would report one day's status as though it were the route's.
+    test('several dated askings are all kept, in the order sent', () {
+      final DiscoveredRoute route = fakeDiscoveredRoute(
+        mySeatRequests: <Map<String, Object?>>[
+          fakeMySeatRequestSummaryJson(
+            serviceDate: '2026-09-14',
+            id: 'r1',
+            status: 'pending',
+          ),
+          fakeMySeatRequestSummaryJson(
+            serviceDate: '2026-09-15',
+            id: 'r2',
+            status: 'declined',
+          ),
+        ],
+      );
+
+      expect(route.mySeatRequests.length, 2);
+      expect(
+        route.mySeatRequests
+            .map((MySeatRequestSummary s) => s.serviceDate.iso)
+            .toList(),
+        <String>['2026-09-14', '2026-09-15'],
+      );
+      expect(route.mySeatRequests.last.status, SeatRequestStatus.declined);
+    });
+
+    /// CARRIES WEIGHT. A day is what makes an entry addressable.
+    ///
+    /// Without it two entries on one route differ by nothing a screen can act
+    /// on, and a card could not say which journey a status belongs to.
+    test('an asking without a service date is refused', () {
+      expect(
+        () => RouteDecoder.discovered(<String, Object?>{
+          ...discoveryWire(),
+          'my_seat_requests': <Map<String, Object?>>[
+            <String, Object?>{'id': _requestId, 'status': 'pending'},
+          ],
+        }, 200),
+        throwsA(isA<RmFailure>()),
+      );
+    });
+
+    /// The route's day and the asking's are different fields with different
+    /// rules: a plan's is null, an asking's never is.
+    test('a null service date is refused', () {
+      expect(
+        () => RouteDecoder.discovered(<String, Object?>{
+          ...discoveryWire(),
+          'my_seat_requests': <Map<String, Object?>>[
+            <String, Object?>{
+              'service_date': null,
+              'id': _requestId,
+              'status': 'pending',
+            },
+          ],
+        }, 200),
+        throwsA(isA<RmFailure>()),
+      );
+    });
+
+    /// CARRIES WEIGHT. The retired singleton is not silently tolerated.
+    ///
+    /// A backend still sending `my_seat_request` fails rather than decoding as
+    /// "asked about nothing" — which would put a Request button on a journey
+    /// this member has already asked about.
+    test('the retired singleton key does not satisfy the contract', () {
+      expect(
+        () => RouteDecoder.discovered(<String, Object?>{
+          ...discoveryWire(),
+          'my_seat_request': <String, Object?>{
+            'id': _requestId,
+            'status': 'pending',
+          },
+        }, 200),
+        throwsA(isA<RmFailure>()),
+      );
+    });
+
+    /// One day's asking, looked up by the day — the only way to read one.
+    test('an asking is found by its service date and not by position', () {
+      final DiscoveredRoute route = fakeDiscoveredRoute(
+        mySeatRequests: <Map<String, Object?>>[
+          fakeMySeatRequestSummaryJson(serviceDate: '2026-09-14', id: 'r1'),
+          fakeMySeatRequestSummaryJson(serviceDate: '2026-09-15', id: 'r2'),
+        ],
+      );
+
+      expect(
+        route
+            .seatRequestOn(const DepartureDate(year: 2026, month: 9, day: 15))
+            ?.id,
+        'r2',
+      );
+      expect(
+        route.seatRequestOn(const DepartureDate(year: 2026, month: 9, day: 16)),
+        isNull,
+      );
+      // A plan's card has no day of its own to ask about.
+      expect(route.seatRequestOn(null), isNull);
     });
 
     /// A response without the key is not this contract.
     ///
-    /// Reading absence as "not requested" would make an older backend claim
+    /// Reading absence as "asked about none" would make an older backend claim
     /// every journey is still askable — which is exactly the false affordance
-    /// this field exists to prevent.
-    test('an absent key is refused, which is not the same as a null value', () {
-      final Map<String, Object?> wire = <String, Object?>{
-        'id': _routeId,
-        'origin': <String, Object?>{'id': 'p1', 'label': 'A'},
-        'destination': <String, Object?>{'id': 'p2', 'label': 'B'},
-        'recurrence': 'weekdays',
-        'departure_date': null,
-        'departure_time': '08:25',
-        'timezone': 'Europe/Istanbul',
-        'departure_state': 'upcoming',
-        'seats_offered': 3,
-        'rules': <String, Object?>{
-          'no_smoking': true,
-          'music_ok': false,
-          'no_pets': false,
-          'quiet': false,
-        },
-        'driver': <String, Object?>{'display_name': 'İ Y', 'initials': 'İY'},
-      };
-
+    /// this field exists to prevent. An empty LIST says that truthfully; an
+    /// absent key says nothing at all.
+    test('an absent key is refused, which an empty list is not', () {
       expect(
-        () => RouteDecoder.discovered(wire, 200),
+        () => RouteDecoder.discovered(discoveryWire(), 200),
         throwsA(isA<RmFailure>()),
       );
 
-      // The same body, with the key present and null, decodes.
+      // The same body with the key present and empty decodes, and says the
+      // member has asked about none of this route's journeys.
       expect(
         RouteDecoder.discovered(<String, Object?>{
-          ...wire,
-          'my_seat_request': null,
-        }, 200).mySeatRequest,
-        isNull,
+          ...discoveryWire(),
+          'my_seat_requests': const <Map<String, Object?>>[],
+        }, 200).mySeatRequests,
+        isEmpty,
+      );
+    });
+
+    /// Null is not an empty list: one is a shape, the other is a value the
+    /// contract does not have.
+    test('a null value is refused', () {
+      expect(
+        () => RouteDecoder.discovered(<String, Object?>{
+          ...discoveryWire(),
+          'my_seat_requests': null,
+        }, 200),
+        throwsA(isA<RmFailure>()),
       );
     });
   });
@@ -257,13 +455,19 @@ void main() {
 
   group('Refusals are matched, never guessed', () {
     test('every locked reason decodes from details', () {
+      // `recurring_route_unsupported` is NOT here. A passenger can now ask for
+      // a seat on a named day of a weekday plan, so nothing on this surface can
+      // produce it and the backend stopped publishing it — an enum advertising
+      // an outcome its surface cannot reach is a stale contract. It remains a
+      // TRIP reason; `trip_decoder_test` pins that it is one and not the other.
       const List<String> wire = <String>[
         'profile_required',
         'own_route',
-        'recurring_route_unsupported',
         'id_already_used',
         'already_requested',
         'route_unavailable',
+        // A driver accepting an asking for a day that has already departed.
+        'service_date_passed',
         'route_full',
         'already_accepted',
         'already_decided',
@@ -357,6 +561,51 @@ void main() {
 
       expect(backend.lastPath, '/api/v1/routes/$_routeId/seat-requests');
       expect(backend.lastJson?['id'], _requestId);
+    });
+
+    /// CARRIES WEIGHT. The day travels with the asking.
+    ///
+    /// A plan has a journey per day it runs, so the server requires it for one
+    /// and would otherwise have to guess — which is exactly what Phase 16b
+    /// removed. The caller always knows which journey it means, because the
+    /// intent is keyed by it.
+    test('the named service date is sent as the contract spells it', () async {
+      final FakeSeatRequestBackend backend = FakeSeatRequestBackend()
+        ..enqueue(201, <String, Object?>{'seat_request': _mine()});
+
+      await backend.repository().ask(
+        routeId: _routeId,
+        requestId: _requestId,
+        serviceDate: const DepartureDate(year: 2026, month: 1, day: 5),
+      );
+
+      expect(backend.lastJson?['service_date'], '2026-01-05');
+    });
+
+    /// Absent rather than null when no day is named: the server refuses the
+    /// key with a null value, and a one-off route derives its own.
+    test('no service_date key is sent when none is named', () async {
+      final FakeSeatRequestBackend backend = FakeSeatRequestBackend()
+        ..enqueue(201, <String, Object?>{'seat_request': _mine()});
+
+      await backend.repository().ask(routeId: _routeId, requestId: _requestId);
+
+      expect(backend.lastJson?.containsKey('service_date'), isFalse);
+    });
+
+    /// The asking that comes back carries the day the SERVER recorded, which
+    /// is what a card is then shown — never the day this client asked for.
+    test('the response day is what the asking reports', () async {
+      final FakeSeatRequestBackend backend = FakeSeatRequestBackend()
+        ..enqueue(201, <String, Object?>{'seat_request': _mine()});
+
+      final SeatRequested result = await backend.repository().ask(
+        routeId: _routeId,
+        requestId: _requestId,
+        serviceDate: const DepartureDate(year: 2026, month: 9, day: 14),
+      );
+
+      expect(result.request.serviceDate.iso, '2026-09-14');
     });
   });
 

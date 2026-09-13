@@ -30,6 +30,7 @@ import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
+import 'package:ridemate/core/seat_requests/seat_request.dart';
 import 'package:ridemate/core/widgets/rm_nav_bar.dart';
 import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
 import 'package:ridemate/features/discovery/application/discovery_providers.dart';
@@ -95,7 +96,7 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
                       displayName: 'İrem Yılmaz',
                       initials: 'İY',
                     ),
-                    mySeatRequest: null,
+                    mySeatRequests: const <MySeatRequestSummary>[],
                   ),
                 ],
                 nextCursor: null,

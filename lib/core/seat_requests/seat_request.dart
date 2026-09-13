@@ -52,13 +52,25 @@ enum SeatRequestStatus {
 /// The stable machine strings the backend publishes at `error.details.reason`.
 /// They are matched, never parsed out of a message and never guessed from a
 /// status code — several of these share one.
+///
+/// `recurring_route_unsupported` is NOT here. A passenger can now ask for a
+/// seat on a named day of a weekday plan, so no seat-request command can
+/// produce it and the backend stopped publishing it on this surface — an enum
+/// advertising an outcome its surface cannot reach is a stale contract, not a
+/// compatibility guarantee. It remains a TRIP reason, where the route-only
+/// endpoints can still produce it; see [TripRefusal].
+///
+/// `service_date_passed` arrived with it: a driver accepting an asking for a
+/// day that has already departed is told so. The same wire string is also a
+/// trip reason, and the two enums stay separate for the reason [TripRefusal]
+/// gives.
 enum SeatRequestRefusal {
   profileRequired('profile_required'),
   ownRoute('own_route'),
-  recurringRouteUnsupported('recurring_route_unsupported'),
   idAlreadyUsed('id_already_used'),
   alreadyRequested('already_requested'),
   routeUnavailable('route_unavailable'),
+  serviceDatePassed('service_date_passed'),
   routeFull('route_full'),
   alreadyAccepted('already_accepted'),
   alreadyDecided('already_decided'),
@@ -91,23 +103,45 @@ abstract interface class SeatRequestRow {
   String get id;
 }
 
-/// The caller's own asking about a discovered journey.
+/// The caller's own asking about one dated journey of a discovered route.
 ///
-/// The whole of what discovery publishes about it: enough to say what state it
-/// is in, and to address it. Never anybody else's, and never a count.
+/// The whole of what discovery publishes about it: which journey, enough to
+/// address it, and what state it is in. Never anybody else's, and never a count.
+///
+/// [serviceDate] IS WHAT MAKES THIS ADDRESSABLE
+///
+/// A route is a plan and a journey is that plan on a date, so a member may hold
+/// one asking for Monday and another for Tuesday on the same route. Without the
+/// day, two of these would be indistinguishable except by an id a screen has no
+/// other use for — and a card would have no way to say which journey a status
+/// belongs to.
 @immutable
 final class MySeatRequestSummary {
-  const MySeatRequestSummary({required this.id, required this.status});
+  const MySeatRequestSummary({
+    required this.serviceDate,
+    required this.id,
+    required this.status,
+  });
+
+  /// Which of the route's journeys this asking is for.
+  final DepartureDate serviceDate;
 
   final String id;
   final SeatRequestStatus status;
 
   @override
   bool operator ==(Object other) =>
-      other is MySeatRequestSummary && other.id == id && other.status == status;
+      other is MySeatRequestSummary &&
+      other.serviceDate == serviceDate &&
+      other.id == id &&
+      other.status == status;
 
   @override
-  int get hashCode => Object.hash(id, status);
+  int get hashCode => Object.hash(serviceDate, id, status);
+
+  @override
+  String toString() =>
+      'MySeatRequestSummary(${serviceDate.iso}, ${status.wire})';
 }
 
 /// The journey an asking is about, as its passenger may see it.
@@ -190,6 +224,7 @@ final class SeatRequestMember {
 final class MySeatRequest implements SeatRequestRow {
   const MySeatRequest({
     required this.id,
+    required this.serviceDate,
     required this.status,
     required this.requestedAt,
     required this.decidedAt,
@@ -200,6 +235,15 @@ final class MySeatRequest implements SeatRequestRow {
 
   @override
   final String id;
+
+  /// Which of the route's journeys this asking is for.
+  ///
+  /// Always present, for a one-off route as much as for a plan: the journey is
+  /// `(route, date)` either way, and a one-off route simply has one date.
+  /// [SeatRequestRoute.departureDate] is the ROUTE's — null for a plan — and
+  /// this is the asking's, which is never null. They agree for a one-off
+  /// journey and only this one means anything for a recurring one.
+  final DepartureDate serviceDate;
 
   final SeatRequestStatus status;
   final DateTime requestedAt;
@@ -229,6 +273,7 @@ final class MySeatRequest implements SeatRequestRow {
 final class IncomingSeatRequest implements SeatRequestRow {
   const IncomingSeatRequest({
     required this.id,
+    required this.serviceDate,
     required this.status,
     required this.requestedAt,
     required this.decidedAt,
@@ -239,6 +284,13 @@ final class IncomingSeatRequest implements SeatRequestRow {
 
   @override
   final String id;
+
+  /// Which of this route's journeys the passenger asked about.
+  ///
+  /// The driver addressed the route, so the row carries no journey — but a plan
+  /// has one per day it runs, and without this a driver could not tell Monday's
+  /// asking from Tuesday's.
+  final DepartureDate serviceDate;
 
   final SeatRequestStatus status;
   final DateTime requestedAt;

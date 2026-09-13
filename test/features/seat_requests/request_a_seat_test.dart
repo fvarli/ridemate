@@ -55,6 +55,7 @@ class _AskRecorder implements SeatRequestRepository {
   Future<SeatRequested> ask({
     required String routeId,
     required String requestId,
+    DepartureDate? serviceDate,
   }) async {
     requestIds.add(requestId);
     routeIds.add(routeId);
@@ -99,6 +100,9 @@ class _AskRecorder implements SeatRequestRepository {
 
 MySeatRequest _accepted(String id, String routeId) => MySeatRequest(
   id: id,
+  // The day the server recorded the asking for. The card keys on the route's
+  // own date, so for these one-off fixtures the two are the same journey.
+  serviceDate: const DepartureDate(year: 2026, month: 9, day: 14),
   status: SeatRequestStatus.pending,
   requestedAt: DateTime.utc(2026, 9, 9, 8),
   decidedAt: null,
@@ -145,9 +149,17 @@ void main() {
     recurrence: recurrence,
     departureDate: recurrence == Recurrence.once ? '2026-09-14' : null,
     departureState: departureState,
-    mySeatRequest: asked == null
-        ? null
-        : <String, Object?>{'id': 'r1', 'status': asked.wire},
+    mySeatRequests: asked == null
+        ? const <Map<String, Object?>>[]
+        : <Map<String, Object?>>[
+            fakeMySeatRequestSummaryJson(
+              // The day this card would ask about, so the summary is the one
+              // the card looks up rather than a different journey's.
+              serviceDate: '2026-09-14',
+              id: 'r1',
+              status: asked.wire,
+            ),
+          ],
   );
 
   Future<ProviderContainer> pump(

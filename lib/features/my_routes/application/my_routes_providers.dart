@@ -248,6 +248,7 @@ class MyRoutesController extends AsyncNotifier<MyRoutesPage> {
   static bool _isTerminal(TripRefusal? refusal) => switch (refusal) {
     TripRefusal.alreadyCompleted || TripRefusal.alreadyAborted => true,
     TripRefusal.departureNotReached ||
+    TripRefusal.serviceDatePassed ||
     TripRefusal.recurringRouteUnsupported ||
     TripRefusal.routeUnavailable ||
     TripRefusal.tripNotStarted ||

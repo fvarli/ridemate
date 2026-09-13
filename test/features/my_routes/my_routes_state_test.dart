@@ -536,8 +536,8 @@ void main() {
       expect(routes.tripCommands, <String>['start a']);
 
       final MyRoute after = c.read(myRoutesProvider).value!.routes.single;
-      expect(after.trip.state, TripState.inProgress);
-      expect(after.trip.startedAt, DateTime.utc(2026, 9, 11, 7, 5));
+      expect(after.trip!.state, TripState.inProgress);
+      expect(after.trip!.startedAt, DateTime.utc(2026, 9, 11, 7, 5));
       // And the journey beside it is untouched: starting does not republish.
       expect(after.route.status, RouteStatus.published);
     });
@@ -559,7 +559,7 @@ void main() {
       expect(
         <TripState>[
           for (final MyRoute r in c.read(myRoutesProvider).value!.routes)
-            r.trip.state,
+            r.trip!.state,
         ],
         <TripState>[
           TripState.inProgress,
@@ -592,7 +592,7 @@ void main() {
 
         final MyRoutesPage after = c.read(myRoutesProvider).value!;
         expect(
-          after.routes.single.trip.state,
+          after.routes.single.trip!.state,
           TripState.notStarted,
           reason: 'a journey the backend would not start did not start',
         );
@@ -615,7 +615,7 @@ void main() {
       final MyRoutesPage during = c.read(myRoutesProvider).value!;
       expect(during.isChangingTrip('a'), isTrue);
       expect(
-        during.routes.single.trip.state,
+        during.routes.single.trip!.state,
         TripState.notStarted,
         reason: 'the lifecycle may not move before the server says so',
       );
@@ -694,8 +694,8 @@ void main() {
 
       final MyRoute after = c.read(myRoutesProvider).value!.routes.single;
       expect(after.route.status, RouteStatus.cancelled);
-      expect(after.trip.state, TripState.completed);
-      expect(after.trip.completedAt, DateTime.utc(2026, 9, 11, 7, 45));
+      expect(after.trip!.state, TripState.completed);
+      expect(after.trip!.completedAt, DateTime.utc(2026, 9, 11, 7, 45));
     });
 
     /// The two in-flight sets are separate, so one control does not disable

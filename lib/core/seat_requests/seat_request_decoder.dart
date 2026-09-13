@@ -20,28 +20,60 @@ import 'seat_request.dart';
 abstract final class SeatRequestDecoder {
   const SeatRequestDecoder._();
 
-  /// The caller's own asking on a discovered journey, or null.
+  /// The caller's own askings on a discovered route's journeys.
   ///
-  /// **The key is required and its value may be null**, which are different
-  /// things: a response without it is not this contract, and reading absence as
-  /// "not requested" would make an older backend silently claim every journey
-  /// is still askable.
-  static MySeatRequestSummary? summary(Map<String, Object?> route, int status) {
-    if (!route.containsKey('my_seat_request')) {
-      throw RouteDecoder.malformed(status);
-    }
+  /// **A required, possibly-empty list.** A response without the key is not
+  /// this contract, and reading absence as "asked about none" would make an
+  /// older backend silently claim every journey is still askable. Empty is the
+  /// ordinary case and says exactly that.
+  ///
+  /// **Nothing here collapses the list.** A route is a plan and may run on many
+  /// days, so a member may hold one asking per day; taking the first would be
+  /// picking a journey nobody named. Order is the server's — `service_date`
+  /// ascending — and is preserved rather than re-derived.
+  ///
+  /// The singleton `my_seat_request` this replaced is gone from the wire, so a
+  /// backend still sending it fails here rather than being read as an empty
+  /// list. That is deliberate: a silently empty card would offer to ask again
+  /// on a journey the member has already asked about.
+  static List<MySeatRequestSummary> summaries(
+    Map<String, Object?> route,
+    int status,
+  ) {
+    final Object? value = route['my_seat_requests'];
+    if (value is! List) throw RouteDecoder.malformed(status);
 
-    final Object? value = route['my_seat_request'];
-    if (value == null) return null;
+    return <MySeatRequestSummary>[
+      for (final Object? entry in value) _summary(entry, status),
+    ];
+  }
+
+  static MySeatRequestSummary _summary(Object? value, int status) {
     if (value is! Map<String, Object?>) throw RouteDecoder.malformed(status);
 
     final Object? id = value['id'];
     if (id is! String || id.isEmpty) throw RouteDecoder.malformed(status);
 
     return MySeatRequestSummary(
+      serviceDate: _serviceDate(value, status),
       id: id,
       status: _status(value['status'], status),
     );
+  }
+
+  /// The day an asking is for, which is never absent and never null.
+  ///
+  /// Unlike a route's `departure_date`, which is null for a plan. An asking is
+  /// always for one journey, so a missing or null value here is drift rather
+  /// than a recurring case to handle.
+  static DepartureDate _serviceDate(Map<String, Object?> value, int status) {
+    final DepartureDate? date = RouteDecoder.date(
+      value['service_date'],
+      status,
+    );
+    if (date == null) throw RouteDecoder.malformed(status);
+
+    return date;
   }
 
   /// One of the caller's own askings.
@@ -53,6 +85,7 @@ abstract final class SeatRequestDecoder {
 
     return MySeatRequest(
       id: id,
+      serviceDate: _serviceDate(value, status),
       status: _status(value['status'], status),
       requestedAt: _instant(value['requested_at'], status),
       decidedAt: _optionalInstant(value, 'decided_at', status),
@@ -74,6 +107,7 @@ abstract final class SeatRequestDecoder {
 
     return IncomingSeatRequest(
       id: id,
+      serviceDate: _serviceDate(value, status),
       status: _status(value['status'], status),
       requestedAt: _instant(value['requested_at'], status),
       decidedAt: _optionalInstant(value, 'decided_at', status),

@@ -17,6 +17,7 @@ import '../../../core/api/rm_api_client.dart';
 import '../../../core/api/rm_error_code.dart';
 import '../../../core/api/rm_failure.dart';
 import '../../../core/api/rm_response.dart';
+import '../../../core/routes/departure.dart';
 import '../../../core/seat_requests/seat_request.dart';
 import '../../../core/seat_requests/seat_request_decoder.dart';
 import '../../../core/session/rm_session.dart';
@@ -61,11 +62,21 @@ class SeatRequested {
 }
 
 abstract interface class SeatRequestRepository {
-  /// Asks for a seat. [requestId] is a client-generated UUIDv7 and is the
-  /// idempotency key: the same id is the same asking.
+  /// Asks for a seat on one dated journey.
+  ///
+  /// [requestId] is a client-generated UUIDv7 and is the idempotency key: the
+  /// same id is the same asking.
+  ///
+  /// [serviceDate] says which of the route's journeys. It is REQUIRED by the
+  /// server for a recurring plan, which has one per day it runs, and optional
+  /// for a one-off route — where, if sent, it must be that route's own day.
+  /// Sending it either way keeps one call shape: the caller already knows which
+  /// journey it means, and a client that omitted it would be asking the server
+  /// to guess on a surface where guessing is exactly what Phase 16b removed.
   Future<SeatRequested> ask({
     required String routeId,
     required String requestId,
+    DepartureDate? serviceDate,
   });
 
   Future<MySeatRequestsResult> mine({String? cursor, int limit});
@@ -100,11 +111,18 @@ class ApiSeatRequestRepository implements SeatRequestRepository {
   Future<SeatRequested> ask({
     required String routeId,
     required String requestId,
+    DepartureDate? serviceDate,
   }) async {
     final RmResponse response = await _session.send(
       (Map<String, String> headers) => _client.post(
         '/api/v1/routes/$routeId/seat-requests',
-        json: <String, Object?>{'id': requestId},
+        json: <String, Object?>{
+          'id': requestId,
+          // Absent rather than null when the caller names no day: the server
+          // refuses the key with a null value, and a one-off route derives its
+          // own.
+          if (serviceDate != null) 'service_date': serviceDate.iso,
+        },
         headers: headers,
       ),
     );

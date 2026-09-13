@@ -672,7 +672,10 @@ MyRoute fakeMyRoute({
   Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
   RouteStatus status = RouteStatus.published,
   String? cancelledAt,
-  TripState trip = TripState.notStarted,
+
+  /// Null builds the plan shape: `"trip": null`, which the backend sends for
+  /// every recurring route and which is NOT `not_started`.
+  TripState? trip = TripState.notStarted,
   String? startedAt,
   String? completedAt,
   String? abortedAt,
@@ -690,12 +693,14 @@ MyRoute fakeMyRoute({
     status: status,
     cancelledAt: cancelledAt,
   ),
-  'trip': fakeTripJson(
-    state: trip,
-    startedAt: startedAt,
-    completedAt: completedAt,
-    abortedAt: abortedAt,
-  ),
+  'trip': trip == null
+      ? null
+      : fakeTripJson(
+          state: trip,
+          startedAt: startedAt,
+          completedAt: completedAt,
+          abortedAt: abortedAt,
+        ),
 }, 200);
 
 /// The wire object one of a member's own askings arrives as.
@@ -704,10 +709,12 @@ MyRoute fakeMyRoute({
 /// drift, not an unreviewed relationship.
 Map<String, Object?> fakeMySeatRequestJson({
   String id = '01991d00-0000-7000-8000-000000000001',
+  String serviceDate = '2026-09-24',
   String status = 'accepted',
   Map<String, Object?>? myReview,
 }) => <String, Object?>{
   'id': id,
+  'service_date': serviceDate,
   'status': status,
   'requested_at': '2026-09-10T08:00:00Z',
   'decided_at': '2026-09-10T09:00:00Z',
@@ -726,10 +733,12 @@ Map<String, Object?> fakeMySeatRequestJson({
 /// The wire object one asking on the caller's own journey arrives as.
 Map<String, Object?> fakeIncomingSeatRequestJson({
   String id = '01991d00-0000-7000-8000-000000000001',
+  String serviceDate = '2026-09-24',
   String status = 'accepted',
   Map<String, Object?>? myReview,
 }) => <String, Object?>{
   'id': id,
+  'service_date': serviceDate,
   'status': status,
   'requested_at': '2026-09-10T08:00:00Z',
   'decided_at': '2026-09-10T09:00:00Z',
@@ -794,7 +803,7 @@ DiscoveredRoute fakeDiscoveredRoute({
   Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
   String displayName = 'Ayşe Demir',
   String initials = 'AD',
-  Map<String, Object?>? mySeatRequest,
+  List<Map<String, Object?>> mySeatRequests = const <Map<String, Object?>>[],
 }) => RouteDecoder.discovered(<String, Object?>{
   'id': id,
   'origin': <String, Object?>{'id': originId, 'label': originLabel},
@@ -813,9 +822,23 @@ DiscoveredRoute fakeDiscoveredRoute({
     'display_name': displayName,
     'initials': initials,
   },
-  // Required on the wire; null is the ordinary case.
-  'my_seat_request': mySeatRequest,
+  // Required on the wire and possibly empty, which is the ordinary case.
+  'my_seat_requests': mySeatRequests,
 }, 200);
+
+/// One entry of a discovered route's `my_seat_requests`.
+///
+/// The service date is required: an asking is always for one journey, so a
+/// fixture without one would be a shape the API never produces.
+Map<String, Object?> fakeMySeatRequestSummaryJson({
+  String serviceDate = '2026-09-24',
+  String id = '01991d00-0000-7000-8000-000000000001',
+  String status = 'pending',
+}) => <String, Object?>{
+  'service_date': serviceDate,
+  'id': id,
+  'status': status,
+};
 
 /// A scripted [ReviewRepository], in the [FakeMyRoutesRepository] idiom.
 ///

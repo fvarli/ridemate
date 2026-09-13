@@ -13,9 +13,10 @@
 // askings about one plan are two askings — and sharing a key would make the
 // second tap a RETRY of the first: the same minted id would go out for a
 // different journey, which the backend answers `id_already_used`, or worse it
-// would replay and hand back the wrong asking. Nothing can reach that yet,
-// because the recurring gate still stands in front of the control; it is
-// written now so 16b cannot introduce it silently.
+// would replay and hand back the wrong asking. The day now travels on the wire
+// too, so the server and this client agree about which journey an id belongs
+// to. Nothing can reach the recurring case yet — the gate still stands in front
+// of the control, and F2 removes it.
 //
 // THE ID IS MINTED ONCE PER INTENT, AND EVERY RETRY REUSES IT
 //
@@ -128,10 +129,16 @@ class SeatRequestActionController
     try {
       final SeatRequested result = await ref
           .read(seatRequestRepositoryProvider)
-          // The date is not sent: the server derives it from a one-off route,
-          // and 16a adds no wire field. It identifies the intent HERE, which
-          // is what keeps two dates from sharing one id.
-          .ask(routeId: journey.routeId, requestId: requestId);
+          // The day is sent as well as keyed on. Phase 16b's backend requires
+          // it for a plan and accepts it for a one-off route, where it must be
+          // that route's own day — which is exactly where this key came from.
+          // Omitting it would ask the server to guess on the one surface where
+          // guessing is what this phase removed.
+          .ask(
+            routeId: journey.routeId,
+            requestId: requestId,
+            serviceDate: journey.serviceDate,
+          );
 
       // Resolved: the id has done its job and this intent is over.
       _minted.remove(journey);
@@ -143,6 +150,10 @@ class SeatRequestActionController
           .markRequested(
             journey.routeId,
             MySeatRequestSummary(
+              // The server's own day, not the key's: they are the same journey,
+              // and taking it from the response keeps the card describing what
+              // the backend recorded rather than what this client asked for.
+              serviceDate: result.request.serviceDate,
               id: result.request.id,
               status: result.request.status,
             ),

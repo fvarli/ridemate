@@ -273,7 +273,7 @@ void main() {
       // decoder that had started requiring one would fail here.
       expect(fakeDiscoveredRoute().id, isNotEmpty);
       expect(fakeRoute().id, isNotEmpty);
-      expect(fakeMyRoute().trip.state, isNotNull);
+      expect(fakeMyRoute().trip!.state, isNotNull);
     });
   });
 }

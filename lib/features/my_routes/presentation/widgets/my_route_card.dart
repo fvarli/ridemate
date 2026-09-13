@@ -107,7 +107,7 @@ class MyRouteCard extends StatelessWidget {
   /// answers with a reason this screen can say out loud. A client that
   /// pre-judged any of it would eventually hide a Start the API would have
   /// taken, and would do so silently.
-  bool get _canStart => row.trip.state == TripState.notStarted;
+  bool get _canStart => row.trip?.state == TripState.notStarted;
 
   /// Whether there is a journey under way to end.
   ///
@@ -115,7 +115,7 @@ class MyRouteCard extends StatelessWidget {
   /// server calls `in_progress` is exactly one that can be completed or
   /// abandoned, and nothing else here has a say. Both endings are offered
   /// together because the driver — not this screen — knows which happened.
-  bool get _canEnd => row.trip.state == TripState.inProgress;
+  bool get _canEnd => row.trip?.state == TripState.inProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +129,17 @@ class MyRouteCard extends StatelessWidget {
     final String departure = _departure(l10n);
     final String seats = l10n.myRoutesSeatsOffered(route.seatsOffered);
     final String status = _status(l10n);
-    final String trip = tripStateLine(l10n, row.trip.state);
+    // Null for a recurring plan, which has a journey per day it runs and so
+    // no lifecycle of its own. The card says nothing about a trip rather than
+    // saying `not_started` about a journey that does not exist.
+    //
+    // FOR F2. A plan's card should say which of its days are under way, from
+    // the dated journey reads. This is the smallest truthful thing to render
+    // until that is designed; it is not the answer.
+    final TripLifecycle? lifecycle = row.trip;
+    final String trip = lifecycle == null
+        ? ''
+        : tripStateLine(l10n, lifecycle.state);
 
     return RmCard(
       // The ordinary "this row opens its detail" gesture, so the lifecycle in
@@ -196,10 +206,13 @@ class MyRouteCard extends StatelessWidget {
                   // stands, and this answers whether it was made. They are
                   // different questions and a route can say anything about one
                   // while saying anything about the other.
-                  Text(
-                    trip,
-                    style: RmTypography.caption.copyWith(color: c.sub),
-                  ),
+                  //
+                  // Absent for a plan, which has no such answer at this level.
+                  if (lifecycle != null)
+                    Text(
+                      trip,
+                      style: RmTypography.caption.copyWith(color: c.sub),
+                    ),
                   // Absent, not empty, when the driver selected nothing.
                   if (route.rules.isNotEmpty) ...<Widget>[
                     const SizedBox(height: RmSpacing.sm),

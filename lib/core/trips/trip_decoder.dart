@@ -49,6 +49,23 @@ abstract final class TripDecoder {
     return lifecycle(owner['trip'], status);
   }
 
+  /// The lifecycle under a required `trip` key whose VALUE may be null.
+  ///
+  /// `MyRoute` is the one surface where null means something: a recurring plan
+  /// has a journey per day it runs, so the plan itself has no lifecycle. Null
+  /// is NOT `not_started` — that would be a claim about a journey that does not
+  /// exist, and it would stay wrong while the driver was mid-trip on Tuesday.
+  /// The dated journey reads answer per date instead.
+  ///
+  /// The KEY is still required. A response missing it is drift, and reading
+  /// absence as "not applicable" would hide a backend that stopped sending the
+  /// lifecycle at all.
+  static TripLifecycle? withinNullable(Map<String, Object?> owner, int status) {
+    if (!owner.containsKey('trip')) throw RouteDecoder.malformed(status);
+
+    return owner['trip'] == null ? null : lifecycle(owner['trip'], status);
+  }
+
   static TripState _state(Object? value, int status) {
     for (final TripState candidate in TripState.values) {
       if (candidate.wire == value) return candidate;

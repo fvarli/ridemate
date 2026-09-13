@@ -58,7 +58,7 @@ void main() {
     String id = '01991b00-0000-7000-8000-0000000000a1',
     String recurrence = 'weekdays',
     Object? departureDate,
-    Map<String, Object?>? mySeatRequest,
+    List<Map<String, Object?>> mySeatRequests = const <Map<String, Object?>>[],
   }) => <String, Object?>{
     'id': id,
     'origin': <String, Object?>{'id': 'p1', 'label': 'Kadıköy'},
@@ -79,10 +79,10 @@ void main() {
       'display_name': 'İrem Yılmaz',
       'initials': 'İY',
     },
-    // Required on the wire from Phase 13, null when the caller has not asked
-    // about this journey. Absent is not the same as null — the missing-field
-    // loop below proves that.
-    'my_seat_request': mySeatRequest,
+    // Required on the wire and possibly empty: the caller has asked about none
+    // of this route's journeys. Absent is not the same as empty — the
+    // missing-field loop below proves that.
+    'my_seat_requests': mySeatRequests,
   };
 
   Map<String, Object?> page(List<Object?> routes, {String? nextCursor}) =>
@@ -325,7 +325,7 @@ void main() {
       'seats_offered',
       'rules',
       'driver',
-      'my_seat_request',
+      'my_seat_requests',
     ]) {
       test('a row missing $field fails the response', () async {
         final Map<String, Object?> row = result()..remove(field);

@@ -10,6 +10,11 @@
 // nullable half is read as `not_started` by the first screen that forgets the
 // difference between "no trip" and "this projection does not say".
 //
+// The lifecycle here is ITSELF nullable since Phase 16b, and for the third
+// meaning of the three: "this route is a plan, so the question does not apply".
+// That is not "no trip" and not "this projection does not say" — it is a route
+// whose journeys are addressed one date at a time. See the field.
+//
 // Composition rather than inheritance: a route is a route, and this is a route
 // seen from the one place entitled to know more about it.
 // ─────────────────────────────────────────────────────────────
@@ -25,8 +30,19 @@ final class MyRoute {
 
   final PublishedRoute route;
 
-  /// Whether the journey was made. Always present, `notStarted` included.
-  final TripLifecycle trip;
+  /// Whether the journey was made — and **null when the question does not
+  /// apply**, which is every recurring plan.
+  ///
+  /// A one-off route is its own single journey, so the lifecycle is the route's
+  /// and this carries it, `notStarted` included. A recurring plan is not a
+  /// journey at all: it has as many as it has dates, each with its own state,
+  /// and no one of them is the plan's.
+  ///
+  /// NULL IS NOT `notStarted`. Reading it as one would be a claim about a
+  /// journey that does not exist, and it would stay wrong while the driver was
+  /// mid-trip on Tuesday. The dated journey reads answer per date; nothing here
+  /// picks one of a plan's trips to stand in.
+  final TripLifecycle? trip;
 
   String get id => route.id;
 
@@ -48,5 +64,5 @@ final class MyRoute {
 
   /// Says nothing about where the journey runs or when. See [PublishedRoute].
   @override
-  String toString() => 'MyRoute(${route.id}, ${trip.state.wire})';
+  String toString() => 'MyRoute(${route.id}, ${trip?.state.wire ?? 'n/a'})';
 }

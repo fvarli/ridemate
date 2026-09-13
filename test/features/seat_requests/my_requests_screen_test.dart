@@ -47,6 +47,7 @@ MySeatRequest _request({
   MyReview? myReview,
 }) => MySeatRequest(
   id: id,
+  serviceDate: const DepartureDate(year: 2026, month: 9, day: 24),
   status: status,
   requestedAt: DateTime.utc(2026, 9, 9, 8),
   decidedAt:
@@ -129,6 +130,7 @@ class _Requests implements SeatRequestRepository {
   Future<SeatRequested> ask({
     required String routeId,
     required String requestId,
+    DepartureDate? serviceDate,
   }) => throw UnimplementedError();
 
   @override

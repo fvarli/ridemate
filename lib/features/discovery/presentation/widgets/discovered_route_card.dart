@@ -174,7 +174,15 @@ class DiscoveredRouteCard extends StatelessWidget {
   /// Outside the `ExcludeSemantics` above, so the action keeps its own
   /// semantics while the journey is announced as one piece.
   Widget? _action(BuildContext context, AppLocalizations l10n, RmColors c) {
-    final MySeatRequestSummary? asked = route.mySeatRequest;
+    // The asking for the day this card would ask about — a one-off route's own
+    // date. A plan has one per day it runs and this card has no way to choose
+    // between them yet, which is why the recurring gate below still stands.
+    //
+    // FOR F2. Once a passenger can pick a service date, the card reads the
+    // asking for the date they picked and the gate goes.
+    final MySeatRequestSummary? asked = route.seatRequestOn(
+      route.departureDate,
+    );
 
     // An asking exists. The card says what the server says about it, and
     // offers nothing: this journey cannot be asked about again.
@@ -310,8 +318,6 @@ class _RequestButton extends ConsumerWidget {
         SeatRequestRefusal.ownRoute => l10n.seatRequestOwnRoute,
         SeatRequestRefusal.routeFull => l10n.seatRequestRouteFull,
         SeatRequestRefusal.routeUnavailable => l10n.seatRequestUnavailable,
-        SeatRequestRefusal.recurringRouteUnsupported =>
-          l10n.seatRequestRecurringUnsupported,
         _ => l10n.seatRequestFailed,
       };
 }

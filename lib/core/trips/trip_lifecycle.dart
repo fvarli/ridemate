@@ -46,17 +46,29 @@ enum TripState {
 ///
 /// The stable machine strings the backend publishes at `error.details.reason`.
 /// Matched, never parsed out of a message and never guessed from a status code
-/// — all six arrive as `409 conflict`, so the status alone says nothing.
+/// — all of them arrive as `409 conflict`, so the status alone says nothing.
 ///
-/// DELIBERATELY NOT [SeatRequestRefusal]
+/// DELIBERATELY NOT `SeatRequestRefusal`
 ///
-/// Two of these strings are also seat-request reasons, and that is intentional:
-/// the same wire string for the same meaning is what keeps the mapping simple.
-/// Sharing one enum across two domains would be a different thing and a worse
-/// one — every later addition to either would have to be argued in both.
+/// `route_unavailable` and `service_date_passed` are also seat-request reasons,
+/// and that is intentional: the same wire string for the same meaning is what
+/// keeps the mapping simple. Sharing one enum across two domains would be a
+/// different thing and a worse one — every later addition to either would have
+/// to be argued in both. `recurring_route_unsupported` is the other way round:
+/// it is a trip reason and no longer a seat-request one, which two separate
+/// enums express and one shared enum could not.
+///
+/// `recurring_route_unsupported` no longer means recurring journeys cannot be
+/// made. They can, by date. It means the ROUTE-ONLY command form, which names
+/// no day, was aimed at a plan that has many.
+///
+/// `service_date_passed` bounds Start alone: a plan's journey may be started
+/// only while its own calendar day is still current where the route is.
+/// Completing or abandoning one that already exists has no such bound.
 enum TripRefusal {
   recurringRouteUnsupported('recurring_route_unsupported'),
   departureNotReached('departure_not_reached'),
+  serviceDatePassed('service_date_passed'),
   routeUnavailable('route_unavailable'),
   tripNotStarted('trip_not_started'),
   alreadyCompleted('already_completed'),
@@ -69,7 +81,7 @@ enum TripRefusal {
   /// The refusal a failure names, or null when it names none of them.
   ///
   /// Null covers a failure that carried no reason and one naming a value this
-  /// build has never heard of. A future backend may add a seventh, and a client
+  /// build has never heard of. A future backend may add another, and a client
   /// that coerced it into one of these would act on a state nobody described.
   static TripRefusal? fromWire(String? value) {
     for (final TripRefusal refusal in values) {

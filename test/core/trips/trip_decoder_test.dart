@@ -151,6 +151,66 @@ void main() {
     });
   });
 
+  group('A plan has no lifecycle of its own', () {
+    /// CARRIES WEIGHT. THE REASON `MyRoute.trip` BECAME NULLABLE.
+    ///
+    /// A recurring route has a journey per day it runs. `not_started` would be
+    /// a claim about a journey that does not exist — and it would stay wrong
+    /// while the driver was mid-trip on Tuesday. Null says the question does
+    /// not apply at this level, which is a third thing.
+    test('a null trip on My Routes is null, and is not notStarted', () {
+      final MyRoute plan = RouteDecoder.myRoute(<String, Object?>{
+        ...fakeRouteJson(recurrence: Recurrence.weekdays),
+        'trip': null,
+      }, 200);
+
+      expect(plan.trip, isNull);
+      // Said explicitly, because the one mistake this guards against is
+      // reading the two as the same thing.
+      expect(plan.trip?.state, isNot(TripState.notStarted));
+    });
+
+    /// A one-off route is its own single journey, so nothing changed for it.
+    test('a one-off route still carries its lifecycle', () {
+      final MyRoute journey = RouteDecoder.myRoute(<String, Object?>{
+        ...fakeRouteJson(
+          recurrence: Recurrence.once,
+          departureDate: '2026-09-14',
+        ),
+        'trip': fakeTripJson(state: TripState.completed),
+      }, 200);
+
+      expect(journey.trip, isNotNull);
+      expect(journey.trip!.state, TripState.completed);
+    });
+
+    /// The KEY is still required. Absence is drift — a backend that stopped
+    /// sending the lifecycle at all — and reading it as "not applicable" would
+    /// make every route look like a plan.
+    test('an absent trip key is refused, which a null value is not', () {
+      final Map<String, Object?> row = fakeRouteJson();
+
+      expect(() => RouteDecoder.myRoute(row, 200), throwsA(isA<RmFailure>()));
+      expect(
+        RouteDecoder.myRoute(<String, Object?>{...row, 'trip': null}, 200).trip,
+        isNull,
+      );
+    });
+
+    /// Nothing derives a plan's lifecycle from anywhere else — not from the
+    /// recurrence, not from the departure, not from a trip on some other date.
+    test('a plan stays null however the rest of the route reads', () {
+      for (final RouteStatus status in RouteStatus.values) {
+        final MyRoute plan = RouteDecoder.myRoute(<String, Object?>{
+          ...fakeRouteJson(recurrence: Recurrence.weekdays, status: status),
+          'trip': null,
+        }, 200);
+
+        expect(plan.trip, isNull, reason: status.name);
+      }
+    });
+  });
+
   group('Where it appears', () {
     /// The owner's own list carries it; the plain route projection does not.
     test('a My Routes row is a route plus the lifecycle', () {
@@ -159,7 +219,7 @@ void main() {
         startedAt: '2026-09-11T07:05:00Z',
       );
 
-      expect(row.trip.state, TripState.inProgress);
+      expect(row.trip!.state, TripState.inProgress);
       expect(row.route.status, RouteStatus.published);
       expect(row.id, row.route.id);
     });
@@ -188,6 +248,7 @@ void main() {
     test('the journey nested in a seat request carries it', () {
       final MySeatRequest request = SeatRequestDecoder.mine(<String, Object?>{
         'id': '01991d00-0000-7000-8000-000000000001',
+        'service_date': '2026-09-14',
         'status': 'accepted',
         'requested_at': '2026-09-10T08:00:00Z',
         'decided_at': '2026-09-10T09:00:00Z',
@@ -301,20 +362,20 @@ void main() {
       }
     });
 
-    /// The two strings both domains use mean the same thing in both, which is
-    /// why they are spelled the same — and why neither enum owns the other.
+    /// The strings both domains use mean the same thing in both, which is why
+    /// they are spelled the same — and why neither enum owns the other.
     test('the shared strings resolve in both vocabularies', () {
       for (final (String wire, TripRefusal trip, SeatRequestRefusal seat)
           in <(String, TripRefusal, SeatRequestRefusal)>[
             (
-              'recurring_route_unsupported',
-              TripRefusal.recurringRouteUnsupported,
-              SeatRequestRefusal.recurringRouteUnsupported,
-            ),
-            (
               'route_unavailable',
               TripRefusal.routeUnavailable,
               SeatRequestRefusal.routeUnavailable,
+            ),
+            (
+              'service_date_passed',
+              TripRefusal.serviceDatePassed,
+              SeatRequestRefusal.serviceDatePassed,
             ),
           ]) {
         final RmFailure failure = RmFailure.fromBackend(
@@ -326,6 +387,41 @@ void main() {
         expect(failure.tripRefusal, trip, reason: wire);
         expect(failure.seatRequestRefusal, seat, reason: wire);
       }
+    });
+
+    /// CARRIES WEIGHT. The vocabularies are not the same set, and separate
+    /// enums are what lets them differ.
+    ///
+    /// `recurring_route_unsupported` is a TRIP reason and no longer a
+    /// seat-request one: a passenger can ask for a seat on a named day of a
+    /// weekday plan, so nothing on that surface can produce it, while the
+    /// route-only trip commands still can. A shared enum could not say this,
+    /// and a client holding the retired value would be branching on an answer
+    /// it can never receive.
+    test('recurring_route_unsupported is a trip reason and not a seat one', () {
+      const RmFailure failure = RmFailure.fromBackend(
+        status: 409,
+        code: RmErrorCode.conflict,
+        reason: 'recurring_route_unsupported',
+      );
+
+      expect(failure.tripRefusal, TripRefusal.recurringRouteUnsupported);
+      // Unknown on this surface, so it arrives as null and lands on the
+      // generic seam rather than being coerced into a reason.
+      expect(failure.seatRequestRefusal, isNull);
+      expect(
+        SeatRequestRefusal.values.map((SeatRequestRefusal r) => r.wire),
+        isNot(contains('recurring_route_unsupported')),
+      );
+    });
+
+    /// The new trip reason resolves, and bounds Start alone.
+    test('service_date_passed is a trip reason this build knows', () {
+      expect(
+        TripRefusal.fromWire('service_date_passed'),
+        TripRefusal.serviceDatePassed,
+      );
+      expect(TripRefusal.serviceDatePassed.wire, 'service_date_passed');
     });
   });
 }

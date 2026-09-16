@@ -304,14 +304,28 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         builder: (BuildContext context, GoRouterState state) =>
             const MatchResultsScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.routeDetailsPath,
-        name: AppRoutes.routeDetails,
-        builder: (BuildContext context, GoRouterState state) =>
-            RouteDetailsScreen(
-              routeId: state.pathParameters[AppRoutes.routeIdParam] ?? '',
-            ),
-      ),
+      // Debug only since Phase 17 R1, and for the reason Active Trip is: the
+      // screen is a design reference whose every figure is invented. It draws a
+      // trust score, an approval rate, a completed-trip count, a rating, a
+      // vehicle and a number plate for a member who does not exist, and this
+      // product has no endpoint behind a single one of them.
+      //
+      // UNLINKING IT WAS NOT ENOUGH. `/routes/:routeId` is a path, so a deep
+      // link would have opened the fabricated dossier with Home's callback
+      // already gone. It is absent from the release table instead.
+      //
+      // The real passenger flow does not pass through here: Search → Match
+      // Results → request a seat is complete without it, and the discovered
+      // card is deliberately inert.
+      if (kDebugMode)
+        GoRoute(
+          path: AppRoutes.routeDetailsPath,
+          name: AppRoutes.routeDetails,
+          builder: (BuildContext context, GoRouterState state) =>
+              RouteDetailsScreen(
+                routeId: state.pathParameters[AppRoutes.routeIdParam] ?? '',
+              ),
+        ),
       GoRoute(
         path: AppRoutes.createRoutePath,
         name: AppRoutes.createRoute,
@@ -391,14 +405,28 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         builder: (BuildContext context, GoRouterState state) =>
             const ReceivedReviewsScreen(),
       ),
-      // Above the shell: the comp draws no tab bar. Reached from Route Details
-      // in every build, and from Active Trip in debug ones.
-      GoRoute(
-        path: AppRoutes.chatPath,
-        name: AppRoutes.chat,
-        builder: (BuildContext context, GoRouterState state) =>
-            const ChatScreen(),
-      ),
+      // Above the shell: the comp draws no tab bar.
+      //
+      // Debug only since Phase 17 R1. The conversation is authored fixture
+      // content — named counterpart, timestamps, quick replies — and there is
+      // no chat capability behind it anywhere: no table, no endpoint, no
+      // repository. A member reading it would be reading a conversation that
+      // never happened with somebody who was never there.
+      //
+      // NOT the same thing as the Messages tab, which is an honest placeholder
+      // saying the conversation list is not available. That stays exactly as it
+      // is: saying a capability is missing is truthful, and showing a fake one
+      // is not.
+      //
+      // Both of its callers are now debug-only — Route Details above, and
+      // Active Trip below — so this is consistent rather than orphaned.
+      if (kDebugMode)
+        GoRoute(
+          path: AppRoutes.chatPath,
+          name: AppRoutes.chat,
+          builder: (BuildContext context, GoRouterState state) =>
+              const ChatScreen(),
+        ),
       // Developer tooling: never reachable in a release build.
       if (kDebugMode)
         GoRoute(

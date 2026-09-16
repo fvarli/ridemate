@@ -18,6 +18,8 @@
 // than leaving the app.
 // ─────────────────────────────────────────────────────────────
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +28,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
+import 'package:ridemate/app/router/app_router.dart';
+import 'package:ridemate/app/router/app_routes.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
@@ -36,13 +40,13 @@ import 'package:ridemate/features/create_route/application/place_catalogue_provi
 import 'package:ridemate/features/discovery/application/discovery_providers.dart';
 import 'package:ridemate/features/discovery/application/discovery_search_providers.dart';
 import 'package:ridemate/features/discovery/data/discovery_repository.dart';
-import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/presentation/match_results_screen.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/profile/application/my_profile_providers.dart';
+import 'package:ridemate/features/seat_requests/presentation/my_requests_screen.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
@@ -176,7 +180,18 @@ void main() {
       expect(find.byType(RmNavBar), findsOneWidget);
     });
 
-    testWidgets('Home opens the same route details the results list does', (
+    /// INVERTED IN PHASE 17 R1, AND THE INVERSION IS THE POINT.
+    ///
+    /// This asserted that Home's match row opened Route Details — one screen
+    /// reached from two places, which was true and was the problem. Route
+    /// Details is a design reference: it draws a trust score, an approval rate,
+    /// a rating, a vehicle and a number plate for a member who does not exist,
+    /// and no endpoint knows any of them. It left the release route table, and
+    /// the row that opened it stopped being a control.
+    ///
+    /// The fixture itself stays until R2 replaces Home wholesale. What must not
+    /// come back is a tap into it.
+    testWidgets('Home\'s match row opens nothing at all', (
       WidgetTester tester,
     ) async {
       await _pumpApp(tester);
@@ -184,16 +199,7 @@ void main() {
       await tester.tap(find.text('Selin K.'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(RouteDetailsScreen), findsOneWidget);
-      expect(
-        tester
-            .widget<RouteDetailsScreen>(find.byType(RouteDetailsScreen))
-            .routeId,
-        MockRouteOffers.selin.id,
-      );
-
-      await tester.tap(find.bySemanticsLabel('Geri').first);
-      await tester.pumpAndSettle();
+      expect(find.byType(RouteDetailsScreen), findsNothing);
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
@@ -276,19 +282,23 @@ void main() {
       expect(find.byType(RmNavBar), findsOneWidget);
     });
 
-    testWidgets('pops Route Details before it touches the tabs', (
+    /// Retargeted in Phase 17 R1 from Route Details, which is no longer in the
+    /// release route table. The behaviour under test never belonged to that
+    /// screen — it is that an above-shell route pops before the tabs do — so it
+    /// is asserted on a real one instead of on a design reference.
+    testWidgets('pops an above-shell screen before it touches the tabs', (
       WidgetTester tester,
     ) async {
-      await _pumpApp(tester);
+      final ProviderContainer container = await _pumpApp(tester);
 
-      await tester.tap(find.text('Selin K.'));
+      unawaited(container.read(routerProvider).pushNamed(AppRoutes.myRequests));
       await tester.pumpAndSettle();
-      expect(find.byType(RouteDetailsScreen), findsOneWidget);
+      expect(find.byType(MyRequestsScreen), findsOneWidget);
 
       await _simulateSystemBack();
       await tester.pumpAndSettle();
 
-      expect(find.byType(RouteDetailsScreen), findsNothing);
+      expect(find.byType(MyRequestsScreen), findsNothing);
       expect(find.byType(HomeScreen), findsOneWidget);
     });
   });

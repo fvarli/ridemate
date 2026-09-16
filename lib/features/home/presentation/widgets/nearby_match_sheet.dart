@@ -32,13 +32,26 @@ class NearbyMatchSheet extends StatelessWidget {
   const NearbyMatchSheet({
     required this.snapshot,
     required this.onSeeAllMatches,
-    required this.onMatchSelected,
+    this.onMatchSelected,
     super.key,
   });
 
   final HomeSnapshot snapshot;
   final VoidCallback onSeeAllMatches;
-  final ValueChanged<NearbyMatch> onMatchSelected;
+
+  /// What to do when a match is chosen, or null when there is nowhere
+  /// truthful to go.
+  ///
+  /// Null since Phase 17 R1. The only destination was the fixture Route
+  /// Details, which asserted a vehicle, a plate, a rating, a trust score and an
+  /// approval rate about a person who does not exist — so it left the release
+  /// route table, and this row stops offering to open it. A row that leads
+  /// nowhere is better than a tap into fabricated details, which is the stance
+  /// the discovery card has held since Phase 12.
+  ///
+  /// FOR R2, which replaces this whole fixture with the member's own real
+  /// journeys and askings.
+  final ValueChanged<NearbyMatch>? onMatchSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +110,12 @@ class NearbyMatchSheet extends StatelessWidget {
           ),
           for (final NearbyMatch match in snapshot.matches) ...<Widget>[
             const SizedBox(height: RmSpacing.lg),
-            _MatchRow(match: match, onTap: () => onMatchSelected(match)),
+            _MatchRow(
+              match: match,
+              onTap: onMatchSelected == null
+                  ? null
+                  : () => onMatchSelected!(match),
+            ),
           ],
         ],
       ),
@@ -106,10 +124,10 @@ class NearbyMatchSheet extends StatelessWidget {
 }
 
 class _MatchRow extends StatelessWidget {
-  const _MatchRow({required this.match, required this.onTap});
+  const _MatchRow({required this.match, this.onTap});
 
   final NearbyMatch match;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

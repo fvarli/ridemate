@@ -3,10 +3,26 @@
 //
 // Route Details → Chat → back, through the real router.
 //
+// BOTH SCREENS ARE DEBUG-ONLY SINCE PHASE 17 R1, AND THIS FILE STILL RUNS
+//
+// They are design references: the conversation is authored fixture content and
+// there is no chat capability behind it anywhere. R1 took them out of the
+// RELEASE route table, not out of the app — `flutter test` builds in debug, so
+// the routes resolve and the reference keeps its coverage.
+//
+// What changed is how the flow is entered. Home used to open Route Details, and
+// that edge was the whole reason a member could reach a fabricated dossier and
+// a conversation that never happened. It is gone, so this navigates to the
+// reference route directly rather than through a screen that no longer offers
+// it. That Home offers it no more is asserted in
+// test/app/fixture_chain_isolation_test.dart.
+//
 // The assertion behind the assertions: opening a conversation must not create a
 // request, a match, a booking or a trip. Messaging someone about a route is not
 // agreeing to travel with them.
 // ─────────────────────────────────────────────────────────────
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,8 +32,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/app_preferences_provider.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
 import 'package:ridemate/app/ride_mate_app.dart';
+import 'package:ridemate/app/router/app_router.dart';
+import 'package:ridemate/app/router/app_routes.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/discovery/application/discovery_providers.dart';
+import 'package:ridemate/features/discovery/domain/mock_discovery_fixtures.dart';
 import 'package:ridemate/features/discovery/domain/search_draft.dart';
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
@@ -65,8 +84,26 @@ Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
   return container;
 }
 
+/// Opens the Route Details design reference by its own route.
+///
+/// Directly, because nothing in the app links to it any more — which is the
+/// point of R1 and is asserted elsewhere. Reaching a debug route from a test
+/// is not a claim that a member can.
 Future<void> _openRouteDetails(WidgetTester tester) async {
-  await tester.tap(find.text('Selin K.'));
+  final ProviderContainer container = ProviderScope.containerOf(
+    tester.element(find.byType(RideMateApp)),
+  );
+
+  unawaited(
+    container
+        .read(routerProvider)
+        .pushNamed(
+          AppRoutes.routeDetails,
+          pathParameters: <String, String>{
+            AppRoutes.routeIdParam: MockRouteOffers.selin.id,
+          },
+        ),
+  );
   await tester.pumpAndSettle();
 }
 

@@ -26,6 +26,8 @@ import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/routes/route_decoder.dart';
+import 'package:ridemate/core/seat_requests/seat_request.dart';
+import 'package:ridemate/core/seat_requests/seat_request_decoder.dart';
 import 'package:ridemate/core/session/rm_session.dart';
 import 'package:ridemate/core/trips/trip_decoder.dart';
 import 'package:ridemate/core/trips/trip_lifecycle.dart';
@@ -39,6 +41,7 @@ import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 import 'package:ridemate/features/profile/data/profile_repository.dart';
 import 'package:ridemate/features/reviews/data/review_repository.dart';
+import 'package:ridemate/features/seat_requests/data/seat_request_repository.dart';
 
 /// In-memory [OnboardingRepository].
 ///
@@ -554,6 +557,82 @@ class FakeMyRoutesRepository implements MyRoutesRepository {
         );
   }
 }
+
+/// The caller's own askings, for a screen test that needs some.
+///
+/// Read-only: every command throws, because a test that needed one should be
+/// using the suite that owns that command.
+class FakeMySeatRequests implements SeatRequestRepository {
+  FakeMySeatRequests({this.requests = const <MySeatRequest>[], this.failure});
+
+  final List<MySeatRequest> requests;
+  final RmFailure? failure;
+
+  @override
+  Future<MySeatRequestsResult> mine({String? cursor, int limit = 20}) async {
+    final RmFailure? thrown = failure;
+    if (thrown != null) throw thrown;
+
+    return MySeatRequestsResult(requests: requests, nextCursor: null);
+  }
+
+  @override
+  Future<SeatRequested> ask({
+    required String routeId,
+    required String requestId,
+    DepartureDate? serviceDate,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<MySeatRequest> withdraw(String requestId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<IncomingSeatRequestsResult> forRoute(
+    String routeId, {
+    String? cursor,
+    int limit = 20,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<IncomingSeatRequest> accept(String requestId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<IncomingSeatRequest> decline(String requestId) =>
+      throw UnimplementedError();
+}
+
+/// One of the caller's own askings, decoded through the real reader.
+MySeatRequest fakeMySeatRequest({
+  String id = '01991d00-0000-7000-8000-000000000001',
+  String originLabel = 'Kadıköy',
+  String destinationLabel = 'Levent',
+  String serviceDate = '2026-09-24',
+  SeatRequestStatus status = SeatRequestStatus.pending,
+}) => SeatRequestDecoder.mine(<String, Object?>{
+  'id': id,
+  'service_date': serviceDate,
+  'status': status.wire,
+  'requested_at': '2026-09-09T08:00:00Z',
+  'decided_at': null,
+  'withdrawn_at': null,
+  'my_review': null,
+  'route': <String, Object?>{
+    ...fakeRouteJson(
+      id: 'route-$id',
+      originLabel: originLabel,
+      destinationLabel: destinationLabel,
+      recurrence: Recurrence.once,
+      departureDate: serviceDate,
+    ),
+    'driver': <String, Object?>{
+      'display_name': 'İrem Yılmaz',
+      'initials': 'İY',
+    },
+    'trip': fakeTripJson(),
+  },
+}, 200);
 
 /// A journeys endpoint a screen test can hold still.
 ///

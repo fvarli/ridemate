@@ -1,94 +1,122 @@
+// ─────────────────────────────────────────────────────────────
+// RideMate — Home holds up
+//
+// REWRITTEN IN PHASE 17 R2, BECAUSE ITS SUBJECT CHANGED
+//
+// This file used to assert the fixture Home: that the map drew the same pins in
+// dark as in light, that the destination pin was present, that the shortcut
+// chips kept their icons, and that the match card read as one node with "its
+// key facts" — a rating, a compatibility figure and a fare share. Every one of
+// those was a claim the product could not make, and R2 removed the screen that
+// made them.
+//
+// What survived is what was never about the fixture: that Home renders without
+// overflowing, in both directions, at the largest supported text scale, on a
+// small phone, and that its controls are reachable and labelled. Those cases
+// are kept and repointed at the real screen.
+//
+// WHAT THIS FILE IS NOT
+//
+// Not the truth suite. Whether Home shows the member's own name, the server's
+// journeys in the server's order and the server's request statuses — and
+// nothing invented — is real_home_test.dart. This one is about layout and
+// reach.
+// ─────────────────────────────────────────────────────────────
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/a11y/rm_a11y.dart';
-import 'package:ridemate/core/widgets/rm_avatar.dart';
-import 'package:ridemate/core/widgets/rm_map_canvas.dart';
-import 'package:ridemate/core/widgets/rm_status_pill.dart';
+import 'package:ridemate/core/journeys/journey.dart';
+import 'package:ridemate/core/trips/trip_lifecycle.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
-import 'package:ridemate/features/home/presentation/widgets/home_map.dart';
-import 'package:ridemate/features/home/presentation/widgets/nearby_match_sheet.dart';
+import 'package:ridemate/features/journeys/application/journeys_providers.dart';
+import 'package:ridemate/features/profile/application/my_profile_providers.dart';
+import 'package:ridemate/l10n/app_localizations.dart';
 
+import '../../support/fakes.dart';
 import '../../support/pump.dart';
 
 void main() {
+  /// Home with something in every section, which is the state most likely to
+  /// overflow: three journeys, a greeting and the full set of links.
+  List<Override> populated() => <Override>[
+    profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+    journeysRepositoryProvider.overrideWithValue(
+      FakeJourneys(
+        journeys: <Journey>[
+          fakeJourney(
+            serviceDate: '2026-09-16',
+            originLabel: 'Kadıköy, Vapur İskelesi',
+            destinationLabel: 'Levent, Metro İstasyonu',
+          ),
+          fakeJourney(
+            serviceDate: '2026-09-17',
+            trip: TripState.inProgress,
+            startedAt: '2026-09-17T05:05:00Z',
+          ),
+        ],
+      ),
+    ),
+  ];
+
   Future<void> pump(
     WidgetTester tester, {
     Brightness brightness = Brightness.light,
     TextDirection textDirection = TextDirection.ltr,
     Locale locale = kDefaultTestLocale,
+    Size surfaceSize = const Size(393, 852),
   }) async {
     await tester.pumpRmScreen(
-      const Scaffold(body: HomeScreen()),
+      const HomeScreen(),
       brightness: brightness,
       textDirection: textDirection,
       locale: locale,
-      surfaceSize: const Size(393, 852),
+      surfaceSize: surfaceSize,
+      overrides: populated(),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
   }
 
-  group('HomeScreen', () {
-    testBothThemes('renders every layer in both themes', (
+  group('Home lays out', () {
+    testWidgets('in light and dark without overflow', (
       WidgetTester tester,
-      Brightness brightness,
     ) async {
-      await pump(tester, brightness: brightness);
-
-      expect(tester.takeException(), isNull);
-      expect(find.byType(HomeMap), findsOneWidget);
-      expect(find.byType(NearbyMatchSheet), findsOneWidget);
-      expect(find.byType(RmStatusPill), findsOneWidget);
+      for (final Brightness brightness in Brightness.values) {
+        await pump(tester, brightness: brightness);
+        expect(tester.takeException(), isNull, reason: brightness.name);
+      }
     });
 
-    testBothThemes('renders the approved copy', (
-      WidgetTester tester,
-      Brightness brightness,
-    ) async {
-      await pump(tester, brightness: brightness);
-
-      expect(find.text('Günaydın,'), findsOneWidget);
-      expect(find.text('Elif'), findsOneWidget);
-      expect(find.text('Kadıköy'), findsOneWidget);
-      expect(find.text('Nereye gidiyorsun?'), findsOneWidget);
-      expect(find.text('Yakınındaki rotalar'), findsOneWidget);
-      expect(find.text('Selin K.'), findsOneWidget);
-      expect(find.text('Kadıköy → Levent'), findsOneWidget);
-    });
-
-    testBothThemes('formats every value for the Turkish locale', (
-      WidgetTester tester,
-      Brightness brightness,
-    ) async {
-      await pump(tester, brightness: brightness);
-
-      // Cost-sharing display data, prefixed lira sign per the design.
-      expect(find.text('₺18'), findsOneWidget);
-      // Turkish puts the percent sign first.
-      expect(find.text('%94 uyum'), findsOneWidget);
-      expect(find.text('3 eşleşme →'), findsOneWidget);
-      // Locale-correct decimal separator.
-      expect(find.text('4,9'), findsOneWidget);
-      expect(find.text('4.9'), findsNothing);
-    });
-
-    testWidgets('formats for English when the locale changes', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester, locale: const Locale('en'));
-
-      expect(find.text('4.9'), findsOneWidget);
-      expect(find.text('94% match'), findsOneWidget);
-      expect(find.text('Good morning,'), findsOneWidget);
-    });
-
-    testWidgets('renders under RTL without overflow', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('under RTL without overflow', (WidgetTester tester) async {
       await pump(tester, textDirection: TextDirection.rtl);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('survives the maximum text scale', (WidgetTester tester) async {
+    /// The two small sizes the project's accessibility baseline names.
+    for (final Size size in const <Size>[Size(360, 640), Size(360, 800)]) {
+      testWidgets('on a ${size.width.toInt()}×${size.height.toInt()} screen', (
+        WidgetTester tester,
+      ) async {
+        await pump(tester, surfaceSize: size);
+        expect(tester.takeException(), isNull);
+
+        // The primary action is the one control that must never be pushed off
+        // a small screen — Home exists to open Search.
+        expect(
+          find.text(
+            AppLocalizations.of(
+              tester.element(find.byType(HomeScreen)),
+            ).homeFindRide,
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+
+    testWidgets('at the maximum supported text scale', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpRmScreen(
         // The scale has to be applied inside the app, where a MediaQuery to
         // copy already exists. Pumping without it asserted nothing.
@@ -97,104 +125,69 @@ void main() {
             data: MediaQuery.of(context).copyWith(
               textScaler: const TextScaler.linear(RmA11y.maxTextScale),
             ),
-            child: const Scaffold(body: HomeScreen()),
+            child: const HomeScreen(),
           ),
         ),
         surfaceSize: const Size(393, 852),
+        overrides: populated(),
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
+
       expect(tester.takeException(), isNull);
     });
   });
 
-  group('Dark mode must not reduce information', () {
-    testWidgets('dark Home shows the same map markers as light', (
+  group('Home is reachable', () {
+    testWidgets('the primary action is a labelled button', (
       WidgetTester tester,
     ) async {
-      // The dark design comp omits the destination pin, a driver pin, the
-      // arterial road, a building and the chip icons. Those omissions are
-      // treated as comp simplification, not product behaviour — the same
-      // screen must not show the user less at night.
-      Future<int> avatarCount(Brightness brightness) async {
-        await pump(tester, brightness: brightness);
-        return find.byType(RmAvatar).evaluate().length;
-      }
+      final SemanticsHandle handle = tester.ensureSemantics();
+      await pump(tester);
 
-      final int light = await avatarCount(Brightness.light);
-      final int dark = await avatarCount(Brightness.dark);
-
-      expect(dark, light);
-      expect(light, greaterThanOrEqualTo(3), reason: '2 driver pins + 1 match');
-    });
-
-    testWidgets('the destination pin is present in dark', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester, brightness: Brightness.dark);
-      expect(find.text('Levent'), findsOneWidget);
-    });
-
-    testWidgets('shortcut chips keep their icons in dark', (
-      WidgetTester tester,
-    ) async {
-      Future<int> chipIcons(Brightness brightness) async {
-        await pump(tester, brightness: brightness);
-        return find.text('Ev').evaluate().length;
-      }
+      final AppLocalizations l10n = AppLocalizations.of(
+        tester.element(find.byType(HomeScreen)),
+      );
 
       expect(
-        await chipIcons(Brightness.dark),
-        await chipIcons(Brightness.light),
+        tester.getSemantics(find.text(l10n.homeFindRide)).label,
+        l10n.homeFindRideSemanticLabel,
       );
-      expect(find.text('İş · Levent'), findsOneWidget);
-      expect(find.text('Üniversite'), findsOneWidget);
+
+      handle.dispose();
     });
 
-    testWidgets('the map scene itself is identical across themes', (
+    /// CARRIES WEIGHT. A journey row announces which journey it is.
+    ///
+    /// Its day is half its identity, so a screen reader must not have to infer
+    /// the morning from the row's position in a list.
+    testWidgets('a journey row reads as one node naming its day', (
       WidgetTester tester,
     ) async {
-      // One scene, re-palettised — not two scenes.
-      await pump(tester, brightness: Brightness.light);
-      final RmMapCanvas lightCanvas = tester.widget(find.byType(RmMapCanvas));
-      await pump(tester, brightness: Brightness.dark);
-      final RmMapCanvas darkCanvas = tester.widget(find.byType(RmMapCanvas));
-
-      expect(darkCanvas.scene, same(lightCanvas.scene));
-      expect(kHomeMapScene.roads.length, 7);
-      expect(kHomeMapScene.buildings.length, 3);
-    });
-  });
-
-  group('Accessibility', () {
-    testWidgets('the search field is a labelled button', (
-      WidgetTester tester,
-    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
       await pump(tester);
-      expect(
-        find.bySemanticsLabel('Nereye gidiyorsun? Rota ara.'),
-        findsOneWidget,
+
+      final Iterable<String> labels = tester
+          .widgetList<Semantics>(find.byType(Semantics))
+          .map((Semantics s) => s.properties.label ?? '')
+          .where((String l) => l.contains('Kadıköy'));
+
+      expect(labels, isNotEmpty);
+      expect(labels.first, contains('Eylül'));
+
+      handle.dispose();
+    });
+
+    /// Nothing on Home claims a state through colour alone: the trip state and
+    /// the request status are both rendered as words.
+    testWidgets('lifecycle is carried by text', (WidgetTester tester) async {
+      await pump(tester);
+
+      final AppLocalizations l10n = AppLocalizations.of(
+        tester.element(find.byType(HomeScreen)),
       );
-    });
 
-    testWidgets('the match reads as one node with its key facts', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-      expect(
-        find.bySemanticsLabel(
-          'Selin K., 4,9 puan. Kadıköy → Levent. Kişi başı ₺18. %94 rota uyumu.',
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('the map illustration is decorative', (
-      WidgetTester tester,
-    ) async {
-      await pump(tester);
-      // Artwork carries no information a screen reader needs; the match card
-      // carries the real content.
-      expect(find.byType(ExcludeSemantics), findsWidgets);
+      expect(find.text(l10n.tripStateNotStarted), findsOneWidget);
+      expect(find.text(l10n.tripStateInProgress), findsOneWidget);
     });
   });
 }

@@ -13,6 +13,7 @@ import 'package:ridemate/core/routes/discovered_route.dart';
 import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
+import 'package:ridemate/core/seat_requests/seat_request.dart';
 import 'package:ridemate/core/theme/rm_theme.dart';
 import 'package:ridemate/features/chat/presentation/chat_screen.dart';
 import 'package:ridemate/features/create_route/application/place_catalogue_providers.dart';
@@ -38,6 +39,7 @@ import 'package:ridemate/features/reviews/application/review_action_providers.da
 import 'package:ridemate/features/reviews/data/review_repository.dart';
 import 'package:ridemate/features/reviews/presentation/received_reviews_screen.dart';
 import 'package:ridemate/features/safety/presentation/safety_screen.dart';
+import 'package:ridemate/features/seat_requests/application/seat_request_providers.dart';
 import 'package:ridemate/features/trip/presentation/active_trip_screen.dart';
 import 'package:ridemate/features/verification/presentation/verification_screen.dart';
 import 'package:ridemate/l10n/app_localizations.dart';
@@ -208,13 +210,40 @@ void main() {
     }
   });
 
+  /// The landing screen, rebuilt in Phase 17 R2.
+  ///
+  /// The baseline it replaced was the design's "HOME · MAP": a map with driver
+  /// pins, a greeting to somebody called Elif, saved addresses, and a 94% match
+  /// with a rated, verified Selin K. at ₺18 a head. None of those is a thing
+  /// this product knows, and all of them were the first thing a member saw.
+  ///
+  /// This one captures the state a member actually arrives at: their own name,
+  /// one action, the journeys the server returned and the askings they made.
+  /// The doubles are fixed so the capture is deterministic — a fixture in a
+  /// TEST is not the defect; a fixture rendered to a member was.
+  List<Override> homeData() => <Override>[
+    seatRequestRepositoryProvider.overrideWithValue(
+      FakeMySeatRequests(
+        requests: <MySeatRequest>[
+          fakeMySeatRequest(
+            id: '01991d00-0000-7000-8000-000000000001',
+            originLabel: 'Kadıköy, Vapur İskelesi',
+            destinationLabel: 'Levent, Metro İstasyonu',
+            serviceDate: '2026-09-24',
+          ),
+        ],
+      ),
+    ),
+  ];
+
   group('Home', () {
     for (final Brightness brightness in Brightness.values) {
       testWidgets(brightness.name, (WidgetTester tester) async {
         await pump(
           tester,
-          const Scaffold(body: HomeScreen()),
+          const HomeScreen(),
           brightness: brightness,
+          overrides: homeData(),
         );
         await expectLater(
           find.byType(HomeScreen),
@@ -228,9 +257,10 @@ void main() {
       // already mirror-safe before any Arabic strings exist.
       await pump(
         tester,
-        const Scaffold(body: HomeScreen()),
+        const HomeScreen(),
         brightness: Brightness.light,
         textDirection: TextDirection.rtl,
+        overrides: homeData(),
       );
       await expectLater(
         find.byType(HomeScreen),

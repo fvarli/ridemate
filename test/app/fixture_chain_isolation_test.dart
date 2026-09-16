@@ -161,8 +161,10 @@ void main() {
       );
 
       expect(home.contains('AppRoutes.routeDetails'), isFalse);
-      expect(home.contains('pushNamed'), isFalse);
-      // The one navigation Home keeps goes to the real Search tab.
+      expect(home.contains('AppRoutes.chat'), isFalse);
+      // Home navigates plenty since R2 — to Search, to a dated Journey, to My
+      // Routes and My Requests. What it must never name is a fixture screen,
+      // so the rule is about WHICH routes rather than about navigating at all.
       expect(home.contains('AppRoutes.search'), isTrue);
     });
 

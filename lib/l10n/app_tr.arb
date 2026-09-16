@@ -191,6 +191,44 @@
   "@homeGreeting": {
     "description": "Ana ekrandaki karşılama. Tasarımda yalnızca sabah karşılaması onaylanmıştır; günün saatine göre değişen varyantlar için ayrıca onaylı metin gerekir."
   },
+  "homeGreetingNamed": "Merhaba, {name}",
+  "@homeGreetingNamed": {
+    "description": "Üyenin KENDİ adıyla selamlanması. Ad sunucudan gelir; yüklenemezse adsız selam kullanılır, tahmin edilmez.",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "homeFindRide": "Yolculuk bul",
+  "@homeFindRide": {
+    "description": "Ana ekranın tek birincil eylemi. Arama ekranını açar; doğrudan sonuç listesine atlamaz."
+  },
+  "homeFindRideSemanticLabel": "Yolculuk bul. Aramayı açar.",
+  "@homeFindRideSemanticLabel": {
+    "description": "Birincil eylemin ekran okuyucu etiketi. Ne yaptığını söyler."
+  },
+  "homeDrivingTitle": "Sürdüğün yolculuklar",
+  "@homeDrivingTitle": {
+    "description": "Sunucunun /me/journeys ile döndürdüğü yolculukların başlığı. 'Bugün' veya 'sıradaki' DEMEZ: bu listenin neyi içerdiğine sunucu karar verir ve dün başlamış, hâlâ süren bir yolculuk da buradadır."
+  },
+  "homeRequestsTitle": "Koltuk isteklerin",
+  "@homeRequestsTitle": {
+    "description": "Üyenin gönderdiği koltuk isteklerinin önizlemesi. Onaylanmış yolculuk veya rezervasyon DEĞİLDİR."
+  },
+  "homeSeeAll": "Tümü",
+  "@homeSeeAll": {
+    "description": "Önizlemeden tam listeye giden bağlantı."
+  },
+  "homeManageTitle": "Yönet",
+  "@homeManageTitle": {
+    "description": "Gerçek yüzeylere giden bağlantıların başlığı. Kendi başına veri göstermez."
+  },
+  "homeRequestSemanticLabel": "{route}, {date}, {status}",
+  "@homeRequestSemanticLabel": {
+    "description": "Bir istek satırının ekran okuyucuda tek parça okunması. Durum sunucunun söylediğidir.",
+    "placeholders": {
+      "route": {"type": "String"},
+      "date": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
   "homeSearchPlaceholder": "Nereye gidiyorsun?",
   "@homeSearchPlaceholder": {
     "description": "Arama alanının metni. Bu alan gerçek bir metin girişi değildir; dokunulduğunda arama ekranını açar."

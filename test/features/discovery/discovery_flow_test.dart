@@ -47,6 +47,7 @@ import 'package:ridemate/features/home/presentation/home_screen.dart';
 import 'package:ridemate/features/onboarding/application/onboarding_controller.dart';
 import 'package:ridemate/features/profile/application/my_profile_providers.dart';
 import 'package:ridemate/features/seat_requests/presentation/my_requests_screen.dart';
+import 'package:ridemate/l10n/app_localizations.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
@@ -180,35 +181,40 @@ void main() {
       expect(find.byType(RmNavBar), findsOneWidget);
     });
 
-    /// INVERTED IN PHASE 17 R1, AND THE INVERSION IS THE POINT.
+    /// RETIRED IN PHASE 17 R2, HAVING BEEN INVERTED IN R1.
     ///
-    /// This asserted that Home's match row opened Route Details — one screen
-    /// reached from two places, which was true and was the problem. Route
-    /// Details is a design reference: it draws a trust score, an approval rate,
-    /// a rating, a vehicle and a number plate for a member who does not exist,
-    /// and no endpoint knows any of them. It left the release route table, and
-    /// the row that opened it stopped being a control.
-    ///
-    /// The fixture itself stays until R2 replaces Home wholesale. What must not
-    /// come back is a tap into it.
-    testWidgets('Home\'s match row opens nothing at all', (
+    /// It asserted that Home's fixture match row opened Route Details, then —
+    /// once R1 closed that edge — that it opened nothing. R2 removed the row
+    /// itself along with the rest of the invented Home, so there is no longer
+    /// anything here to tap. What replaced it: Home shows this member's own
+    /// journeys and askings, proved in test/features/home/real_home_test.dart,
+    /// and names no fixture route, proved in
+    /// test/app/fixture_chain_isolation_test.dart.
+    testWidgets('Home offers no fabricated match to open', (
       WidgetTester tester,
     ) async {
       await _pumpApp(tester);
 
-      await tester.tap(find.text('Selin K.'));
-      await tester.pumpAndSettle();
-
+      expect(find.text('Selin K.'), findsNothing);
       expect(find.byType(RouteDetailsScreen), findsNothing);
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
-    testWidgets('Home\'s match count still goes to the Search tab', (
+    /// Retargeted in Phase 17 R2. The control was Home's "3 matches →" count,
+    /// which counted fixtures; the real Home's primary action does the same
+    /// job honestly, and the tab it opens is what this case was ever about.
+    testWidgets('Home\'s primary action goes to the Search tab', (
       WidgetTester tester,
     ) async {
       await _pumpApp(tester);
 
-      await tester.tap(find.text('3 eşleşme →'));
+      await tester.tap(
+        find.text(
+          AppLocalizations.of(
+            tester.element(find.byType(HomeScreen)),
+          ).homeFindRide,
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byType(SearchScreen), findsOneWidget);

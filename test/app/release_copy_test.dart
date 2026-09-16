@@ -63,26 +63,17 @@ void main() {
 
       expect(find.byType(HomeScreen), findsOneWidget);
 
-      for (final String label in <String>['Ev', 'İş · Levent', 'Üniversite']) {
-        // The shortcut row scrolls horizontally and builds lazily, so the last
-        // chip is not in the tree until it is dragged into view.
-        if (find.text(label).evaluate().isEmpty) {
-          await tester.drag(find.text('Ev'), const Offset(-240, 0));
-          await tester.pumpAndSettle();
-        }
-
-        await tester.tap(find.text(label));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-
-        expect(
-          find.text('Kayıtlı adres özelliği henüz eklenmedi.'),
-          findsOneWidget,
-          reason: '$label must not silently do nothing',
-        );
-        // It says so and stops there: no navigation, no search started.
-        expect(find.byType(HomeScreen), findsOneWidget);
-      }
+      // RETIRED IN PHASE 17 R2. The saved-address shortcuts were Home
+      // fixtures: three chips labelled Home, Work · Levent and University,
+      // announcing a feature this product has never had. They said so when
+      // tapped, which is what this case checked — and R2 removed the labels
+      // rather than keeping a promise the toast had to withdraw.
+      //
+      // The rule they were an instance of survives below: no product screen
+      // leaves a control silently inert.
+      expect(find.text('Ev'), findsNothing);
+      expect(find.text('İş · Levent'), findsNothing);
+      expect(find.text('Üniversite'), findsNothing);
     });
 
     test('no product screen leaves a control silently inert', () {

@@ -144,6 +144,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGreeting => 'Good morning,';
 
   @override
+  String homeGreetingNamed(String name) {
+    return 'Hello, $name';
+  }
+
+  @override
+  String get homeFindRide => 'Find a ride';
+
+  @override
+  String get homeFindRideSemanticLabel => 'Find a ride. Opens search.';
+
+  @override
+  String get homeDrivingTitle => 'Your driving';
+
+  @override
+  String get homeRequestsTitle => 'Your seat requests';
+
+  @override
+  String get homeSeeAll => 'See all';
+
+  @override
+  String get homeManageTitle => 'Manage';
+
+  @override
+  String homeRequestSemanticLabel(String route, String date, String status) {
+    return '$route, $date, $status';
+  }
+
+  @override
   String get homeSearchPlaceholder => 'Where are you going?';
 
   @override

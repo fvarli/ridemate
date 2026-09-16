@@ -338,6 +338,54 @@ abstract class AppLocalizations {
   /// **'Günaydın,'**
   String get homeGreeting;
 
+  /// Üyenin KENDİ adıyla selamlanması. Ad sunucudan gelir; yüklenemezse adsız selam kullanılır, tahmin edilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Merhaba, {name}'**
+  String homeGreetingNamed(String name);
+
+  /// Ana ekranın tek birincil eylemi. Arama ekranını açar; doğrudan sonuç listesine atlamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk bul'**
+  String get homeFindRide;
+
+  /// Birincil eylemin ekran okuyucu etiketi. Ne yaptığını söyler.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk bul. Aramayı açar.'**
+  String get homeFindRideSemanticLabel;
+
+  /// Sunucunun /me/journeys ile döndürdüğü yolculukların başlığı. 'Bugün' veya 'sıradaki' DEMEZ: bu listenin neyi içerdiğine sunucu karar verir ve dün başlamış, hâlâ süren bir yolculuk da buradadır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürdüğün yolculuklar'**
+  String get homeDrivingTitle;
+
+  /// Üyenin gönderdiği koltuk isteklerinin önizlemesi. Onaylanmış yolculuk veya rezervasyon DEĞİLDİR.
+  ///
+  /// In tr, this message translates to:
+  /// **'Koltuk isteklerin'**
+  String get homeRequestsTitle;
+
+  /// Önizlemeden tam listeye giden bağlantı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get homeSeeAll;
+
+  /// Gerçek yüzeylere giden bağlantıların başlığı. Kendi başına veri göstermez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönet'**
+  String get homeManageTitle;
+
+  /// Bir istek satırının ekran okuyucuda tek parça okunması. Durum sunucunun söylediğidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route}, {date}, {status}'**
+  String homeRequestSemanticLabel(String route, String date, String status);
+
   /// Arama alanının metni. Bu alan gerçek bir metin girişi değildir; dokunulduğunda arama ekranını açar.
   ///
   /// In tr, this message translates to:

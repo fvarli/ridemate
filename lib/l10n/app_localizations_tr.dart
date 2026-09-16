@@ -144,6 +144,34 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeGreeting => 'Günaydın,';
 
   @override
+  String homeGreetingNamed(String name) {
+    return 'Merhaba, $name';
+  }
+
+  @override
+  String get homeFindRide => 'Yolculuk bul';
+
+  @override
+  String get homeFindRideSemanticLabel => 'Yolculuk bul. Aramayı açar.';
+
+  @override
+  String get homeDrivingTitle => 'Sürdüğün yolculuklar';
+
+  @override
+  String get homeRequestsTitle => 'Koltuk isteklerin';
+
+  @override
+  String get homeSeeAll => 'Tümü';
+
+  @override
+  String get homeManageTitle => 'Yönet';
+
+  @override
+  String homeRequestSemanticLabel(String route, String date, String status) {
+    return '$route, $date, $status';
+  }
+
+  @override
   String get homeSearchPlaceholder => 'Nereye gidiyorsun?';
 
   @override

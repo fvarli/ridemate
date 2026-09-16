@@ -148,6 +148,10 @@ void main() {
       'quiet': false,
     },
     'driver': <String, Object?>{'display_name': 'İ Y', 'initials': 'İY'},
+    // The route's own days, which this group is not about: it is about the
+    // caller's askings, and `my_seat_requests` is deliberately absent so the
+    // case below can prove an absent key is refused.
+    'requestable_service_dates': const <String>['2026-09-14'],
   };
 
   group('Every projection names its journey', () {

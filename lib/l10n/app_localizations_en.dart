@@ -257,10 +257,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get seatRequestFailed => 'The request was not sent';
 
   @override
-  String get seatRequestRecurringUnsupported =>
-      'Requests for recurring journeys are not available yet';
-
-  @override
   String get seatRequestOwnRoute => 'This is your journey';
 
   @override
@@ -268,6 +264,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get seatRequestUnavailable => 'This journey is no longer available';
+
+  @override
+  String get seatRequestChooseDayTitle => 'Which day?';
+
+  @override
+  String get seatRequestChooseDayBody =>
+      'This plan runs on more than one day. Choose the day you want a seat on.';
+
+  @override
+  String get seatRequestChooseDay => 'Choose a day';
+
+  @override
+  String get seatRequestNoDaysOffered => 'No days open to request right now';
+
+  @override
+  String get seatRequestEveryDayAsked =>
+      'You have requested every day currently offered';
 
   @override
   String get myRequestsTitle => 'My requests';

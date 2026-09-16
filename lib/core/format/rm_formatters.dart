@@ -137,6 +137,20 @@ class RmFormatters {
   String calendarDate(int year, int month, int day) =>
       DateFormat.yMMMMd(localeName).format(DateTime(year, month, day));
 
+  /// A calendar day with the weekday it falls on, e.g. `14 Eylül Pazartesi`.
+  ///
+  /// For choosing between days that are all within a fortnight: the weekday is
+  /// what a commuter actually picks by, and the year would be noise on every
+  /// option. `intl` supplies both the names and their order per locale — a
+  /// hand-built list of weekday names would be a translation table in the
+  /// source, wrong in the third language somebody adds.
+  ///
+  /// Takes the parts for the reason [calendarDate] does: the value is three
+  /// numbers, and the DateTime assembled here never leaves the method. No zone
+  /// is involved, because a calendar day does not have one.
+  String weekdayDate(int year, int month, int day) =>
+      DateFormat.MMMMEEEEd(localeName).format(DateTime(year, month, day));
+
   String hourMinute(int hour, int minute) => '${_pad(hour)}:${_pad(minute)}';
 
   /// An instant the server recorded, e.g. `11 Eylül 2026 · 10:05`.

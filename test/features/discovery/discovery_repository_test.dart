@@ -58,6 +58,7 @@ void main() {
     String id = '01991b00-0000-7000-8000-0000000000a1',
     String recurrence = 'weekdays',
     Object? departureDate,
+    Object? requestableServiceDates = const <String>['2026-09-14'],
     List<Map<String, Object?>> mySeatRequests = const <Map<String, Object?>>[],
   }) => <String, Object?>{
     'id': id,
@@ -79,6 +80,11 @@ void main() {
       'display_name': 'İrem Yılmaz',
       'initials': 'İY',
     },
+    // Required on the wire and possibly empty: which of this route's journeys
+    // may be asked about now. Server-derived and the same for every viewer —
+    // see the group below for why it is not the same question as the next
+    // field.
+    'requestable_service_dates': requestableServiceDates,
     // Required on the wire and possibly empty: the caller has asked about none
     // of this route's journeys. Absent is not the same as empty — the
     // missing-field loop below proves that.
@@ -269,6 +275,125 @@ void main() {
     });
   });
 
+  group('The days the route offers', () {
+    Future<DiscoveredRoute> decode(Object? days) async {
+      final ApiDiscoveryRepository repository = repositoryOver(
+        (_) async =>
+            json(page(<Object?>[result(requestableServiceDates: days)])),
+      );
+
+      final DiscoveryResult found = await repository.between(
+        originPlaceId: 'p1',
+        destinationPlaceId: 'p2',
+      );
+
+      return found.routes.single;
+    }
+
+    test('several days arrive in the order the server sent them', () async {
+      final DiscoveredRoute route = await decode(<String>[
+        '2026-09-14',
+        '2026-09-15',
+        '2026-09-18',
+      ]);
+
+      expect(route.requestableServiceDates, <DepartureDate>[
+        const DepartureDate(year: 2026, month: 9, day: 14),
+        const DepartureDate(year: 2026, month: 9, day: 15),
+        const DepartureDate(year: 2026, month: 9, day: 18),
+      ]);
+    });
+
+    /// CARRIES WEIGHT. The order is the server's and is not re-derived.
+    ///
+    /// Sorting here would hide a backend that stopped sorting, and the client
+    /// would show a first option that the contract does not promise.
+    test('an out-of-order response is not quietly sorted', () async {
+      final DiscoveredRoute route = await decode(<String>[
+        '2026-09-18',
+        '2026-09-14',
+      ]);
+
+      expect(
+        route.requestableServiceDates.first,
+        const DepartureDate(year: 2026, month: 9, day: 18),
+      );
+    });
+
+    test('a plan with no open day decodes as empty', () async {
+      expect((await decode(<String>[])).requestableServiceDates, isEmpty);
+    });
+
+    /// CARRIES WEIGHT. A malformed day is a malformed response.
+    ///
+    /// These values become path segments on the request endpoint. A day that
+    /// is not a calendar day would be offered to a member, sent back, and
+    /// refused — so it is refused here, where the defect is visible.
+    for (final Object? day in <Object?>[
+      '14-09-2026',
+      '2026-9-14',
+      '2026-02-30',
+      '2026-09-14T00:00:00Z',
+      'tomorrow',
+      '',
+      null,
+      42,
+      <String, Object?>{'service_date': '2026-09-14'},
+    ]) {
+      test('a day of `$day` fails the response', () async {
+        await expectLater(decode(<Object?>[day]), throwsA(isA<RmFailure>()));
+      });
+    }
+
+    test('a field that is not a list fails the response', () async {
+      await expectLater(
+        decode(<String, Object?>{'0': '2026-09-14'}),
+        throwsA(isA<RmFailure>()),
+      );
+      await expectLater(decode('2026-09-14'), throwsA(isA<RmFailure>()));
+    });
+
+    /// CARRIES WEIGHT. Two dated lists, two questions, one date in both.
+    ///
+    /// The route offering a day and this member having spent it are separate
+    /// facts, and the wire says so separately. A decoder that removed one from
+    /// the other would destroy the client's ability to tell a day that has
+    /// departed from a day it has already asked about.
+    test('a day may be offered and already asked about at once', () async {
+      final ApiDiscoveryRepository repository = repositoryOver(
+        (_) async => json(
+          page(<Object?>[
+            result(
+              requestableServiceDates: <String>['2026-09-14', '2026-09-15'],
+              mySeatRequests: <Map<String, Object?>>[
+                fakeMySeatRequestSummaryJson(
+                  serviceDate: '2026-09-14',
+                  status: 'declined',
+                ),
+              ],
+            ),
+          ]),
+        ),
+      );
+
+      final DiscoveryResult found = await repository.between(
+        originPlaceId: 'p1',
+        destinationPlaceId: 'p2',
+      );
+      final DiscoveredRoute route = found.routes.single;
+
+      expect(route.requestableServiceDates, hasLength(2));
+      expect(
+        route.mySeatRequests.single.serviceDate,
+        const DepartureDate(year: 2026, month: 9, day: 14),
+      );
+      // And the derived view is the difference between them.
+      expect(route.selectableServiceDates, <DepartureDate>[
+        const DepartureDate(year: 2026, month: 9, day: 15),
+      ]);
+    });
+  });
+
   group('Strict decoding', () {
     final Map<String, Object?> bad = <String, Object?>{
       'no routes key': <String, Object?>{'next_cursor': null},
@@ -325,6 +450,7 @@ void main() {
       'seats_offered',
       'rules',
       'driver',
+      'requestable_service_dates',
       'my_seat_requests',
     ]) {
       test('a row missing $field fails the response', () async {

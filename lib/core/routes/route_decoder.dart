@@ -148,10 +148,52 @@ abstract final class RouteDecoder {
       seatsOffered: seats,
       rules: rules(value['rules'], status),
       driver: driver(value['driver'], status),
+      // Required on the wire and possibly empty, never absent, and never
+      // computed here. See DiscoveredRoute.requestableServiceDates.
+      requestableServiceDates: serviceDates(value, status),
       // Required on the wire and possibly empty, never absent. See
       // SeatRequestDecoder.
       mySeatRequests: SeatRequestDecoder.summaries(value, status),
     );
+  }
+
+  /// The days a route may be asked about, as the server ordered them.
+  ///
+  /// **Required, and absence is refused rather than read as none.** A backend
+  /// that stopped sending the key would silently take every recurring plan's
+  /// action away, and the screen would look like a product decision instead of
+  /// a contract break. Empty is a real answer and arrives as an empty list.
+  ///
+  /// **The order is the server's and is not re-derived.** Sorting here would
+  /// hide a backend that stopped sorting, and a client that sorted differently
+  /// would show a different first option to the same member on two builds.
+  ///
+  /// Each entry goes through [date], so a value that is not a calendar day is a
+  /// malformed response rather than a date nobody can act on: these are path
+  /// identities now, and `2026-02-30` would be sent straight back to an
+  /// endpoint that would refuse it.
+  static List<DepartureDate> serviceDates(
+    Map<String, Object?> value,
+    int status,
+  ) {
+    final Object? days = value['requestable_service_dates'];
+
+    if (days is! List) throw malformed(status);
+
+    return <DepartureDate>[
+      for (final Object? day in days) _serviceDate(day, status),
+    ];
+  }
+
+  static DepartureDate _serviceDate(Object? value, int status) {
+    final DepartureDate? day = date(value, status);
+
+    // `date` answers null for an absent day, which is meaningful where a
+    // departure date is nullable. An entry of this list is never absent: a
+    // null here is a hole in a list of days, and a hole cannot be asked about.
+    if (day == null) throw malformed(status);
+
+    return day;
   }
 
   /// The two fields a profile has, both taken as given.

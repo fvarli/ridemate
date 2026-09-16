@@ -410,6 +410,142 @@ void main() {
     });
   });
 
+  group('Which days a journey may be asked about is the server\'s answer', () {
+    /// CARRIES WEIGHT. No IANA capability has been added to answer it here.
+    ///
+    /// This was the blocker F2 opened with: deciding which service dates a
+    /// recurring plan offers means knowing what today is in the ROUTE's
+    /// timezone, and this app has no way to evaluate one. The resolution was to
+    /// publish the days from the backend, not to ship a timezone database — a
+    /// second implementation of the rule, current only as often as the app
+    /// ships, would disagree with the server twice a year and be believed.
+    test('no timezone database has appeared', () {
+      final String pubspec = File('pubspec.yaml').readAsStringSync();
+      final String lock = File('pubspec.lock').readAsStringSync();
+
+      for (final String absent in <String>[
+        'timezone',
+        'tzdata',
+        'flutter_native_timezone',
+        'flutter_timezone',
+      ]) {
+        expect(pubspec, isNot(contains(absent)), reason: absent);
+        // The lock too: a transitive arrival is an arrival, and it would put
+        // `tz.getLocation` one import away from any widget.
+        expect(lock, isNot(contains('$absent:')), reason: '$absent (lock)');
+      }
+    });
+
+    /// CARRIES WEIGHT. Discovery renders the days; it never works one out.
+    ///
+    /// The defect this prevents is a card that consults the device clock, or a
+    /// fixed offset, to decide whether today is still open. It would be right
+    /// in İstanbul — which has not observed daylight saving since 2016 — and
+    /// wrong wherever the product went next, silently.
+    test('discovery computes no date and consults no clock', () {
+      for (final File file in dartFilesIn('lib/features/discovery')) {
+        for (final String forbidden in <String>[
+          'DateTime.now',
+          'toUtc',
+          'toLocal',
+          'isBefore',
+          'isAfter',
+          'difference(',
+          'add(const Duration',
+          'addDays',
+          'weekday ==',
+          'DateTime.monday',
+          'DateTime.saturday',
+          'DateTime.sunday',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+    });
+
+    /// The horizon is the backend's number and is not restated anywhere here.
+    ///
+    /// A `14` in this client would be a copy of a rule that lives in
+    /// `SeatRequestHorizon`, and the copy would not move when the original did.
+    test('the request horizon is not reimplemented', () {
+      for (final File file in <File>[
+        ...dartFilesIn('lib/features/discovery'),
+        ...dartFilesIn('lib/features/seat_requests'),
+        ...dartFilesIn('lib/core/routes'),
+      ]) {
+        for (final String forbidden in <String>[
+          'Duration(days: 14)',
+          'Duration(days: 15)',
+          'Europe/Istanbul',
+          'UTC+3',
+          'Duration(hours: 3)',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+    });
+
+    /// CARRIES WEIGHT. An asking is always for a named day.
+    ///
+    /// The whole of Phase 16b is that a journey is `(route, service_date)`. A
+    /// request action keyed by the route alone would make two days of one plan
+    /// share an attempt and the id it carries — which the backend answers with
+    /// `id_already_used`, or worse, replays as the wrong journey.
+    test('the request action is keyed by journey and not by route', () {
+      final String controller = code(
+        File(
+          'lib/features/seat_requests/application/'
+          'seat_request_action_providers.dart',
+        ),
+      );
+
+      expect(
+        controller,
+        contains(
+          'typedef JourneyKey = ({String routeId, DepartureDate serviceDate});',
+        ),
+      );
+
+      // And every caller names a day rather than passing a bare route id.
+      for (final File file in dartFilesIn('lib/features/discovery')) {
+        expect(
+          code(file),
+          isNot(contains('.request(route.id)')),
+          reason: file.path,
+        );
+      }
+    });
+
+    /// CARRIES WEIGHT. Nothing derives how many seats are left.
+    ///
+    /// `seats_offered` is what the driver offered, never what remains, and no
+    /// endpoint publishes a remainder. A day greyed out because this client
+    /// counted acceptances would be the app inventing `route_full`.
+    ///
+    /// Scoped to the surfaces built on the real projection. `domain/` still
+    /// holds the pre-Phase-12 fixture model, which has a `seatsAvailable` of
+    /// its own — invented, never served, and already fenced off by the guard
+    /// above that keeps Search and the card away from those fixtures.
+    test('discovery derives no remaining capacity', () {
+      for (final File file in <File>[
+        ...dartFilesIn('lib/features/discovery/presentation'),
+        ...dartFilesIn('lib/features/discovery/data'),
+        ...dartFilesIn('lib/features/discovery/application'),
+        ...dartFilesIn('lib/core/routes'),
+      ]) {
+        for (final String forbidden in <String>[
+          'seatsRemaining',
+          'seatsAvailable',
+          'seatsLeft',
+          'seatsOffered -',
+          'accepted.length',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+    });
+  });
+
   group('No dependency crept in with it', () {
     test('the transport is package:http and not an alternative', () {
       final String pubspec = File('pubspec.yaml').readAsStringSync();

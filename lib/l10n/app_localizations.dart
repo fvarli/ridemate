@@ -536,12 +536,6 @@ abstract class AppLocalizations {
   /// **'İstek gönderilemedi'**
   String get seatRequestFailed;
 
-  /// Haftaiçi tekrar eden bir plan için tek bir kalkış yoktur; bu yüzden istek gönderilemez.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tekrarlayan yolculuklar için istek henüz yok'**
-  String get seatRequestRecurringUnsupported;
-
   /// Üye kendi yayımladığı yolculuğa istek gönderemez.
   ///
   /// In tr, this message translates to:
@@ -559,6 +553,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu yolculuk artık geçerli değil'**
   String get seatRequestUnavailable;
+
+  /// Tekrarlayan bir plan için hangi günün koltuğunun isteneceğini seçtiren sayfanın başlığı. Bir takvim değildir; sunucunun verdiği günler listelenir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi gün?'**
+  String get seatRequestChooseDayTitle;
+
+  /// Seçim sayfasının açıklaması. Koltuğun boş olduğunu veya isteğin kabul edileceğini ima etmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu plan birden çok gün çalışıyor. Koltuk istediğin günü seç.'**
+  String get seatRequestChooseDayBody;
+
+  /// Tekrarlayan bir planda gün seçme sayfasını açan düğme. İstek henüz gönderilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gün seç'**
+  String get seatRequestChooseDay;
+
+  /// Sunucu bu rota için şu an istek gönderilebilecek hiçbir gün bildirmedi. Nedenini iddia etmez: dolu, iptal veya süresi doldu DEMEZ.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu anda istenebilecek bir gün yok'**
+  String get seatRequestNoDaysOffered;
+
+  /// Sunucunun şu an sunduğu her gün için bu üyenin zaten bir isteği var. Her istek başına bir gün ömür boyu tek kezdir; sonucu ne olursa olsun aynı gün tekrar istenemez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunulan günlerin hepsi için istek gönderdin'**
+  String get seatRequestEveryDayAsked;
 
   /// Üyenin gönderdiği koltuk isteklerinin listesi. Kendi geçmişidir.
   ///

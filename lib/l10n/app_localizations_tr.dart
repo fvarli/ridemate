@@ -257,10 +257,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get seatRequestFailed => 'İstek gönderilemedi';
 
   @override
-  String get seatRequestRecurringUnsupported =>
-      'Tekrarlayan yolculuklar için istek henüz yok';
-
-  @override
   String get seatRequestOwnRoute => 'Bu senin yolculuğun';
 
   @override
@@ -268,6 +264,23 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get seatRequestUnavailable => 'Bu yolculuk artık geçerli değil';
+
+  @override
+  String get seatRequestChooseDayTitle => 'Hangi gün?';
+
+  @override
+  String get seatRequestChooseDayBody =>
+      'Bu plan birden çok gün çalışıyor. Koltuk istediğin günü seç.';
+
+  @override
+  String get seatRequestChooseDay => 'Gün seç';
+
+  @override
+  String get seatRequestNoDaysOffered => 'Şu anda istenebilecek bir gün yok';
+
+  @override
+  String get seatRequestEveryDayAsked =>
+      'Sunulan günlerin hepsi için istek gönderdin';
 
   @override
   String get myRequestsTitle => 'İsteklerim';

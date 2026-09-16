@@ -75,6 +75,7 @@ final class DiscoveredRoute {
     required this.seatsOffered,
     required this.rules,
     required this.driver,
+    required this.requestableServiceDates,
     required this.mySeatRequests,
   });
 
@@ -102,6 +103,30 @@ final class DiscoveredRoute {
   final Set<RideRuleId> rules;
 
   final DiscoveredDriver driver;
+
+  /// Which of this route's journeys may be asked about now, earliest first.
+  ///
+  /// THE SERVER'S ANSWER, BECAUSE THE CLIENT CANNOT HAVE ONE
+  ///
+  /// Whether a day is open depends on what today is where the route runs, on
+  /// whether that day's departure has passed, and on how far ahead the request
+  /// horizon reaches — all read in [timezone], which this app has no way to
+  /// evaluate. It carries no IANA database and deliberately does not: a second
+  /// implementation of these rules, current only as often as the app ships,
+  /// would disagree with the backend twice a year and be believed. So the days
+  /// arrive already decided, in the order they were decided in.
+  ///
+  /// IDENTICAL FOR EVERY VIEWER, UNLIKE [mySeatRequests]
+  ///
+  /// These are the route's days, not this member's. A day they have already
+  /// asked about is still here — being asked about does not close a journey to
+  /// everybody else — so this list alone never says what the card may offer.
+  /// [selectableServiceDates] is what does.
+  ///
+  /// Empty is an ordinary answer: a weekday plan read on a Saturday evening
+  /// whose Monday is beyond nothing at all still has days, but a one-off
+  /// journey that has left has none.
+  final List<DepartureDate> requestableServiceDates;
 
   /// The caller's own askings about this route's journeys, earliest first.
   ///
@@ -145,6 +170,40 @@ final class DiscoveredRoute {
     return null;
   }
 
+  /// The days this member may still start an asking about, earliest first.
+  ///
+  /// THE ONE PLACE THE TWO SERVER LISTS ARE COMBINED
+  ///
+  /// [requestableServiceDates] is what the route offers and [mySeatRequests] is
+  /// what this member has spent; neither is the answer on its own, and the
+  /// answer is the difference between them. It is computed here, once, because
+  /// a widget doing the subtraction for itself is a widget that will eventually
+  /// do it slightly differently — and the difference would show up as an offer
+  /// to ask twice about one journey.
+  ///
+  /// STATUS IS NOT CONSULTED, AND MUST NOT BE
+  ///
+  /// A member gets one asking per journey for that journey's lifetime. So a
+  /// date is spent the moment an entry exists for it, whatever that entry says:
+  /// `declined` and `withdrawn` are ends, not releases, and reading either as
+  /// "free again" would put a control on the card that the server answers with
+  /// a refusal. The presence of the day is the whole test.
+  ///
+  /// The server's order is preserved rather than re-derived.
+  List<DepartureDate> get selectableServiceDates {
+    if (mySeatRequests.isEmpty) return requestableServiceDates;
+
+    final Set<DepartureDate> spent = <DepartureDate>{
+      for (final MySeatRequestSummary summary in mySeatRequests)
+        summary.serviceDate,
+    };
+
+    return <DepartureDate>[
+      for (final DepartureDate day in requestableServiceDates)
+        if (!spent.contains(day)) day,
+    ];
+  }
+
   /// The same journey, carrying the asking the server has just confirmed.
   ///
   /// Everything else is copied unchanged: this exists to record one answer,
@@ -177,6 +236,7 @@ final class DiscoveredRoute {
       seatsOffered: seatsOffered,
       rules: rules,
       driver: driver,
+      requestableServiceDates: requestableServiceDates,
       mySeatRequests: merged,
     );
   }
@@ -196,6 +256,7 @@ final class DiscoveredRoute {
           other.seatsOffered == seatsOffered &&
           setEquals(other.rules, rules) &&
           other.driver == driver &&
+          listEquals(other.requestableServiceDates, requestableServiceDates) &&
           listEquals(other.mySeatRequests, mySeatRequests);
 
   @override
@@ -211,6 +272,7 @@ final class DiscoveredRoute {
     seatsOffered,
     Object.hashAllUnordered(rules),
     driver,
+    Object.hashAll(requestableServiceDates),
     Object.hashAll(mySeatRequests),
   );
 }

@@ -73,6 +73,10 @@ DiscoveredRoute _route({
   String driver = 'İrem Yılmaz',
   String initials = 'İY',
   Recurrence recurrence = Recurrence.weekdays,
+  List<DepartureDate> requestableServiceDates = const <DepartureDate>[
+    DepartureDate(year: 2026, month: 9, day: 14),
+  ],
+  List<MySeatRequestSummary> mySeatRequests = const <MySeatRequestSummary>[],
 }) => DiscoveredRoute(
   id: id,
   origin: const Place(id: 'p1', label: 'Kadıköy, Vapur İskelesi'),
@@ -87,7 +91,8 @@ DiscoveredRoute _route({
   seatsOffered: 3,
   rules: const <RideRuleId>{RideRuleId.noSmoking},
   driver: DiscoveredDriver(displayName: driver, initials: initials),
-  mySeatRequests: const <MySeatRequestSummary>[],
+  requestableServiceDates: requestableServiceDates,
+  mySeatRequests: mySeatRequests,
 );
 
 void main() {
@@ -313,7 +318,13 @@ void main() {
         discovery: FakeDiscoveryRepository(
           pages: <DiscoveryResult>[
             DiscoveryResult(
-              routes: <DiscoveredRoute>[_route()],
+              // No open days, so the card carries no control at all and what
+              // is left is the journey itself — which is what this case is
+              // about. A plan WITH open days offers a request, and every way
+              // it may do that is covered in request_a_seat_test.
+              routes: <DiscoveredRoute>[
+                _route(requestableServiceDates: const <DepartureDate>[]),
+              ],
               nextCursor: null,
             ),
           ],
@@ -330,7 +341,8 @@ void main() {
         reason: 'tapping would open a fixture-backed Route Details',
       );
       expect(find.byType(RouteDetailsScreen), findsNothing);
-      // Asking for a seat is Phase 13.
+      // The two invented CTAs never existed, and asking for a seat needs a day
+      // the server is offering — there is none here.
       for (final String cta in <String>['Koltuk iste', 'Katıl', 'Rezerve et']) {
         expect(find.text(cta), findsNothing, reason: cta);
       }

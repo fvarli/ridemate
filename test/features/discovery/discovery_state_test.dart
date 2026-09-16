@@ -33,6 +33,9 @@ DiscoveredRoute _route(String id) => DiscoveredRoute(
   seatsOffered: 3,
   rules: const <RideRuleId>{RideRuleId.noSmoking},
   driver: const DiscoveredDriver(displayName: 'İrem Yılmaz', initials: 'İY'),
+  requestableServiceDates: const <DepartureDate>[
+    DepartureDate(year: 2026, month: 9, day: 14),
+  ],
   mySeatRequests: const <MySeatRequestSummary>[],
 );
 

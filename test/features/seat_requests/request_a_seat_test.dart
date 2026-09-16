@@ -10,11 +10,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
+import 'package:ridemate/core/format/rm_formatters.dart';
 import 'package:ridemate/core/id/rm_uuid.dart';
 import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/core/routes/departure.dart';
@@ -46,6 +48,10 @@ class _AskRecorder implements SeatRequestRepository {
   final List<String> requestIds = <String>[];
   final List<String> routeIds = <String>[];
 
+  /// The day each attempt named. `null` would mean the client asked the server
+  /// to guess which journey it meant, which Phase 16b removed.
+  final List<DepartureDate?> serviceDates = <DepartureDate?>[];
+
   /// Held open so a test can observe the in-flight state.
   Completer<void>? gate;
 
@@ -59,6 +65,7 @@ class _AskRecorder implements SeatRequestRepository {
   }) async {
     requestIds.add(requestId);
     routeIds.add(routeId);
+    serviceDates.add(serviceDate);
 
     final Completer<void>? held = gate;
     if (held != null) await held.future;
@@ -69,7 +76,14 @@ class _AskRecorder implements SeatRequestRepository {
     }
 
     return SeatRequested(
-      request: _accepted(requestId, routeId),
+      // The server answers about the day it was asked about. Echoing it is what
+      // a real backend does, and it is how the card learns which of a plan's
+      // days is now spent.
+      request: _accepted(
+        requestId,
+        routeId,
+        serviceDate ?? const DepartureDate(year: 2026, month: 9, day: 14),
+      ),
       wasAlreadyRequested: false,
     );
   }
@@ -98,11 +112,15 @@ class _AskRecorder implements SeatRequestRepository {
       throw UnimplementedError();
 }
 
-MySeatRequest _accepted(String id, String routeId) => MySeatRequest(
+MySeatRequest _accepted(
+  String id,
+  String routeId,
+  DepartureDate serviceDate,
+) => MySeatRequest(
   id: id,
-  // The day the server recorded the asking for. The card keys on the route's
-  // own date, so for these one-off fixtures the two are the same journey.
-  serviceDate: const DepartureDate(year: 2026, month: 9, day: 14),
+  // The day the server recorded the asking for, which is the day it was asked
+  // about — never the route's own date, which a plan does not have.
+  serviceDate: serviceDate,
   status: SeatRequestStatus.pending,
   requestedAt: DateTime.utc(2026, 9, 9, 8),
   decidedAt: null,
@@ -130,6 +148,10 @@ MySeatRequest _accepted(String id, String routeId) => MySeatRequest(
 class _CountingUuid implements RmUuidGenerator {
   int _next = 0;
 
+  /// How many ids have been handed out. Zero is a real assertion: an intent
+  /// the member backed out of must not have spent one.
+  int get minted => _next;
+
   @override
   String v7() =>
       '01991d00-0000-7000-8000-${(++_next).toString().padLeft(12, '0')}';
@@ -144,22 +166,34 @@ void main() {
     Recurrence recurrence = Recurrence.once,
     DepartureState departureState = DepartureState.upcoming,
     SeatRequestStatus? asked,
+    // The days the SERVER says are open. Never derived from the other fields
+    // here, because the card never derives them either — a fixture that worked
+    // them out would be testing an arithmetic this app does not do.
+    List<String> offers = const <String>['2026-09-14'],
+    List<(String, SeatRequestStatus)> askedDays =
+        const <(String, SeatRequestStatus)>[],
   }) => fakeDiscoveredRoute(
     id: routeId,
     recurrence: recurrence,
     departureDate: recurrence == Recurrence.once ? '2026-09-14' : null,
     departureState: departureState,
-    mySeatRequests: asked == null
-        ? const <Map<String, Object?>>[]
-        : <Map<String, Object?>>[
-            fakeMySeatRequestSummaryJson(
-              // The day this card would ask about, so the summary is the one
-              // the card looks up rather than a different journey's.
-              serviceDate: '2026-09-14',
-              id: 'r1',
-              status: asked.wire,
-            ),
-          ],
+    requestableServiceDates: offers,
+    mySeatRequests: <Map<String, Object?>>[
+      if (asked != null)
+        fakeMySeatRequestSummaryJson(
+          // The day this card would ask about, so the summary is the one
+          // the card looks up rather than a different journey's.
+          serviceDate: '2026-09-14',
+          id: 'r1',
+          status: asked.wire,
+        ),
+      for (final (String day, SeatRequestStatus status) in askedDays)
+        fakeMySeatRequestSummaryJson(
+          serviceDate: day,
+          id: 'req-$day',
+          status: status.wire,
+        ),
+    ],
   );
 
   Future<ProviderContainer> pump(
@@ -202,9 +236,12 @@ void main() {
     return container;
   }
 
-  String ask(WidgetTester tester) => AppLocalizations.of(
-    tester.element(find.byType(MatchResultsScreen)),
-  ).seatRequestAsk;
+  AppLocalizations strings(WidgetTester tester) =>
+      AppLocalizations.of(tester.element(find.byType(MatchResultsScreen)));
+
+  String ask(WidgetTester tester) => strings(tester).seatRequestAsk;
+
+  String chooseDay(WidgetTester tester) => strings(tester).seatRequestChooseDay;
 
   /// The action inside the card for one driver.
   ///
@@ -228,24 +265,28 @@ void main() {
       expect(find.text(ask(tester)), findsOneWidget);
     });
 
-    /// No single departure to hold a seat on, so no action — and deliberately
-    /// not a disabled one, which would say the feature exists and is being
-    /// withheld from this member.
-    testWidgets('a weekday plan offers none', (WidgetTester tester) async {
+    /// RETIRED IN F2, AND THIS IS WHAT REPLACED IT.
+    ///
+    /// Until Phase 16b a weekday plan offered nothing at all: it has no single
+    /// departure, and the card had no way to name one of its days. The backend
+    /// now says which days are open, so the plan gets an action — one that asks
+    /// which day first, rather than one that guesses.
+    testWidgets('a weekday plan offers a day to choose', (
+      WidgetTester tester,
+    ) async {
       await pump(
         tester,
-        routes: <DiscoveredRoute>[route(recurrence: Recurrence.weekdays)],
+        routes: <DiscoveredRoute>[
+          route(
+            recurrence: Recurrence.weekdays,
+            offers: const <String>['2026-09-14', '2026-09-15'],
+          ),
+        ],
       );
 
+      expect(find.text(chooseDay(tester)), findsOneWidget);
+      // Not the ask control: nothing is sent until a day is named.
       expect(find.text(ask(tester)), findsNothing);
-      expect(
-        find.text(
-          AppLocalizations.of(
-            tester.element(find.byType(MatchResultsScreen)),
-          ).seatRequestRecurringUnsupported,
-        ),
-        findsOneWidget,
-      );
     });
 
     testWidgets('a departed journey offers none', (WidgetTester tester) async {
@@ -502,6 +543,344 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(ask(tester)), findsNothing);
+    });
+  });
+
+  group('Choosing which day to ask about', () {
+    const DepartureDate monday = DepartureDate(year: 2026, month: 9, day: 14);
+    const DepartureDate tuesday = DepartureDate(year: 2026, month: 9, day: 15);
+    const DepartureDate friday = DepartureDate(year: 2026, month: 9, day: 18);
+
+    /// The chooser's option for one day, as the member reads it.
+    String option(WidgetTester tester, DepartureDate day) => RmFormatters.of(
+      tester.element(find.byType(MatchResultsScreen)),
+    ).weekdayDate(day.year, day.month, day.day);
+
+    Future<void> openChooser(
+      WidgetTester tester, {
+      List<String> offers = const <String>['2026-09-14', '2026-09-15'],
+      List<(String, SeatRequestStatus)> askedDays =
+          const <(String, SeatRequestStatus)>[],
+      _AskRecorder? seats,
+      RmUuidGenerator? uuid,
+    }) async {
+      await pump(
+        tester,
+        routes: <DiscoveredRoute>[
+          route(
+            recurrence: Recurrence.weekdays,
+            offers: offers,
+            askedDays: askedDays,
+          ),
+        ],
+        seats: seats,
+        uuid: uuid,
+      );
+
+      await tester.tap(find.text(chooseDay(tester)));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the chooser lists every day the member may still ask about', (
+      WidgetTester tester,
+    ) async {
+      await openChooser(
+        tester,
+        offers: const <String>['2026-09-14', '2026-09-15', '2026-09-18'],
+      );
+
+      expect(find.text(option(tester, monday)), findsOneWidget);
+      expect(find.text(option(tester, tuesday)), findsOneWidget);
+      expect(find.text(option(tester, friday)), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. A spent day is not offered again, whatever became of it.
+    for (final SeatRequestStatus status in SeatRequestStatus.values) {
+      testWidgets('a $status day is not in the chooser', (
+        WidgetTester tester,
+      ) async {
+        await openChooser(
+          tester,
+          offers: const <String>['2026-09-14', '2026-09-15', '2026-09-18'],
+          askedDays: <(String, SeatRequestStatus)>[('2026-09-14', status)],
+        );
+
+        expect(find.text(option(tester, monday)), findsNothing);
+        expect(find.text(option(tester, tuesday)), findsOneWidget);
+        expect(find.text(option(tester, friday)), findsOneWidget);
+      });
+    }
+
+    /// CARRIES WEIGHT. The day the member named is the day that is sent.
+    testWidgets('choosing Tuesday asks about Tuesday', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder();
+
+      await openChooser(tester, seats: seats, uuid: _CountingUuid());
+      await tester.tap(find.text(option(tester, tuesday)));
+      await tester.pumpAndSettle();
+
+      expect(seats.calls, 1);
+      expect(seats.serviceDates.single, tuesday);
+      expect(seats.routeIds.single, routeId);
+    });
+
+    /// CARRIES WEIGHT. Backing out asks for nothing and spends no id.
+    ///
+    /// An id minted for a question the member abandoned would be carried by
+    /// whatever they asked for next, and the backend would answer about the
+    /// wrong journey.
+    testWidgets('dismissing the chooser sends nothing and mints nothing', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder();
+      final _CountingUuid uuid = _CountingUuid();
+
+      await openChooser(tester, seats: seats, uuid: uuid);
+      // The way a member dismisses a modal sheet: tapping the barrier above it.
+      await tester.tapAt(const Offset(400, 8));
+      await tester.pumpAndSettle();
+
+      expect(seats.calls, 0);
+      expect(uuid.minted, 0);
+      // And the control is still there to try again.
+      expect(find.text(chooseDay(tester)), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. Nothing is chosen on the member's behalf.
+    ///
+    /// The first option is the earliest day, not a default. A card that sent it
+    /// on the first tap would be booking a journey nobody named.
+    testWidgets('opening the chooser asks for nothing by itself', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder();
+
+      await openChooser(tester, seats: seats, uuid: _CountingUuid());
+
+      expect(seats.calls, 0);
+    });
+
+    testWidgets('a chosen day becomes spent and the others do not', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder();
+
+      await openChooser(
+        tester,
+        offers: const <String>['2026-09-14', '2026-09-15', '2026-09-18'],
+        seats: seats,
+        uuid: _CountingUuid(),
+      );
+      await tester.tap(find.text(option(tester, tuesday)));
+      await tester.pumpAndSettle();
+
+      // The card is still a plan with days left, so it still offers the
+      // chooser rather than collapsing to one status.
+      expect(find.text(chooseDay(tester)), findsOneWidget);
+
+      await tester.tap(find.text(chooseDay(tester)));
+      await tester.pumpAndSettle();
+
+      expect(find.text(option(tester, tuesday)), findsNothing);
+      expect(find.text(option(tester, monday)), findsOneWidget);
+      expect(find.text(option(tester, friday)), findsOneWidget);
+    });
+
+    /// CARRIES WEIGHT. Two days of one plan are two askings.
+    ///
+    /// Sharing an id would make the second a RETRY of the first: the backend
+    /// would answer `id_already_used`, or replay and hand back the wrong day.
+    testWidgets('two days never share the id they are asked under', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder();
+
+      await openChooser(
+        tester,
+        // Three, so that asking about one still leaves a choice to make.
+        offers: const <String>['2026-09-14', '2026-09-15', '2026-09-18'],
+        seats: seats,
+        uuid: _CountingUuid(),
+      );
+      await tester.tap(find.text(option(tester, monday)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(chooseDay(tester)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(option(tester, tuesday)));
+      await tester.pumpAndSettle();
+
+      expect(seats.serviceDates, <DepartureDate>[monday, tuesday]);
+      expect(seats.requestIds.toSet(), hasLength(2));
+    });
+
+    /// A retry of ONE day is the same asking arriving again.
+    testWidgets('retrying a day reuses that day\'s own id', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder(failures: 1);
+
+      await openChooser(tester, seats: seats, uuid: _CountingUuid());
+      await tester.tap(find.text(option(tester, tuesday)));
+      await tester.pumpAndSettle();
+
+      // The failure left the ask control on the card, for that day alone.
+      await tester.tap(find.text(ask(tester)));
+      await tester.pumpAndSettle();
+
+      expect(seats.serviceDates, <DepartureDate>[tuesday, tuesday]);
+      expect(seats.requestIds.toSet(), hasLength(1));
+    });
+
+    testWidgets('an option announces the day it is for', (
+      WidgetTester tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+      await openChooser(tester);
+
+      final SemanticsData data = tester
+          .getSemantics(find.text(option(tester, tuesday)))
+          .getSemanticsData();
+
+      // The date IS the announcement — nothing about the option is carried by
+      // position or colour — and it announces itself as something to press.
+      expect(data.label, option(tester, tuesday));
+      expect(data.flagsCollection.isButton, isTrue);
+      expect(data.hasAction(SemanticsAction.tap), isTrue);
+
+      handle.dispose();
+    });
+  });
+
+  group('When there is only one day, or none', () {
+    /// CARRIES WEIGHT. A chooser holding one option is a question with one
+    /// answer. The plan asks about that day directly, exactly as a one-off does.
+    testWidgets('a plan with one open day asks about it directly', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder();
+
+      await pump(
+        tester,
+        routes: <DiscoveredRoute>[
+          route(
+            recurrence: Recurrence.weekdays,
+            offers: const <String>['2026-09-18'],
+          ),
+        ],
+        seats: seats,
+        uuid: _CountingUuid(),
+      );
+
+      expect(find.text(chooseDay(tester)), findsNothing);
+      await tester.tap(find.text(ask(tester)));
+      await tester.pumpAndSettle();
+
+      expect(
+        seats.serviceDates.single,
+        const DepartureDate(year: 2026, month: 9, day: 18),
+      );
+    });
+
+    /// CARRIES WEIGHT. A one-off route is unchanged by F2.
+    ///
+    /// One open day, so the control asks directly — no sheet, and the day is
+    /// the server's rather than one this card worked out.
+    testWidgets('a one-off journey still asks directly', (
+      WidgetTester tester,
+    ) async {
+      final _AskRecorder seats = _AskRecorder();
+
+      await pump(
+        tester,
+        routes: <DiscoveredRoute>[route()],
+        seats: seats,
+        uuid: _CountingUuid(),
+      );
+
+      expect(find.text(chooseDay(tester)), findsNothing);
+      await tester.tap(find.text(ask(tester)));
+      await tester.pumpAndSettle();
+
+      expect(seats.calls, 1);
+      expect(
+        seats.serviceDates.single,
+        const DepartureDate(year: 2026, month: 9, day: 14),
+      );
+    });
+
+    /// The server is offering nothing. The card says so and says nothing
+    /// about why — it does not know whether the plan is full, ending, or
+    /// simply between days.
+    testWidgets('a plan offering no day has no control at all', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        routes: <DiscoveredRoute>[
+          route(recurrence: Recurrence.weekdays, offers: const <String>[]),
+        ],
+      );
+
+      expect(find.text(ask(tester)), findsNothing);
+      expect(find.text(chooseDay(tester)), findsNothing);
+      expect(
+        find.text(strings(tester).seatRequestNoDaysOffered),
+        findsOneWidget,
+      );
+    });
+
+    /// A different truth, and a different sentence: there ARE days, and this
+    /// member has asked about all of them.
+    testWidgets('a plan whose every day is spent says so', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        routes: <DiscoveredRoute>[
+          route(
+            recurrence: Recurrence.weekdays,
+            offers: const <String>['2026-09-14', '2026-09-15'],
+            askedDays: const <(String, SeatRequestStatus)>[
+              ('2026-09-14', SeatRequestStatus.declined),
+              ('2026-09-15', SeatRequestStatus.pending),
+            ],
+          ),
+        ],
+      );
+
+      expect(find.text(chooseDay(tester)), findsNothing);
+      expect(
+        find.text(strings(tester).seatRequestEveryDayAsked),
+        findsOneWidget,
+      );
+      // And NOT the other sentence, which would be false here.
+      expect(find.text(strings(tester).seatRequestNoDaysOffered), findsNothing);
+    });
+
+    /// CARRIES WEIGHT. One day's answer is never the plan's answer.
+    testWidgets('a declined day does not become the plan\'s status', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        routes: <DiscoveredRoute>[
+          route(
+            recurrence: Recurrence.weekdays,
+            offers: const <String>['2026-09-14', '2026-09-15'],
+            askedDays: const <(String, SeatRequestStatus)>[
+              ('2026-09-14', SeatRequestStatus.declined),
+            ],
+          ),
+        ],
+      );
+
+      expect(find.text(strings(tester).seatRequestDeclined), findsNothing);
+      expect(find.text(chooseDay(tester)), findsNothing);
+      // One day left, so it is asked about directly.
+      expect(find.text(ask(tester)), findsOneWidget);
     });
   });
 

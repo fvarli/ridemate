@@ -803,6 +803,10 @@ DiscoveredRoute fakeDiscoveredRoute({
   Set<RideRuleId> rules = const <RideRuleId>{RideRuleId.noSmoking},
   String displayName = 'Ayşe Demir',
   String initials = 'AD',
+
+  /// The days the SERVER says may be asked about — never derived from the
+  /// fixture's other fields, because the client never derives them either.
+  List<String> requestableServiceDates = const <String>['2026-09-14'],
   List<Map<String, Object?>> mySeatRequests = const <Map<String, Object?>>[],
 }) => RouteDecoder.discovered(<String, Object?>{
   'id': id,
@@ -822,6 +826,9 @@ DiscoveredRoute fakeDiscoveredRoute({
     'display_name': displayName,
     'initials': initials,
   },
+  // Required on the wire and possibly empty. Server-derived: which of this
+  // route's journeys may be asked about now, identical for every viewer.
+  'requestable_service_dates': requestableServiceDates,
   // Required on the wire and possibly empty, which is the ordinary case.
   'my_seat_requests': mySeatRequests,
 }, 200);

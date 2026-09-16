@@ -27,19 +27,33 @@
 //
 // ONE ACTION, AND ONLY WHEN IT IS TRUE
 //
-// Phase 13 gave it a seat request. The action appears only for a one-off
-// journey that has not departed and that this member has not already asked
-// about — three facts the card owns, checked here rather than assumed from the
-// endpoint's own filtering.
+// Phase 13 gave it a seat request, for a one-off journey only: a weekday plan
+// had no single departure to hold a seat on, and the card had no way to name
+// one of its days. Phase 16b's backend now says which days a route may be
+// asked about, so F2 removes that gate — the action is the same action, and
+// what changed is that the day it is for can now be chosen.
 //
-// A weekday plan gets no action at all: it has no single departure to hold a
-// seat on, and a disabled control would imply the feature exists and is being
-// withheld from this member.
+// WHICH DAYS, AND WHOSE
 //
-// Once an asking exists the action is gone for good. A member may create one
-// seat request per journey for that journey's lifetime, so `declined` and
-// `withdrawn` are ends — offering to ask again would be a control the server
-// would refuse.
+// Both facts arrive from the server and neither is computed here. The route
+// offers `requestableServiceDates`; this member has spent the days in
+// `mySeatRequests`; the difference is `selectableServiceDates`, and the card
+// reads that one. Nothing in this file knows what today is, and it must not:
+// the days are decided in the route's own timezone, which this app cannot
+// evaluate.
+//
+// THREE SHAPES, DECIDED BY HOW MANY DAYS ARE LEFT
+//
+//   several   a control that opens the chooser; the member names the day
+//   exactly one   the control asks about that day directly — a chooser
+//                 containing one option is a question with one answer
+//   none      text saying so, and never a disabled control
+//
+// Once an asking exists for a day, that day is gone for good. A member may
+// create one seat request per journey for that journey's lifetime, so
+// `declined` and `withdrawn` are ends — offering to ask again would be a
+// control the server would refuse. It is the day that closes, though, not the
+// plan: a declined Monday leaves Tuesday exactly as it was.
 //
 // INITIALS ARE THE SERVER'S
 //
@@ -65,6 +79,7 @@ import '../../../../core/widgets/rm_card.dart';
 import '../../../../core/widgets/rm_chip.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../seat_requests/application/seat_request_action_providers.dart';
+import 'service_date_sheet.dart';
 
 /// One journey somebody else published.
 class DiscoveredRouteCard extends StatelessWidget {
@@ -174,49 +189,63 @@ class DiscoveredRouteCard extends StatelessWidget {
   /// Outside the `ExcludeSemantics` above, so the action keeps its own
   /// semantics while the journey is announced as one piece.
   Widget? _action(BuildContext context, AppLocalizations l10n, RmColors c) {
-    // The asking for the day this card would ask about — a one-off route's own
-    // date. A plan has one per day it runs and this card has no way to choose
-    // between them yet, which is why the recurring gate below still stands.
+    // A ONE-OFF ROUTE IS ITS JOURNEY, SO ITS ASKING IS THE CARD'S STATUS.
     //
-    // FOR F2. Once a passenger can pick a service date, the card reads the
-    // asking for the date they picked and the gate goes.
-    final MySeatRequestSummary? asked = route.seatRequestOn(
-      route.departureDate,
-    );
+    // Only here. A plan has one asking per day it runs, and printing any one of
+    // them at card level would report a single day's answer as though it were
+    // the plan's — a declined Monday reading as a declined commute.
+    if (route.recurrence == Recurrence.once) {
+      final MySeatRequestSummary? asked = route.seatRequestOn(
+        route.departureDate,
+      );
 
-    // An asking exists. The card says what the server says about it, and
-    // offers nothing: this journey cannot be asked about again.
-    if (asked != null) {
+      if (asked != null) {
+        return _Status(
+          label: switch (asked.status) {
+            SeatRequestStatus.pending => l10n.seatRequestPending,
+            SeatRequestStatus.accepted => l10n.seatRequestAccepted,
+            SeatRequestStatus.declined => l10n.seatRequestDeclined,
+            SeatRequestStatus.withdrawn => l10n.seatRequestWithdrawn,
+          },
+        );
+      }
+
+      // The server excludes departed journeys, but a page can be read and then
+      // sat on. The card owns this fact for a one-off route, so it checks it.
+      // A plan is never `past` — there is always another weekday — so this is
+      // asked where it means something.
+      if (route.departureState != DepartureState.upcoming) return null;
+    }
+
+    final List<DepartureDate> days = route.selectableServiceDates;
+
+    // Nothing left to ask about. Two different truths, and the card says
+    // whichever one is true rather than guessing at a third: either the server
+    // is currently offering no days at all, or it is offering days and this
+    // member has asked about every one of them.
+    //
+    // Deliberately NOT a disabled control, and deliberately not a reason. The
+    // card does not know whether the route is full, ending, or quiet — nothing
+    // on the wire says — and a greyed-out button would imply the action exists
+    // and is being withheld from this member in particular.
+    if (days.isEmpty) {
       return _Status(
-        label: switch (asked.status) {
-          SeatRequestStatus.pending => l10n.seatRequestPending,
-          SeatRequestStatus.accepted => l10n.seatRequestAccepted,
-          SeatRequestStatus.declined => l10n.seatRequestDeclined,
-          SeatRequestStatus.withdrawn => l10n.seatRequestWithdrawn,
-        },
+        label: route.requestableServiceDates.isEmpty
+            ? l10n.seatRequestNoDaysOffered
+            : l10n.seatRequestEveryDayAsked,
+        muted: true,
       );
     }
 
-    // No single departure to hold a seat on. Stated once, quietly, rather
-    // than as a disabled control.
-    if (route.recurrence != Recurrence.once) {
-      return _Status(label: l10n.seatRequestRecurringUnsupported, muted: true);
+    // One day open. A chooser holding a single option is a question with one
+    // answer, so the control asks about that day directly — which is also what
+    // keeps a one-off route behaving exactly as it did before F2.
+    if (days.length == 1) {
+      return _RequestButton(routeId: route.id, serviceDate: days.single);
     }
 
-    // The server excludes departed journeys, but a page can be read and then
-    // sat on. The card owns this fact, so it checks it.
-    if (route.departureState != DepartureState.upcoming) return null;
-
-    // An asking is for a journey, so the control cannot exist without the day
-    // it is about. A one-off route always carries one — the decoder refuses a
-    // route that does not — so this narrows a type rather than handling a case,
-    // and the answer to the impossible state is no control at all rather than
-    // one that cannot name what it is asking for.
-    final DepartureDate? serviceDate = route.departureDate;
-
-    if (serviceDate == null) return null;
-
-    return _RequestButton(routeId: route.id, serviceDate: serviceDate);
+    // Several. The member names the day; nothing is picked for them.
+    return _ChooseDayButton(routeId: route.id, days: days);
   }
 
   /// The departure as the driver chose it.
@@ -244,6 +273,103 @@ class DiscoveredRouteCard extends StatelessWidget {
     RideRuleId.noPets => l10n.createRouteRuleNoPets,
     RideRuleId.quiet => l10n.createRouteRuleQuiet,
   };
+}
+
+/// The control that asks which day first.
+///
+/// TWO STATES, AND THE SECOND IS THE ORDINARY ASK CONTROL
+///
+/// Before a day is named there is nothing to send, so this offers the chooser
+/// and nothing else. Once one is named it hands over to [_RequestButton] for
+/// that day — which already knows how to be in flight, how to report a refusal
+/// and how to retry under the same minted id. A second progress-and-failure
+/// implementation here would be the same states told slightly differently.
+///
+/// IT WATCHES THE CONTROLLER EVEN WITH NOTHING CHOSEN
+///
+/// Load-bearing. `seatRequestActionProvider` is auto-disposed, so it lives only
+/// while something is listening — and a card that merely read it inside a
+/// callback would be asking a provider that is thrown away underneath the
+/// request it just started. The failure is an exception from the middle of a
+/// send, after the server has already been asked. So the card listens for as
+/// long as it is on screen.
+///
+/// NOTHING IS CHOSEN ON THE MEMBER'S BEHALF
+///
+/// The sheet resolves to a day or to nothing, and only a day reaches the
+/// controller — so dismissing leaves this journey with no attempt, no request
+/// and, crucially, no minted id. An id spent on a question the member backed
+/// out of would be carried by whatever they asked for next.
+class _ChooseDayButton extends ConsumerStatefulWidget {
+  const _ChooseDayButton({required this.routeId, required this.days});
+
+  final String routeId;
+
+  /// The days this member may still ask about, as the server ordered them.
+  final List<DepartureDate> days;
+
+  @override
+  ConsumerState<_ChooseDayButton> createState() => _ChooseDayButtonState();
+}
+
+class _ChooseDayButtonState extends ConsumerState<_ChooseDayButton> {
+  /// The day this card is currently asking about, or null when none has been
+  /// named. Cleared once the attempt resolves: on success the day is spent and
+  /// the card will not offer it again, and on failure it stays so the member
+  /// can retry the same asking rather than start a new one.
+  DepartureDate? _asking;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+
+    // See the header: this keeps the shared controller alive across the async
+    // gap in _choose. The value is not read here — _RequestButton watches the
+    // one journey it is for — but the subscription is what matters.
+    ref.watch(seatRequestActionProvider);
+
+    final DepartureDate? asking = _asking;
+
+    if (asking != null) {
+      return _RequestButton(routeId: widget.routeId, serviceDate: asking);
+    }
+
+    return RmButton(
+      label: l10n.seatRequestChooseDay,
+      size: RmButtonSize.sm,
+      variant: RmButtonVariant.outline,
+      onPressed: _choose,
+    );
+  }
+
+  Future<void> _choose() async {
+    final DepartureDate? day = await chooseServiceDate(
+      context,
+      days: widget.days,
+    );
+
+    if (day == null || !mounted) return;
+
+    setState(() => _asking = day);
+
+    // The journey is the route AND the day the member named, which is what
+    // keeps two days of one plan from sharing an attempt or the id it carries.
+    final JourneyKey journey = (routeId: widget.routeId, serviceDate: day);
+    final SeatRequestActionController asker = ref.read(
+      seatRequestActionProvider.notifier,
+    );
+
+    await asker.request(journey);
+
+    if (!mounted) return;
+
+    // Resolved and accepted: the controller forgets an intent it finished, and
+    // the card has already been told the day is spent. Handing the chooser back
+    // is what lets the member ask about a different day next.
+    if (asker.attemptFor(journey) == null) {
+      setState(() => _asking = null);
+    }
+  }
 }
 
 /// The action, and the failure it may leave behind.

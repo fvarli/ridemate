@@ -239,6 +239,13 @@ void main() {
     // alone, the server's own Turkish initials. There is nothing else to add:
     // a rating, a badge, a trip count, a trust score, a compatibility figure or
     // a cost cannot be passed here because no such field exists on the wire.
+    //
+    // The two also capture the two shapes the action takes since F2. The plan
+    // offers several days, so its control asks which one first; the one-off has
+    // a single day, so its control asks about that day directly. The chooser
+    // itself is a modal sheet and has no baseline, which is this repo's
+    // convention for modal sheets — see cancel_route_sheet and rate_trip_sheet,
+    // both of which are covered by widget tests rather than by pixels.
     List<Override> results() => <Override>[
       discoveryQueryProvider.overrideWith(SearchedQueryController.new),
       discoveryRepositoryProvider.overrideWithValue(
@@ -255,6 +262,13 @@ void main() {
                     RideRuleId.noSmoking,
                     RideRuleId.quiet,
                   },
+                  // The server's own days. Several, so the card shows what a
+                  // plan looks like when there is a choice to make.
+                  requestableServiceDates: const <String>[
+                    '2026-09-14',
+                    '2026-09-15',
+                    '2026-09-16',
+                  ],
                 ),
                 fakeDiscoveredRoute(
                   id: '01991c00-0000-7000-8000-000000000002',
@@ -268,6 +282,7 @@ void main() {
                   rules: const <RideRuleId>{},
                   displayName: 'Ayşe Nur Demir',
                   initials: 'AD',
+                  requestableServiceDates: const <String>['2026-09-14'],
                 ),
               ],
               nextCursor: null,

@@ -386,72 +386,6 @@ abstract class AppLocalizations {
   /// **'{route}, {date}, {status}'**
   String homeRequestSemanticLabel(String route, String date, String status);
 
-  /// Arama alanının metni. Bu alan gerçek bir metin girişi değildir; dokunulduğunda arama ekranını açar.
-  ///
-  /// In tr, this message translates to:
-  /// **'Nereye gidiyorsun?'**
-  String get homeSearchPlaceholder;
-
-  /// Arama alanının sonundaki eylem etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ara'**
-  String get homeSearchAction;
-
-  /// Arama alanı için ekran okuyucu etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Nereye gidiyorsun? Rota ara.'**
-  String get homeSearchSemanticLabel;
-
-  /// Kayıtlı adres kısayolu: ev.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ev'**
-  String get homeShortcutHome;
-
-  /// Kayıtlı adres kısayolu: iş. Konum adı mock sunum verisidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'İş · Levent'**
-  String get homeShortcutWork;
-
-  /// Kayıtlı adres kısayolu: üniversite.
-  ///
-  /// In tr, this message translates to:
-  /// **'Üniversite'**
-  String get homeShortcutUniversity;
-
-  /// Yakındaki eşleşmeler kartının başlığı.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yakınındaki rotalar'**
-  String get homeNearbyRoutesTitle;
-
-  /// Tüm eşleşmeleri açan bağlantı. Sayı mock sunum verisidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} eşleşme →'**
-  String homeMatchCount(String count);
-
-  /// Eşleşme kartı için ekran okuyucu etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'{name}, {rating} puan. {route}. Kişi başı {costShare}. {compatibility} rota uyumu.'**
-  String homeMatchSemanticLabel(
-    String name,
-    String rating,
-    String route,
-    String costShare,
-    String compatibility,
-  );
-
-  /// Rota uyumu rozeti. Değer mock sunum verisidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'{value} uyum'**
-  String homeCompatibility(String value);
-
   /// Rota arama ekranının başlığı.
   ///
   /// In tr, this message translates to:
@@ -1432,12 +1366,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sohbet listesi henüz eklenmedi.'**
   String get messagesPlaceholderBody;
-
-  /// Ana ekrandaki kayıtlı adres kısayollarına basıldığında gösterilen geçici bilgi. Kayıtlı adres diye bir kavram, saklama veya arka uç yoktur; hiçbir arama başlatılmaz ve hiçbir yere gidilmez.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kayıtlı adres özelliği henüz eklenmedi.'**
-  String get homeShortcutUnavailable;
 
   /// Göreli tarih: bugün.
   ///

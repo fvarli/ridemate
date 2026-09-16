@@ -140,7 +140,6 @@ void main() {
       for (final String Function(AppLocalizations) key
           in <String Function(AppLocalizations)>[
             (AppLocalizations l) => l.messagesPlaceholderBody,
-            (AppLocalizations l) => l.homeShortcutUnavailable,
             (AppLocalizations l) => l.errorTitle,
             (AppLocalizations l) => l.errorBody,
             (AppLocalizations l) => l.errorReturnHome,

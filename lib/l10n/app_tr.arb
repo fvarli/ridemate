@@ -229,57 +229,6 @@
       "status": {"type": "String"}
     }
   },
-  "homeSearchPlaceholder": "Nereye gidiyorsun?",
-  "@homeSearchPlaceholder": {
-    "description": "Arama alanının metni. Bu alan gerçek bir metin girişi değildir; dokunulduğunda arama ekranını açar."
-  },
-  "homeSearchAction": "Ara",
-  "@homeSearchAction": {
-    "description": "Arama alanının sonundaki eylem etiketi."
-  },
-  "homeSearchSemanticLabel": "Nereye gidiyorsun? Rota ara.",
-  "@homeSearchSemanticLabel": {
-    "description": "Arama alanı için ekran okuyucu etiketi."
-  },
-  "homeShortcutHome": "Ev",
-  "@homeShortcutHome": {"description": "Kayıtlı adres kısayolu: ev."},
-  "homeShortcutWork": "İş · Levent",
-  "@homeShortcutWork": {"description": "Kayıtlı adres kısayolu: iş. Konum adı mock sunum verisidir."},
-  "homeShortcutUniversity": "Üniversite",
-  "@homeShortcutUniversity": {"description": "Kayıtlı adres kısayolu: üniversite."},
-  "homeNearbyRoutesTitle": "Yakınındaki rotalar",
-  "@homeNearbyRoutesTitle": {"description": "Yakındaki eşleşmeler kartının başlığı."},
-  "homeMatchCount": "{count} eşleşme →",
-  "@homeMatchCount": {
-    "description": "Tüm eşleşmeleri açan bağlantı. Sayı mock sunum verisidir.",
-    "placeholders": {
-      "count": {
-        "type": "String",
-        "example": "3"
-      }
-    }
-  },
-  "homeMatchSemanticLabel": "{name}, {rating} puan. {route}. Kişi başı {costShare}. {compatibility} rota uyumu.",
-  "@homeMatchSemanticLabel": {
-    "description": "Eşleşme kartı için ekran okuyucu etiketi.",
-    "placeholders": {
-      "name": {"type": "String"},
-      "rating": {"type": "String"},
-      "route": {"type": "String"},
-      "costShare": {"type": "String"},
-      "compatibility": {"type": "String"}
-    }
-  },
-  "homeCompatibility": "{value} uyum",
-  "@homeCompatibility": {
-    "description": "Rota uyumu rozeti. Değer mock sunum verisidir.",
-    "placeholders": {
-      "value": {
-        "type": "String",
-        "example": "%94"
-      }
-    }
-  },
 
   "searchTitle": "Rota ara",
   "@searchTitle": {"description": "Rota arama ekranının başlığı."},
@@ -913,10 +862,6 @@
   "messagesPlaceholderBody": "Sohbet listesi henüz eklenmedi.",
   "@messagesPlaceholderBody": {
     "description": "Mesajlar sekmesi. Tasarımda sohbet listesi ekranı hiç çizilmemiştir; tek örnek sohbeti burada göstermek, sabit bir konuşmayı kullanıcının tüm gelen kutusu gibi sunmak olurdu. Yayına ulaşan bir yüzey olduğu için metin çevrilebilir olmalıdır — design-system.md §8."
-  },
-  "homeShortcutUnavailable": "Kayıtlı adres özelliği henüz eklenmedi.",
-  "@homeShortcutUnavailable": {
-    "description": "Ana ekrandaki kayıtlı adres kısayollarına basıldığında gösterilen geçici bilgi. Kayıtlı adres diye bir kavram, saklama veya arka uç yoktur; hiçbir arama başlatılmaz ve hiçbir yere gidilmez."
   },
   "dateToday": "Bugün",
   "@dateToday": {

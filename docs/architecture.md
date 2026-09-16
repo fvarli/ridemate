@@ -88,10 +88,11 @@ way.
 departure value types, `RideRuleId` and the decoder that reads all of them. It is
 **source-neutral** because two features consume it.
 
-`discovery/` is one slice rather than three features. It is now **mixed**: Search and Match
-Results read the server, while Route Details is still fixture-backed and `RouteOffer` exists
-only to feed it. That boundary runs inside a feature, so it is stated rather than implied —
-see *Route Details is still a fixture, and nothing real walks into it* below.
+`discovery/` is one slice rather than three features. Search and Match Results read the
+server; Route Details is a fixture, `RouteOffer` exists only to feed it, and since Phase 17
+it is a **debug reference** rather than a release screen. That boundary runs inside a
+feature, so it is stated rather than implied — see *Route Details is a design reference, and
+a release build cannot open it* below.
 
 **Features never import each other.** When Create Route needed the same İstanbul places
 and the same picker sheet as Search, the shared vocabulary moved to `core/places/` and
@@ -155,8 +156,10 @@ colour.
 
 **Deliberate deviation from the sibling Quietly project**, which uses a global mutable
 palette (`AppColors.activate(brightness)`). That breaks when two brightnesses render in
-one frame — which RideMate's Home screen does, floating a light sheet over a dark map —
-and makes widget tests order-dependent. A regression test covers exactly that scenario.
+one frame, and makes widget tests order-dependent. The example used to be Home, which
+floated a light sheet over a dark map until Phase 17 replaced it; the hazard is not about
+that screen, so `rm_theme_test` pins it directly — *two brightnesses can coexist in one
+frame*.
 
 Both extensions interpolate every field, so RideMate surfaces stay in step with
 Material's own animated `ColorScheme` during a theme change.
@@ -490,8 +493,9 @@ scroll position and in-progress input once the real screens land.
 
 `/matches` and `/routes/:routeId` are **top-level** routes rather than children of the
 Search branch: the design draws no tab bar on either, so they must render above the
-shell. Route Details is keyed by id because Home reaches the same screen — and, later,
-saved routes will too.
+shell. Route Details is keyed by id because two entry points were once meant to reach it.
+Since Phase 17 neither does: the route is registered only under `kDebugMode`, and the id in
+its path is what a design reference is opened with rather than what a member navigates to.
 
 Back behaviour is asserted, not assumed:
 
@@ -946,17 +950,23 @@ comp's incoherent subject, `73 değerlendirme`, and the histogram's meter-semant
 D-reviews-1 changed owner rather than disappearing: five icons under one semantics node is
 now `RmRatingDisplay`.
 
-### Route Details is still a fixture, and nothing real walks into it
+### Route Details is a design reference, and a release build cannot open it
 
 A discovered route card is deliberately **not tappable**. Route Details reads
 `MockRouteOffers.byId`, so opening a real result there would put a real member's real name
 above an invented vehicle, an invented plate, an invented rating and an invented cost — the
 exact hybrid every other rule in this document exists to prevent.
 
+**Phase 17 went further than not linking to it.** Home did link to it, and Route Details
+linked on to Chat, so the one fabricated edge in the app opened a two-screen chain. Removing
+the link would have left `/routes/:routeId` resolvable — a deep link into the same dossier,
+with nothing in the app to say it had been withdrawn. Both routes are registered under
+`if (kDebugMode)` instead, beside Verification, Gallery, Active Trip and Safety, and
+`test/app/fixture_chain_isolation_test.dart` asserts it.
+
 So the boundary is named rather than assumed: **`RouteOffer` and `MockRouteOffers` survive for
-Route Details alone**, and that screen stays fixture-only until its own migration. A truthful
-card that goes nowhere is a better answer than a tap into fabricated details, and the missing
-navigation is a decision recorded here, not an unfinished edge.
+Route Details alone**, which remains useful to open in a debug build and impossible to reach
+in a release one.
 
 The base URL is **build-time configuration** — `--dart-define=RIDEMATE_API_BASE_URL` — with no
 default and no production URL in the repository. An absent or unusable value fails at startup
@@ -1159,9 +1169,13 @@ Phase 12 did change `searchSubmit`: *"Eşleşmeleri gör · {count} sonuç"* ren
 count **before** the search ran, which was honest only while the results were a fixture. It
 takes no count now, and the CTA stays disabled until two different endpoints are chosen.
 
-**Route Details is the discovery migration that remains.** It needs a vehicle, a cost-sharing
-figure with a real provenance, and most of the trust surface — so it is not one phase's work,
-and until it is done a real discovered route deliberately does not open it.
+**Route Details was the discovery migration that remained, and Phase 17 decided it is not
+one.** It needs a vehicle, a cost-sharing figure with a real provenance, and most of the trust
+surface — none of which this product has. The audit that opened Phase 17 asked whether the
+passenger flow needs it and found that it does not: Search → Match Results → request a seat,
+including choosing a recurring day, is complete without it, and no action exists only there.
+So it was withdrawn from the release build rather than migrated, and no backend was written to
+justify a screen nobody's workflow needs.
 
 ## Testing
 

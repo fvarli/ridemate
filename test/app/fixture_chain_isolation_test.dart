@@ -201,6 +201,95 @@ void main() {
     });
   });
 
+  group('No release-reachable feature imports a fixture', () {
+    /// The directories whose screens a member can actually open.
+    ///
+    /// Deliberately a list of REAL surfaces rather than "everything except a
+    /// few": a new feature added under lib/features is not covered until
+    /// somebody adds it here, and that is the moment to decide whether it is a
+    /// product surface or another design reference.
+    const List<String> releaseFeatures = <String>[
+      'lib/features/home',
+      'lib/features/discovery/application',
+      'lib/features/discovery/data',
+      'lib/features/discovery/presentation/match_results_screen.dart',
+      'lib/features/discovery/presentation/search_screen.dart',
+      'lib/features/discovery/presentation/widgets',
+      'lib/features/my_routes',
+      'lib/features/journeys',
+      'lib/features/seat_requests',
+      'lib/features/reviews',
+      'lib/features/profile',
+      'lib/features/create_route',
+    ];
+
+    /// CARRIES WEIGHT. Broadened at Phase 17 closure.
+    ///
+    /// The rule existed for My Routes alone, which is where it was first
+    /// needed. Every surface in the list above is now server-backed, so the
+    /// same rule applies to all of them — and the fixtures that remain belong
+    /// to the debug references, which are not in the list.
+    test('no real surface names a fixture source', () {
+      final List<String> offenders = <String>[];
+
+      for (final String target in releaseFeatures) {
+        final Iterable<File> files = FileSystemEntity.isDirectorySync(target)
+            ? Directory(target)
+                  .listSync(recursive: true)
+                  .whereType<File>()
+                  .where((File f) => f.path.endsWith('.dart'))
+            : <File>[File(target)];
+
+        for (final File file in files) {
+          final String source = code(file.path);
+
+          for (final String fixture in <String>[
+            'mock_places',
+            'MockPlaces',
+            'mock_discovery_fixtures',
+            'MockRouteOffers',
+            'RouteOffer',
+            'chat_fixtures',
+            'review_fixtures',
+            // NOT `create_route_fixtures`. Its name is a leftover: what it
+            // holds today is the Create Route screen's own constants — the
+            // minimum seat count, the rule defaults — after the fabricated
+            // parts, a suggested cost share and a fixed 08:00 departure, were
+            // removed when the form became real. Banning it would be banning a
+            // filename rather than a fabrication.
+
+            // The Home fixtures deleted at Phase 17 closure. Named so that
+            // restoring one is a test failure rather than a quiet return.
+            'home_snapshot',
+            'HomeSnapshot',
+            'NearbyMatch',
+            'home_map',
+            'HomeMap',
+            'homeSnapshotProvider',
+          ]) {
+            if (source.contains(fixture)) {
+              offenders.add('${file.path}: $fixture');
+            }
+          }
+        }
+      }
+
+      expect(offenders, isEmpty);
+    });
+
+    /// And the deleted files stay deleted.
+    test('the fixture Home implementation is gone', () {
+      for (final String path in <String>[
+        'lib/features/home/application/home_providers.dart',
+        'lib/features/home/domain/home_snapshot.dart',
+        'lib/features/home/presentation/widgets/home_map.dart',
+        'lib/features/home/presentation/widgets/nearby_match_sheet.dart',
+      ]) {
+        expect(File(path).existsSync(), isFalse, reason: path);
+      }
+    });
+  });
+
   group('Nothing was deleted, and nothing was invented', () {
     /// R1 closes a boundary. R3 decides what to clean up, once Real Home
     /// exists — so the screens, their fixtures, their copy and their baselines

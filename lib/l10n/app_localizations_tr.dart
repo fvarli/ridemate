@@ -172,48 +172,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get homeSearchPlaceholder => 'Nereye gidiyorsun?';
-
-  @override
-  String get homeSearchAction => 'Ara';
-
-  @override
-  String get homeSearchSemanticLabel => 'Nereye gidiyorsun? Rota ara.';
-
-  @override
-  String get homeShortcutHome => 'Ev';
-
-  @override
-  String get homeShortcutWork => 'İş · Levent';
-
-  @override
-  String get homeShortcutUniversity => 'Üniversite';
-
-  @override
-  String get homeNearbyRoutesTitle => 'Yakınındaki rotalar';
-
-  @override
-  String homeMatchCount(String count) {
-    return '$count eşleşme →';
-  }
-
-  @override
-  String homeMatchSemanticLabel(
-    String name,
-    String rating,
-    String route,
-    String costShare,
-    String compatibility,
-  ) {
-    return '$name, $rating puan. $route. Kişi başı $costShare. $compatibility rota uyumu.';
-  }
-
-  @override
-  String homeCompatibility(String value) {
-    return '$value uyum';
-  }
-
-  @override
   String get searchTitle => 'Rota ara';
 
   @override
@@ -792,10 +750,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get messagesPlaceholderBody => 'Sohbet listesi henüz eklenmedi.';
-
-  @override
-  String get homeShortcutUnavailable =>
-      'Kayıtlı adres özelliği henüz eklenmedi.';
 
   @override
   String get dateToday => 'Bugün';

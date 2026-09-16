@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
+import 'package:ridemate/core/journeys/journey.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/my_route.dart';
 import 'package:ridemate/core/routes/published_route.dart';
 import 'package:ridemate/core/routes/ride_rule.dart';
 import 'package:ridemate/core/trips/trip_lifecycle.dart';
 import 'package:ridemate/core/widgets/rm_button.dart';
+import 'package:ridemate/features/journeys/application/journeys_providers.dart';
 import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/my_routes/presentation/my_routes_screen.dart';
@@ -28,6 +30,7 @@ void main() {
     WidgetTester tester, {
     List<MyRoutesResult>? pages,
     RmFailure? failure,
+    List<Journey> journeys = const <Journey>[],
     TextDirection textDirection = TextDirection.ltr,
     Locale locale = kDefaultTestLocale,
     Size size = const Size(393, 852),
@@ -41,6 +44,13 @@ void main() {
       surfaceSize: size,
       overrides: <Override>[
         myRoutesRepositoryProvider.overrideWithValue(routes),
+        // The screen also carries the dated journey feed, which is a different
+        // endpoint with a different failure. Stubbed empty unless a case says
+        // otherwise, so a test about the ROUTE list is not also a test about
+        // what happens when the journeys endpoint is unreachable.
+        journeysRepositoryProvider.overrideWithValue(
+          FakeJourneys(journeys: journeys),
+        ),
       ],
     );
     // Twice: the first frame is the loading state, the second the answer.
@@ -615,18 +625,24 @@ void main() {
         'Doğrulanmış',
         'Güven',
         'plaka',
-        // The COUNT, which is a trust signal RideMate does not have — see
-        // routeDetailsRatingSummary, "{rating} · {trips} yolculuk", where the
-        // fixture still has one. Narrowed from the bare noun in Phase 14,
-        // which gave the word an honest use on this card: the lifecycle line
-        // says whether THIS journey was made, and names no number at all.
-        ' yolculuk',
         'uyum',
         'dk yürüme',
         'Selin',
       ]) {
         expect(find.textContaining(forbidden), findsNothing, reason: forbidden);
       }
+
+      // The trip COUNT, which is a trust signal RideMate does not have — see
+      // routeDetailsRatingSummary, "{rating} · {trips} yolculuk", where the
+      // fixture still has one. It is the NUMBER that is forbidden, not the
+      // word: Phase 14 gave the word an honest use on this card, and Phase 16b
+      // gave it another — the journeys section above names the dated journeys
+      // running today, and counts none of them.
+      expect(
+        find.textContaining(RegExp(r'[0-9]+\s*yolculuk')),
+        findsNothing,
+        reason: 'a trip count',
+      );
     });
 
     /// The payload carries a timezone. The screen has no use for one, and
@@ -1007,9 +1023,13 @@ void main() {
     ) async {
       for (final (TripRefusal refusal, String copy) in <(TripRefusal, String)>[
         (TripRefusal.departureNotReached, 'Bu yolculuk henüz başlatılamaz.'),
+        // Not "not supported yet" since F3: the dated command exists and the
+        // journeys section is where a plan's day is begun. What the route-only
+        // alias refuses is a plan with no day named, and the sentence says
+        // exactly that.
         (
           TripRefusal.recurringRouteUnsupported,
-          'Tekrarlayan rotalarda yolculuk başlatma henüz yok.',
+          'Hangi günü kastettiğini seç ve yolculuğu oradan başlat.',
         ),
         (TripRefusal.routeUnavailable, 'Bu rota artık başlatılamaz.'),
         (TripRefusal.alreadyCompleted, 'Bu yolculuk zaten tamamlanmış.'),

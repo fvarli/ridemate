@@ -85,6 +85,7 @@ void main() {
       expect(declaring..sort(), <String>[
         'lib/features/create_route/application/place_catalogue_providers.dart',
         'lib/features/discovery/application/discovery_search_providers.dart',
+        'lib/features/journeys/application/journeys_providers.dart',
         'lib/features/my_routes/application/my_routes_providers.dart',
         'lib/features/profile/application/my_profile_providers.dart',
         // The released reviews about this member. A read like any other — and

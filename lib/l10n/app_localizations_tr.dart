@@ -1018,7 +1018,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get myRoutesStartRecurringUnsupported =>
-      'Tekrarlayan rotalarda yolculuk başlatma henüz yok.';
+      'Hangi günü kastettiğini seç ve yolculuğu oradan başlat.';
+
+  @override
+  String get myRoutesStartServiceDatePassed =>
+      'O günün yolculuğu artık başlatılamaz.';
 
   @override
   String get myRoutesStartRouteUnavailable => 'Bu rota artık başlatılamaz.';
@@ -1132,11 +1136,52 @@ class AppLocalizationsTr extends AppLocalizations {
   String get tripStatusAbortedAt => 'Yarıda bırakılma';
 
   @override
+  String get tripStatusServiceDate => 'Yolculuk günü';
+
+  @override
   String get tripStatusNotFound => 'Bu rota listende yok';
 
   @override
   String get tripStatusNotFoundBody =>
       'Rotalarını yeniden yükleyip tekrar dene.';
+
+  @override
+  String get journeysSectionTitle => 'Yolculuklar';
+
+  @override
+  String get journeysSectionBody =>
+      'Bugün çalışan yolculuklar ve başlattığın yolculuklar.';
+
+  @override
+  String get journeysEmpty => 'Bugün çalışan bir yolculuk yok';
+
+  @override
+  String get journeysEmptyBody =>
+      'Rotalarından biri çalıştığı her gün burada bir yolculuk görünür.';
+
+  @override
+  String get journeysFailed => 'Yolculukların yüklenemedi.';
+
+  @override
+  String get journeyNotFound => 'Bu yolculuk okunamadı';
+
+  @override
+  String get journeyNotFoundBody => 'Günü kontrol edip tekrar dene.';
+
+  @override
+  String journeyCardSemanticLabel(
+    String route,
+    String date,
+    String departure,
+    String trip,
+  ) {
+    return '$route, $date, $departure, $trip';
+  }
+
+  @override
+  String journeyOpenSemanticLabel(String route, String date) {
+    return '$route rotasının $date günündeki yolculuğunu aç';
+  }
 
   @override
   String get receivedReviewsTitle => 'Hakkındaki değerlendirmeler';

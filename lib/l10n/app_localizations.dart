@@ -1787,11 +1787,17 @@ abstract class AppLocalizations {
   /// **'Bu yolculuk henüz başlatılamaz.'**
   String get myRoutesStartDepartureNotReached;
 
-  /// Hafta içi planların tek bir kalkışı yoktur.
+  /// Sunucu, bir planı gün belirtmeden başlatmayı reddeder: bir planın tek kalkışı yoktur. Phase 16b'den beri bu bir eksiklik değil; gün belirten komut vardır ve Yolculuklar bölümünden ulaşılır. Bu yüzden metin 'henüz yok' demez.
   ///
   /// In tr, this message translates to:
-  /// **'Tekrarlayan rotalarda yolculuk başlatma henüz yok.'**
+  /// **'Hangi günü kastettiğini seç ve yolculuğu oradan başlat.'**
   String get myRoutesStartRecurringUnsupported;
+
+  /// Sunucu, o günün rota-yerel takvim günü geçtiği için başlatmayı reddetti. Yalnızca BU günü söyler: başka bir günün başlatılabileceğini iddia etmez, çünkü istemci bunu bilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'O günün yolculuğu artık başlatılamaz.'**
+  String get myRoutesStartServiceDatePassed;
 
   /// Rota yayından kalkmış.
   ///
@@ -1967,6 +1973,12 @@ abstract class AppLocalizations {
   /// **'Yarıda bırakılma'**
   String get tripStatusAbortedAt;
 
+  /// Bu yolculuğun hangi güne ait olduğunu etiketler. Plan tarihi değil, o günün kendisidir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuk günü'**
+  String get tripStatusServiceDate;
+
   /// Rota yüklenmiş sayfalarda bulunamadı. Uydurulmuş bir yolculuk gösterilmez.
   ///
   /// In tr, this message translates to:
@@ -1978,6 +1990,65 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Rotalarını yeniden yükleyip tekrar dene.'**
   String get tripStatusNotFoundBody;
+
+  /// Sürücünün bugün çalışan ve sürmekte olan yolculuklarını listeleyen bölümün başlığı. Rota planlarından ayrıdır: bir plan her çalıştığı gün için ayrı bir yolculuktur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculuklar'**
+  String get journeysSectionTitle;
+
+  /// Bölümün neyi listelediğini söyler. Sunucunun kuralıdır; istemci gün hesaplamaz.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün çalışan yolculuklar ve başlattığın yolculuklar.'**
+  String get journeysSectionBody;
+
+  /// Sunucu bugün için yolculuk döndürmedi. Nedenini iddia etmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün çalışan bir yolculuk yok'**
+  String get journeysEmpty;
+
+  /// Boş durumun neden boş olabileceğini değil, bu listenin ne olduğunu açıklar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rotalarından biri çalıştığı her gün burada bir yolculuk görünür.'**
+  String get journeysEmptyBody;
+
+  /// Yolculuk listesi okunamadı. Yolculuk olmadığı iddia edilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yolculukların yüklenemedi.'**
+  String get journeysFailed;
+
+  /// Sunucu bu rota ve gün için bir yolculuk vermedi. Rota başkasının olabilir veya rota o gün çalışmıyor olabilir; ikisi kasten ayırt edilmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yolculuk okunamadı'**
+  String get journeyNotFound;
+
+  /// Okunamayan yolculuk için tek doğru öneri.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günü kontrol edip tekrar dene.'**
+  String get journeyNotFoundBody;
+
+  /// Bir yolculuk satırının ekran okuyucuda tek parça olarak okunması. Sıra veya renk değil, metin taşır.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route}, {date}, {departure}, {trip}'**
+  String journeyCardSemanticLabel(
+    String route,
+    String date,
+    String departure,
+    String trip,
+  );
+
+  /// Yolculuk satırının açma eyleminin etiketi. Hangi gün olduğunu söyler; 'bugünkü' veya 'sıradaki' demez.
+  ///
+  /// In tr, this message translates to:
+  /// **'{route} rotasının {date} günündeki yolculuğunu aç'**
+  String journeyOpenSemanticLabel(String route, String date);
 
   /// Üyenin kendisi hakkında aldığı değerlendirmeleri gösteren ekranın başlığı. Bir itibar sayfası değildir: ortalama, toplam ya da herkese açık bir puan yoktur.
   ///

@@ -262,32 +262,43 @@ abstract final class RouteDecoder {
   static DepartureDate? date(Object? value, int status) {
     if (value == null) return null;
     if (value is! String) throw malformed(status);
-    if (!_dayShape.hasMatch(value)) throw malformed(status);
+
+    final DepartureDate? parsed = day(value);
+
+    if (parsed == null) throw malformed(status);
+
+    return parsed;
+  }
+
+  /// The same day, read where there is no response to fail.
+  ///
+  /// A route parameter is text a member can type or a link can carry, so a
+  /// malformed one is not a malformed RESPONSE and must not be reported as one.
+  /// It answers null instead, and the caller says the journey could not be
+  /// read — which is the truth, and is also what the server would say.
+  ///
+  /// The rule itself is not restated here. [date] and this are two shapes of
+  /// one parse, so a path and a payload cannot come to disagree about what a
+  /// day is — the arrangement `RequestableJourney` uses on the backend, for the
+  /// same reason.
+  static DepartureDate? day(String value) {
+    if (!_dayShape.hasMatch(value)) return null;
 
     final List<String> parts = value.split('-');
     final int? year = int.tryParse(parts[0]);
     final int? month = int.tryParse(parts[1]);
-    final int? day = int.tryParse(parts[2]);
+    final int? dayOfMonth = int.tryParse(parts[2]);
 
-    if (year == null || month == null || day == null) {
-      throw malformed(status);
-    }
-
-    final DepartureDate parsed = DepartureDate(
-      year: year,
-      month: month,
-      day: day,
-    );
+    if (year == null || month == null || dayOfMonth == null) return null;
 
     // A rollover is a different day, not a typo fixed: February the 30th
     // becomes March the 2nd in a permissive reader, and nothing downstream
     // could tell.
-    if (DateTime(year, month, day).day != day ||
-        DateTime(year, month, day).month != month) {
-      throw malformed(status);
-    }
+    final DateTime roundTrip = DateTime(year, month, dayOfMonth);
 
-    return parsed;
+    if (roundTrip.day != dayOfMonth || roundTrip.month != month) return null;
+
+    return DepartureDate(year: year, month: month, day: dayOfMonth);
   }
 
   static final RegExp _dayShape = RegExp(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}$');

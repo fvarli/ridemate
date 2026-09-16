@@ -1019,7 +1019,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get myRoutesStartRecurringUnsupported =>
-      'Starting a trip on a recurring route is not supported yet.';
+      'Open the journey for the day you mean, and start it there.';
+
+  @override
+  String get myRoutesStartServiceDatePassed =>
+      'That day\'s journey can no longer be started.';
 
   @override
   String get myRoutesStartRouteUnavailable =>
@@ -1133,10 +1137,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripStatusAbortedAt => 'Abandoned at';
 
   @override
+  String get tripStatusServiceDate => 'Journey date';
+
+  @override
   String get tripStatusNotFound => 'This route is not in your list';
 
   @override
   String get tripStatusNotFoundBody => 'Reload your routes and try again.';
+
+  @override
+  String get journeysSectionTitle => 'Journeys';
+
+  @override
+  String get journeysSectionBody =>
+      'The journeys running today, and any you have already started.';
+
+  @override
+  String get journeysEmpty => 'No journey is running today';
+
+  @override
+  String get journeysEmptyBody =>
+      'A journey appears here on each day one of your routes runs.';
+
+  @override
+  String get journeysFailed => 'Your journeys could not be loaded.';
+
+  @override
+  String get journeyNotFound => 'This journey could not be read';
+
+  @override
+  String get journeyNotFoundBody => 'Check the day, and try again.';
+
+  @override
+  String journeyCardSemanticLabel(
+    String route,
+    String date,
+    String departure,
+    String trip,
+  ) {
+    return '$route, $date, $departure, $trip';
+  }
+
+  @override
+  String journeyOpenSemanticLabel(String route, String date) {
+    return 'Open the journey on $date for $route';
+  }
 
   @override
   String get receivedReviewsTitle => 'Reviews about you';

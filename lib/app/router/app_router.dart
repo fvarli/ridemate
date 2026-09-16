@@ -27,6 +27,7 @@ import '../../features/discovery/presentation/route_details_screen.dart';
 import '../../features/discovery/presentation/search_screen.dart';
 import '../../features/gallery/presentation/gallery_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/journeys/presentation/journey_status_screen.dart';
 import '../../features/my_routes/presentation/my_routes_screen.dart';
 import '../../features/my_routes/presentation/trip_status_screen.dart';
 import '../../features/onboarding/application/onboarding_controller.dart';
@@ -348,6 +349,19 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         name: AppRoutes.tripStatus,
         builder: (BuildContext context, GoRouterState state) =>
             TripStatusScreen(routeId: state.pathParameters['routeId'] ?? ''),
+      ),
+      // One DATED journey of a plan. The day is half the identity, so it is in
+      // the path beside the route — and it is handed over as text, because
+      // parsing it is the screen's job and a malformed one must be refused
+      // rather than turned into a request about a day nobody has.
+      GoRoute(
+        path: AppRoutes.journeyStatusPath,
+        name: AppRoutes.journeyStatus,
+        builder: (BuildContext context, GoRouterState state) =>
+            JourneyStatusScreen(
+              routeId: state.pathParameters['routeId'] ?? '',
+              serviceDate: state.pathParameters['serviceDate'] ?? '',
+            ),
       ),
       // Above the shell, and reached only by redirect: nothing links here.
       GoRoute(

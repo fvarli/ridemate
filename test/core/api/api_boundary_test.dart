@@ -546,6 +546,145 @@ void main() {
     });
   });
 
+  group("A driver's journeys are dated, and the dates are the server's", () {
+    /// CARRIES WEIGHT. Every dated lifecycle command names a day.
+    ///
+    /// The route-only aliases address a one-off route's single journey and
+    /// answer `recurring_route_unsupported` for a plan. A recurring surface
+    /// that reached for one would be asking the server to guess which morning
+    /// it meant, and the server would refuse — or, worse, a future alias would
+    /// pick one.
+    test('the journeys feature never calls a route-only trip command', () {
+      for (final File file in dartFilesIn('lib/features/journeys')) {
+        for (final String forbidden in <String>[
+          'myRoutesProvider',
+          'MyRoutesController',
+          'MyRoutesRepository',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+
+      // And the dated repository builds every path from one spelling, which
+      // always carries the day.
+      final String repo = code(
+        File('lib/features/journeys/data/journeys_repository.dart'),
+      );
+      expect(
+        repo,
+        contains(r"'/api/v1/routes/$routeId/journeys/${serviceDate.iso}'"),
+      );
+    });
+
+    /// CARRIES WEIGHT. Which journeys exist is the feed's answer.
+    ///
+    /// Not the device's date. A client that worked out "is this today" would be
+    /// reading a calendar in the wrong timezone, and would hide a journey the
+    /// driver is in the middle of.
+    test('nothing in journeys consults a clock or generates a date', () {
+      for (final File file in dartFilesIn('lib/features/journeys')) {
+        for (final String forbidden in <String>[
+          'DateTime.now',
+          'toUtc',
+          'toLocal',
+          'isBefore',
+          'isAfter',
+          'difference(',
+          'addDays',
+          'DateTime.monday',
+          'weekday ==',
+          'Europe/Istanbul',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+    });
+
+    /// CARRIES WEIGHT. `MyRoute.trip == null` is not `not_started`.
+    ///
+    /// Null means the question does not apply to a plan. Turned into a state it
+    /// would put Start on a card the server refuses, and the driver would learn
+    /// that by pressing it.
+    test('a plan absent lifecycle is never turned into a state', () {
+      for (final File file in <File>[
+        ...dartFilesIn('lib/features/my_routes'),
+        ...dartFilesIn('lib/features/journeys'),
+        ...dartFilesIn('lib/core/routes'),
+      ]) {
+        for (final String forbidden in <String>[
+          '?? TripState.notStarted',
+          '?? const TripLifecycle',
+          'trip ?? TripLifecycle',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+    });
+
+    /// CARRIES WEIGHT. A journey under way is not hidden by its own date, nor
+    /// by what became of its plan.
+    ///
+    /// `/me/journeys` keeps both reachable on purpose. A client that filtered
+    /// either would strand a driver mid-journey with a trip they cannot close.
+    test('nothing filters a journey by its date or its plan status', () {
+      for (final File file in dartFilesIn('lib/features/journeys')) {
+        for (final String forbidden in <String>[
+          'RouteStatus.cancelled',
+          'serviceDate.isBefore',
+          'journeys.where',
+          'journeys.removeWhere',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+    });
+
+    /// CARRIES WEIGHT. Lifecycle state is keyed by journey, not by route.
+    ///
+    /// Keyed by route, starting Monday would disable Tuesday's control and then
+    /// write Monday's answer onto it.
+    test('the journey controller is a family over route AND day', () {
+      final String providers = code(
+        File('lib/features/journeys/application/journeys_providers.dart'),
+      );
+
+      expect(providers, contains('JourneyRef'));
+      expect(providers, contains('AsyncNotifierProvider.family'));
+      // The identity itself carries both halves.
+      expect(
+        code(File('lib/core/journeys/journey.dart')),
+        contains(
+          'typedef JourneyRef = ({String routeId, DepartureDate serviceDate});',
+        ),
+      );
+    });
+
+    /// Nobody else is on a journey, because nobody else is in the projection.
+    test('a journey shows no passenger, vehicle, cost or trust', () {
+      for (final File file in <File>[
+        ...dartFilesIn('lib/features/journeys'),
+        File('lib/core/journeys/journey.dart'),
+        File('lib/core/journeys/journey_decoder.dart'),
+      ]) {
+        for (final String forbidden in <String>[
+          'passenger',
+          'riders',
+          'seatsOffered',
+          'seatsRemaining',
+          'vehicle',
+          'plate',
+          'cost',
+          'rating',
+          'isVerified',
+          'latitude',
+          'longitude',
+        ]) {
+          expect(code(file), isNot(contains(forbidden)), reason: file.path);
+        }
+      }
+    });
+  });
+
   group('No dependency crept in with it', () {
     test('the transport is package:http and not an alternative', () {
       final String pubspec = File('pubspec.yaml').readAsStringSync();

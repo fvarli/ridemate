@@ -38,6 +38,7 @@ import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../journeys/presentation/widgets/journeys_section.dart';
 import '../application/my_routes_providers.dart';
 import '../domain/my_routes_page.dart';
 import 'trip_refusal_copy.dart';
@@ -128,9 +129,14 @@ class MyRoutesScreen extends ConsumerWidget {
                     style: RmTypography.body.copyWith(color: c.sub),
                   ),
                 ),
+                // The journeys section is inside the list rather than beside
+                // it, and the list is rendered even with no plans in it: a
+                // driver whose only plan was cancelled can still have a journey
+                // under way, and an empty-state that replaced the whole screen
+                // would take away the one thing they need to close.
                 AsyncValue<MyRoutesPage>(:final MyRoutesPage? value)
                     when value != null =>
-                  value.isEmpty ? _Empty(l10n: l10n) : _RouteList(page: value),
+                  _RouteList(page: value),
                 _ => const SizedBox.shrink(),
               },
             ),
@@ -166,6 +172,28 @@ class _RouteList extends ConsumerWidget {
         RmSpacing.xl,
       ),
       children: <Widget>[
+        // WHAT THE DRIVER IS DRIVING, ABOVE WHAT THEY HAVE PUBLISHED.
+        //
+        // Its own feed and its own heading, deliberately not folded into the
+        // cards below: a plan and one of its days are different things, and
+        // merging them is exactly how a plan's absent lifecycle gets read as
+        // `not_started`. A weekday plan's card still offers no Start — it has
+        // no single journey to start — and the journey above is where that day
+        // is begun.
+        const JourneysSection(),
+        const SizedBox(height: RmSpacing.xl),
+        Semantics(
+          header: true,
+          child: Text(
+            l10n.myRoutesTitle,
+            style: RmTypography.titleSm.copyWith(color: context.rmColors.ink),
+          ),
+        ),
+        const SizedBox(height: RmSpacing.md),
+        // No plans at all. An empty list is a fact, and it is stated here
+        // rather than instead of the screen — the journeys above are a
+        // different feed and may well have something in it.
+        if (page.isEmpty) _Empty(l10n: l10n),
         // Rendered in the order the server returned them. Nothing here sorts.
         for (int i = 0; i < page.routes.length; i++) ...<Widget>[
           if (i > 0) const SizedBox(height: RmSpacing.md),
@@ -320,24 +348,20 @@ class _Empty extends StatelessWidget {
   Widget build(BuildContext context) {
     final RmColors c = context.rmColors;
 
-    return _Centred(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            l10n.myRoutesEmptyTitle,
-            style: RmTypography.body.copyWith(color: c.ink),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: RmSpacing.xs),
-          Text(
-            // No sample route, no placeholder card. An empty list is a fact.
-            l10n.myRoutesEmptyBody,
-            style: RmTypography.caption.copyWith(color: c.sub),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          l10n.myRoutesEmptyTitle,
+          style: RmTypography.body.copyWith(color: c.ink),
+        ),
+        const SizedBox(height: RmSpacing.xs),
+        Text(
+          // No sample route, no placeholder card. An empty list is a fact.
+          l10n.myRoutesEmptyBody,
+          style: RmTypography.caption.copyWith(color: c.sub),
+        ),
+      ],
     );
   }
 }

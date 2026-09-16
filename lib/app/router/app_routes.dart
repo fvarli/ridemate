@@ -115,6 +115,23 @@ abstract final class AppRoutes {
 
   static String tripStatusPathFor(String routeId) => '/me/routes/$routeId/trip';
 
+  /// ONE DATED JOURNEY of a plan: a route AND the day it runs.
+  ///
+  /// Both are in the path because both are the identity. [tripStatus] above
+  /// addresses a route alone, which only answers for a one-off journey — a plan
+  /// has one journey per day it runs, and a route id would name none of them.
+  ///
+  /// The date is `YYYY-MM-DD`, exactly as the server published it. It is passed
+  /// through as text and parsed by the screen, so a malformed one is refused
+  /// where every other malformed value is rather than becoming a request about
+  /// a day nobody has.
+  static const String journeyStatus = 'journeyStatus';
+  static const String journeyStatusPath =
+      '/me/routes/:routeId/journeys/:serviceDate';
+
+  static String journeyStatusPathFor(String routeId, String serviceDate) =>
+      '/me/routes/$routeId/journeys/$serviceDate';
+
   /// The one screen a signed-in member without a profile can reach.
   ///
   /// Above the shell and reachable only by redirect: nothing links to it,

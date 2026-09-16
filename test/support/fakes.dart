@@ -14,6 +14,8 @@ import 'package:ridemate/app/data/app_preferences_repository.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/api/rm_response.dart';
 import 'package:ridemate/core/id/rm_uuid.dart';
+import 'package:ridemate/core/journeys/journey.dart';
+import 'package:ridemate/core/journeys/journey_decoder.dart';
 import 'package:ridemate/core/places/place.dart';
 import 'package:ridemate/core/profile/profile.dart';
 import 'package:ridemate/core/reviews/review.dart';
@@ -32,6 +34,7 @@ import 'package:ridemate/features/create_route/data/route_repository.dart';
 import 'package:ridemate/features/create_route/domain/create_route_draft.dart';
 import 'package:ridemate/features/discovery/application/discovery_search_providers.dart';
 import 'package:ridemate/features/discovery/data/discovery_repository.dart';
+import 'package:ridemate/features/journeys/data/journeys_repository.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/onboarding/data/onboarding_repository.dart';
 import 'package:ridemate/features/profile/data/profile_repository.dart';
@@ -551,6 +554,115 @@ class FakeMyRoutesRepository implements MyRoutesRepository {
         );
   }
 }
+
+/// A journeys endpoint a screen test can hold still.
+///
+/// Exists so a test about something ELSE — the route list, a golden — does not
+/// also become a test of what happens when `/me/journeys` is unreachable. It
+/// answers with the feed it was given and nothing more.
+class FakeJourneys implements JourneysRepository {
+  FakeJourneys({this.journeys = const <Journey>[], this.failure});
+
+  final List<Journey> journeys;
+  final RmFailure? failure;
+
+  @override
+  Future<MyJourneysResult> page({String? cursor, int limit = 20}) async {
+    final RmFailure? thrown = failure;
+    if (thrown != null) throw thrown;
+
+    return MyJourneysResult(journeys: journeys, nextCursor: null);
+  }
+
+  @override
+  Future<Journey> journey({
+    required String routeId,
+    required DepartureDate serviceDate,
+  }) async {
+    final RmFailure? thrown = failure;
+    if (thrown != null) throw thrown;
+
+    return fakeJourney(routeId: routeId, serviceDate: serviceDate.iso);
+  }
+
+  @override
+  Future<TripLifecycle> startTrip({
+    required String routeId,
+    required DepartureDate serviceDate,
+  }) async => fakeTrip(state: TripState.inProgress);
+
+  @override
+  Future<TripLifecycle> completeTrip({
+    required String routeId,
+    required DepartureDate serviceDate,
+  }) async => fakeTrip(state: TripState.completed);
+
+  @override
+  Future<TripLifecycle> abortTrip({
+    required String routeId,
+    required DepartureDate serviceDate,
+  }) async => fakeTrip(state: TripState.aborted);
+}
+
+/// One dated journey exactly as `/me/journeys` sends one.
+///
+/// The service date is required by the contract and is NOT derived from the
+/// route's departure date: a plan has no departure date, and a fixture that
+/// filled one in would be a shape the API never produces.
+Map<String, Object?> fakeJourneyJson({
+  String routeId = '01991b00-0000-7000-8000-0000000000a1',
+  String serviceDate = '2026-09-16',
+  String originLabel = 'Kadıköy',
+  String destinationLabel = 'Levent',
+  String departureTime = '08:25',
+  String timezone = 'Europe/Istanbul',
+  String routeStatus = 'published',
+  TripState trip = TripState.notStarted,
+  String? startedAt,
+  String? completedAt,
+  String? abortedAt,
+}) => <String, Object?>{
+  'route_id': routeId,
+  'service_date': serviceDate,
+  'origin': <String, Object?>{'id': 'p1', 'label': originLabel},
+  'destination': <String, Object?>{'id': 'p2', 'label': destinationLabel},
+  'departure_time': departureTime,
+  'timezone': timezone,
+  'route_status': routeStatus,
+  // Always present on this surface, `not_started` included — unlike
+  // `MyRoute.trip`, which is null for a plan.
+  'trip': fakeTripJson(
+    state: trip,
+    startedAt: startedAt,
+    completedAt: completedAt,
+    abortedAt: abortedAt,
+  ),
+};
+
+/// The same, decoded — built through the real decoder so a double can never be
+/// a shape the API could not produce.
+Journey fakeJourney({
+  String routeId = '01991b00-0000-7000-8000-0000000000a1',
+  String serviceDate = '2026-09-16',
+  String originLabel = 'Kadıköy',
+  String destinationLabel = 'Levent',
+  String departureTime = '08:25',
+  String routeStatus = 'published',
+  TripState trip = TripState.notStarted,
+  String? startedAt,
+}) => JourneyDecoder.journey(
+  fakeJourneyJson(
+    routeId: routeId,
+    serviceDate: serviceDate,
+    originLabel: originLabel,
+    destinationLabel: destinationLabel,
+    departureTime: departureTime,
+    routeStatus: routeStatus,
+    trip: trip,
+    startedAt: startedAt,
+  ),
+  200,
+);
 
 /// A route shaped exactly as the server sends one.
 ///

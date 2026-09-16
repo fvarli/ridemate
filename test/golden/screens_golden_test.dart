@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ridemate/app/providers/session_provider.dart';
+import 'package:ridemate/core/journeys/journey.dart';
 import 'package:ridemate/core/reviews/review.dart';
 import 'package:ridemate/core/routes/departure.dart';
 import 'package:ridemate/core/routes/discovered_route.dart';
@@ -23,6 +24,8 @@ import 'package:ridemate/features/discovery/presentation/match_results_screen.da
 import 'package:ridemate/features/discovery/presentation/route_details_screen.dart';
 import 'package:ridemate/features/discovery/presentation/search_screen.dart';
 import 'package:ridemate/features/home/presentation/home_screen.dart';
+import 'package:ridemate/features/journeys/application/journeys_providers.dart';
+import 'package:ridemate/features/journeys/presentation/journey_status_screen.dart';
 import 'package:ridemate/features/my_routes/application/my_routes_providers.dart';
 import 'package:ridemate/features/my_routes/data/my_routes_repository.dart';
 import 'package:ridemate/features/my_routes/presentation/my_routes_screen.dart';
@@ -89,6 +92,12 @@ void main() {
               pages: <MyRoutesResult>[
                 MyRoutesResult(
                   routes: <MyRoute>[
+                    // A PLAN, so `trip` is null — which is what the backend
+                    // sends for every recurring route, and is NOT
+                    // `not_started`. A baseline showing Start on a plan would
+                    // be a picture of the conflation Phase 16b exists to
+                    // prevent: a plan has no single journey to begin, and the
+                    // Journeys section above is where its days are.
                     fakeMyRoute(
                       id: '01991b00-0000-7000-8000-000000000001',
                       originLabel: 'Kadıköy, Vapur İskelesi',
@@ -97,6 +106,7 @@ void main() {
                         RideRuleId.noSmoking,
                         RideRuleId.quiet,
                       },
+                      trip: null,
                     ),
                     fakeMyRoute(
                       id: '01991b00-0000-7000-8000-000000000002',
@@ -116,9 +126,28 @@ void main() {
                       seatsOffered: 1,
                       status: RouteStatus.cancelled,
                       cancelledAt: '2026-08-27T18:00:00+00:00',
+                      trip: null,
                     ),
                   ],
                   nextCursor: 'more',
+                ),
+              ],
+            ),
+          ),
+          // My Routes also carries the DATED journey feed, which is a
+          // different endpoint. A fixed one keeps the capture deterministic
+          // and shows the section for what it is: one concrete day of a plan,
+          // with its own lifecycle, above the plans themselves. Nothing here
+          // is derived from the routes above — the server decides which
+          // journeys run today, and this fixture stands in for that answer.
+          journeysRepositoryProvider.overrideWithValue(
+            FakeJourneys(
+              journeys: <Journey>[
+                fakeJourney(
+                  routeId: '01991b00-0000-7000-8000-000000000001',
+                  serviceDate: '2026-09-16',
+                  originLabel: 'Kadıköy, Vapur İskelesi',
+                  destinationLabel: 'Levent, Metro İstasyonu',
                 ),
               ],
             ),
@@ -539,6 +568,14 @@ void main() {
   /// One journey's lifecycle. Deliberately not the Active Trip fixture, which
   /// this screen exists to avoid becoming.
   ///
+  /// CAPTURED ON THE ONE-OFF ROUTE, WHICH IS THE ONLY KIND THAT HAS ONE
+  ///
+  /// This screen reads a ROUTE's own trip, and a plan has none: the backend
+  /// sends `trip: null` for every recurring route, because a plan has no single
+  /// journey. So the baseline is taken on the one-off in the fixture above. A
+  /// plan's days are reached from the Journeys section and captured by
+  /// JourneyStatusScreen's own tests.
+  ///
   /// CAPTURED UNSTARTED, ON PURPOSE
   ///
   /// The states that carry a timestamp render it in the READER's zone, so a
@@ -553,7 +590,7 @@ void main() {
         await pump(
           tester,
           const TripStatusScreen(
-            routeId: '01991b00-0000-7000-8000-000000000001',
+            routeId: '01991b00-0000-7000-8000-000000000002',
           ),
           brightness: brightness,
         );
@@ -568,7 +605,7 @@ void main() {
     testWidgets('right-to-left', (WidgetTester tester) async {
       await pump(
         tester,
-        const TripStatusScreen(routeId: '01991b00-0000-7000-8000-000000000001'),
+        const TripStatusScreen(routeId: '01991b00-0000-7000-8000-000000000002'),
         brightness: Brightness.light,
         textDirection: TextDirection.rtl,
       );
@@ -576,6 +613,55 @@ void main() {
       await expectLater(
         find.byType(TripStatusScreen),
         matchesGoldenFile('goldens/trip_status_rtl.png'),
+      );
+    });
+  });
+
+  /// ONE DAY of a plan, which Trip Status above cannot show.
+  ///
+  /// The surface Phase 16b added: a plan has no single journey, so its
+  /// lifecycle is reached one date at a time. The date is the first line on
+  /// purpose — it is half the identity, and a driver looking at a plan's
+  /// Wednesday must never have to infer that from the rest of the page.
+  ///
+  /// Captured unstarted, for the reason Trip Status is: the states that carry a
+  /// timestamp render it in the READER's zone, and a baseline of one would
+  /// differ between a developer in İstanbul and CI in UTC. The started note and
+  /// both endings are covered by driver_journeys_test.dart instead, where the
+  /// expectation is computed rather than pictured.
+  group('Journey status', () {
+    for (final Brightness brightness in Brightness.values) {
+      testWidgets(brightness.name, (WidgetTester tester) async {
+        await pump(
+          tester,
+          const JourneyStatusScreen(
+            routeId: '01991b00-0000-7000-8000-000000000001',
+            serviceDate: '2026-09-16',
+          ),
+          brightness: brightness,
+        );
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(JourneyStatusScreen),
+          matchesGoldenFile('goldens/journey_status_${brightness.name}.png'),
+        );
+      });
+    }
+
+    testWidgets('right-to-left', (WidgetTester tester) async {
+      await pump(
+        tester,
+        const JourneyStatusScreen(
+          routeId: '01991b00-0000-7000-8000-000000000001',
+          serviceDate: '2026-09-16',
+        ),
+        brightness: Brightness.light,
+        textDirection: TextDirection.rtl,
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(JourneyStatusScreen),
+        matchesGoldenFile('goldens/journey_status_rtl.png'),
       );
     });
   });

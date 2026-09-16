@@ -36,17 +36,13 @@ String tripRefusalCopy(AppLocalizations l10n, RmFailure failure) =>
       TripRefusal.recurringRouteUnsupported =>
         l10n.myRoutesStartRecurringUnsupported,
       TripRefusal.routeUnavailable => l10n.myRoutesStartRouteUnavailable,
-      // Reachable only from a DATED Start, which no screen issues yet: every
-      // control this app offers goes to the route-only endpoints, and those
-      // answer `recurring_route_unsupported` for a plan long before a day can
-      // be over. So it lands on the generic seam rather than acquiring copy
-      // written for a screen nobody has designed.
-      //
-      // FOR F2. The moment a driver can start one dated journey of a plan,
-      // this needs its own sentence — "that day is over, start today's
-      // instead" is a different thing to say from "the departure has not been
-      // reached".
-      TripRefusal.serviceDatePassed => failure.copy(l10n),
+      // Reachable from a DATED Start, which F3 gave a driver: the journey's own
+      // day is over in the ROUTE's timezone, so that morning can no longer be
+      // begun. A different thing to say from `departure_not_reached`, which is
+      // the same day too early — and it says only this: nothing here claims
+      // another day could be started instead, because nothing here knows which
+      // days the route runs.
+      TripRefusal.serviceDatePassed => l10n.myRoutesStartServiceDatePassed,
       // Reachable from Complete and Abort.
       TripRefusal.tripNotStarted => l10n.myRoutesTripNotStarted,
       // Reachable from all three: the journey already ended, so the row that

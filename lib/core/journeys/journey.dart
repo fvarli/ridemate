@@ -31,6 +31,18 @@ import '../routes/departure.dart';
 import '../routes/published_route.dart';
 import '../trips/trip_lifecycle.dart';
 
+/// Which journey, as a value: a plan and one of its days.
+///
+/// The whole identity, because the backend stores no occurrence row and mints
+/// no journey id. A record rather than a joined string, so two refs compare by
+/// what they mean instead of by how they were spelled.
+///
+/// Deliberately NOT the passenger side's `JourneyKey`. That one keys an attempt
+/// to ask for a seat and lives with the seat-request vocabulary; this keys a
+/// driver's own lifecycle. The two happen to be shaped alike, and sharing one
+/// type would be the first step to sharing the refusals that are not alike.
+typedef JourneyRef = ({String routeId, DepartureDate serviceDate});
+
 @immutable
 final class Journey {
   const Journey({
@@ -95,6 +107,25 @@ final class Journey {
     timezone,
     routeStatus,
     trip,
+  );
+
+  /// This journey's identity, and the only way to address it again.
+  JourneyRef get ref => (routeId: routeId, serviceDate: serviceDate);
+
+  /// The same journey, carrying a lifecycle the server has just returned.
+  ///
+  /// Everything else is copied: a command answers about the trip and says
+  /// nothing about where the journey runs or when it was published. The
+  /// lifecycle is never assumed from which command was sent.
+  Journey withTrip(TripLifecycle lifecycle) => Journey(
+    routeId: routeId,
+    serviceDate: serviceDate,
+    origin: origin,
+    destination: destination,
+    departureTime: departureTime,
+    timezone: timezone,
+    routeStatus: routeStatus,
+    trip: lifecycle,
   );
 
   /// Says nothing about where it runs. The identity, and what became of it.

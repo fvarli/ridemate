@@ -1187,9 +1187,13 @@
   "@myRoutesStartDepartureNotReached": {
     "description": "Kalkışa sunucu kendi saatiyle karar verir; cihaz saati burada hiç kullanılmaz."
   },
-  "myRoutesStartRecurringUnsupported": "Tekrarlayan rotalarda yolculuk başlatma henüz yok.",
+  "myRoutesStartRecurringUnsupported": "Hangi günü kastettiğini seç ve yolculuğu oradan başlat.",
   "@myRoutesStartRecurringUnsupported": {
-    "description": "Hafta içi planların tek bir kalkışı yoktur."
+    "description": "Sunucu, bir planı gün belirtmeden başlatmayı reddeder: bir planın tek kalkışı yoktur. Phase 16b'den beri bu bir eksiklik değil; gün belirten komut vardır ve Yolculuklar bölümünden ulaşılır. Bu yüzden metin 'henüz yok' demez."
+  },
+  "myRoutesStartServiceDatePassed": "O günün yolculuğu artık başlatılamaz.",
+  "@myRoutesStartServiceDatePassed": {
+    "description": "Sunucu, o günün rota-yerel takvim günü geçtiği için başlatmayı reddetti. Yalnızca BU günü söyler: başka bir günün başlatılabileceğini iddia etmez, çünkü istemci bunu bilmez."
   },
   "myRoutesStartRouteUnavailable": "Bu rota artık başlatılamaz.",
   "@myRoutesStartRouteUnavailable": {
@@ -1323,6 +1327,10 @@
   "@tripStatusAbortedAt": {
     "description": "Sunucunun kaydettiği an."
   },
+  "tripStatusServiceDate": "Yolculuk günü",
+  "@tripStatusServiceDate": {
+    "description": "Bu yolculuğun hangi güne ait olduğunu etiketler. Plan tarihi değil, o günün kendisidir."
+  },
   "tripStatusNotFound": "Bu rota listende yok",
   "@tripStatusNotFound": {
     "description": "Rota yüklenmiş sayfalarda bulunamadı. Uydurulmuş bir yolculuk gösterilmez."
@@ -1330,6 +1338,52 @@
   "tripStatusNotFoundBody": "Rotalarını yeniden yükleyip tekrar dene.",
   "@tripStatusNotFoundBody": {
     "description": "Tek bir rotayı okuyan bir uç nokta yok; liste yeniden okunur."
+  },
+  "journeysSectionTitle": "Yolculuklar",
+  "@journeysSectionTitle": {
+    "description": "Sürücünün bugün çalışan ve sürmekte olan yolculuklarını listeleyen bölümün başlığı. Rota planlarından ayrıdır: bir plan her çalıştığı gün için ayrı bir yolculuktur."
+  },
+  "journeysSectionBody": "Bugün çalışan yolculuklar ve başlattığın yolculuklar.",
+  "@journeysSectionBody": {
+    "description": "Bölümün neyi listelediğini söyler. Sunucunun kuralıdır; istemci gün hesaplamaz."
+  },
+  "journeysEmpty": "Bugün çalışan bir yolculuk yok",
+  "@journeysEmpty": {
+    "description": "Sunucu bugün için yolculuk döndürmedi. Nedenini iddia etmez."
+  },
+  "journeysEmptyBody": "Rotalarından biri çalıştığı her gün burada bir yolculuk görünür.",
+  "@journeysEmptyBody": {
+    "description": "Boş durumun neden boş olabileceğini değil, bu listenin ne olduğunu açıklar."
+  },
+  "journeysFailed": "Yolculukların yüklenemedi.",
+  "@journeysFailed": {
+    "description": "Yolculuk listesi okunamadı. Yolculuk olmadığı iddia edilmez."
+  },
+  "journeyNotFound": "Bu yolculuk okunamadı",
+  "@journeyNotFound": {
+    "description": "Sunucu bu rota ve gün için bir yolculuk vermedi. Rota başkasının olabilir veya rota o gün çalışmıyor olabilir; ikisi kasten ayırt edilmez."
+  },
+  "journeyNotFoundBody": "Günü kontrol edip tekrar dene.",
+  "@journeyNotFoundBody": {
+    "description": "Okunamayan yolculuk için tek doğru öneri."
+  },
+  "journeyCardSemanticLabel": "{route}, {date}, {departure}, {trip}",
+  "@journeyCardSemanticLabel": {
+    "description": "Bir yolculuk satırının ekran okuyucuda tek parça olarak okunması. Sıra veya renk değil, metin taşır.",
+    "placeholders": {
+      "route": {"type": "String"},
+      "date": {"type": "String"},
+      "departure": {"type": "String"},
+      "trip": {"type": "String"}
+    }
+  },
+  "journeyOpenSemanticLabel": "{route} rotasının {date} günündeki yolculuğunu aç",
+  "@journeyOpenSemanticLabel": {
+    "description": "Yolculuk satırının açma eyleminin etiketi. Hangi gün olduğunu söyler; 'bugünkü' veya 'sıradaki' demez.",
+    "placeholders": {
+      "route": {"type": "String"},
+      "date": {"type": "String"}
+    }
   },
   "receivedReviewsTitle": "Hakkındaki değerlendirmeler",
   "@receivedReviewsTitle": {

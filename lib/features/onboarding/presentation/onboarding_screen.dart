@@ -30,6 +30,15 @@
 // from the intro, which is exactly what the flag records.
 //
 // Neither creates an account. Nothing exists until a passcode is verified.
+//
+// NO SOCIAL PROOF. The design's community-proof card — "12.480 doğrulanmış üye
+// İstanbul'da" over three stacked member avatars — is gone, and nothing stands
+// in its place. It named a verified-member population that no endpoint counts,
+// beside avatars for members who do not exist, on the first screen a stranger
+// sees. A smaller number, "binlerce", a rating or a journey total would have
+// been the same claim in a quieter voice, so the unit was removed rather than
+// softened. The headline and subtitle stay: they describe what RideMate is
+// for, which is true before anybody has joined.
 // ─────────────────────────────────────────────────────────────
 
 import 'dart:math' as math;
@@ -40,7 +49,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
-import '../../../core/format/rm_formatters.dart';
 import '../../../core/icons/rm_icons.dart';
 import '../../../core/theme/tokens/rm_colors.dart';
 import '../../../core/theme/tokens/rm_radius.dart';
@@ -52,11 +60,6 @@ import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_icon.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/onboarding_controller.dart';
-
-/// Presentation fixture: the community-proof count shown in the design.
-///
-/// Mock display data — not a real member count and not a backend value.
-const int _kMockVerifiedMemberCount = 12480;
 
 /// The intro screen.
 class OnboardingScreen extends ConsumerWidget {
@@ -124,7 +127,7 @@ class OnboardingScreen extends ConsumerWidget {
   }
 }
 
-/// The bottom sheet: headline, subtitle, social proof, actions, page dots.
+/// The bottom sheet: headline, subtitle, actions, page dots.
 class _IntroSheet extends StatelessWidget {
   const _IntroSheet({
     required this.l10n,
@@ -177,8 +180,6 @@ class _IntroSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: RmSpacing.xxl),
-              _SocialProof(l10n: l10n),
-              const SizedBox(height: RmSpacing.xxl),
               RmButton(
                 label: l10n.onboardingCreateAccount,
                 onPressed: onCreateAccountRequested,
@@ -223,105 +224,6 @@ class _Headline extends StatelessWidget {
               style: TextStyle(color: c.primaryText),
             ),
             TextSpan(text: l10n.onboardingHeadlineAfter),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Stacked member avatars plus the community count.
-class _SocialProof extends StatelessWidget {
-  const _SocialProof({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final RmColors c = context.rmColors;
-    final RmFormatters formatters = RmFormatters.of(context);
-    final String count = formatters.count(_kMockVerifiedMemberCount);
-
-    return Container(
-      padding: const EdgeInsets.all(RmSpacing.lg),
-      decoration: BoxDecoration(
-        color: c.primarySoft,
-        borderRadius: RmRadius.brMd,
-        border: Border.all(color: c.primarySoftBorder),
-      ),
-      child: Row(
-        children: <Widget>[
-          const _StackedAvatars(),
-          const SizedBox(width: RmSpacing.md),
-          Expanded(
-            // The count is data, so it renders in the mono family per the
-            // design system's prose/data split.
-            child: Text.rich(
-              TextSpan(
-                style: RmTypography.caption.copyWith(color: c.ink),
-                children: <InlineSpan>[
-                  TextSpan(
-                    text: count,
-                    style: RmTypography.numericMicro.copyWith(
-                      color: c.primaryText,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  TextSpan(
-                    text: l10n
-                        .onboardingSocialProof(count)
-                        .replaceFirst(count, ''),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Three overlapping identity avatars.
-class _StackedAvatars extends StatelessWidget {
-  const _StackedAvatars();
-
-  static const double _size = RmAvatarSize.xs;
-  static const double _overlap = 12;
-
-  @override
-  Widget build(BuildContext context) {
-    const List<RmIdentity> identities = <RmIdentity>[
-      RmIdentity.amber,
-      RmIdentity.green,
-      RmIdentity.purple,
-    ];
-
-    return ExcludeSemantics(
-      child: SizedBox(
-        width: _size + (identities.length - 1) * (_size - _overlap),
-        height: _size,
-        child: Stack(
-          children: <Widget>[
-            for (int i = 0; i < identities.length; i++)
-              PositionedDirectional(
-                start: i * (_size - _overlap),
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: context.rmColors.sheet,
-                      width: RmSizing.borderWidthEmphasis,
-                    ),
-                  ),
-                  child: RmAvatar(
-                    initials: '',
-                    size: _size,
-                    shape: RmAvatarShape.circle,
-                    identity: identities[i],
-                  ),
-                ),
-              ),
           ],
         ),
       ),

@@ -67,11 +67,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'With verified neighbours, colleagues and students. Not a taxi — a community.';
 
   @override
-  String onboardingSocialProof(String count) {
-    return '$count verified members in Istanbul';
-  }
-
-  @override
   String get onboardingCreateAccount => 'Create account';
 
   @override

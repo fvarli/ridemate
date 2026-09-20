@@ -89,16 +89,6 @@
   "@onboardingSubtitle": {
     "description": "Onboarding alt başlığı. RideMate'in taksi olmadığını vurgular."
   },
-  "onboardingSocialProof": "{count} doğrulanmış üye İstanbul'da",
-  "@onboardingSocialProof": {
-    "description": "Topluluk kanıtı satırı. Sayı yerel biçimde ve mono yazı tipiyle gösterilir; bu metin mock sunum verisidir.",
-    "placeholders": {
-      "count": {
-        "type": "String",
-        "example": "12.480"
-      }
-    }
-  },
   "onboardingCreateAccount": "Hesap oluştur",
   "@onboardingCreateAccount": {
     "description": "Birincil eylem. Yeni kullanıcı akışına devam eder. Bu bir hesap oluşturma veya kimlik doğrulama işlemi DEĞİLDİR; uygulamada henüz hesap kavramı yoktur."

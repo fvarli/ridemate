@@ -67,11 +67,6 @@ class AppLocalizationsTr extends AppLocalizations {
       'Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.';
 
   @override
-  String onboardingSocialProof(String count) {
-    return '$count doğrulanmış üye İstanbul\'da';
-  }
-
-  @override
   String get onboardingCreateAccount => 'Hesap oluştur';
 
   @override

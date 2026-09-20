@@ -200,12 +200,6 @@ abstract class AppLocalizations {
   /// **'Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.'**
   String get onboardingSubtitle;
 
-  /// Topluluk kanıtı satırı. Sayı yerel biçimde ve mono yazı tipiyle gösterilir; bu metin mock sunum verisidir.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} doğrulanmış üye İstanbul\'da'**
-  String onboardingSocialProof(String count);
-
   /// Birincil eylem. Yeni kullanıcı akışına devam eder. Bu bir hesap oluşturma veya kimlik doğrulama işlemi DEĞİLDİR; uygulamada henüz hesap kavramı yoktur.
   ///
   /// In tr, this message translates to:

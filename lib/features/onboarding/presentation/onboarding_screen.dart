@@ -39,6 +39,17 @@
 // been the same claim in a quieter voice, so the unit was removed rather than
 // softened. The headline and subtitle stay: they describe what RideMate is
 // for, which is true before anybody has joined.
+//
+// THE HERO'S DISCS CARRY NO LETTERS, for the same reason. They used to read
+// SK, EY and MA — which are not three shapes but three people: the initials,
+// and the identity colours, of Selin K., Mert A. and Emre Y. from the
+// discovery fixtures. Every other surface that shows those three is withheld
+// behind `kDebugMode`; this one is the intro, so a release build was still
+// introducing three drivers nobody has. Two letters in the member avatar
+// widget, above a line about verified neighbours, is a member identity even
+// with the semantics excluded. The circles, rings, gradients, sizes and
+// placement are unchanged; only the letters are gone, so what remains is the
+// composition the design draws rather than a cast.
 // ─────────────────────────────────────────────────────────────
 
 import 'dart:math' as math;
@@ -266,9 +277,11 @@ class _PageDots extends StatelessWidget {
   }
 }
 
-/// The hero: two dashed rings, a frosted logo tile and three member avatars.
+/// The hero: two dashed rings, a frosted logo tile and three blank identity
+/// discs.
 ///
-/// Entirely decorative — it conveys nothing a screen reader needs.
+/// Entirely decorative, and now true of the discs as well: they are coloured
+/// circles standing for nobody. It conveys nothing a screen reader needs.
 class _TrustConstellation extends StatelessWidget {
   const _TrustConstellation();
 
@@ -316,19 +329,16 @@ class _TrustConstellation extends StatelessWidget {
             ),
             const _ConstellationAvatar(
               alignment: AlignmentDirectional(-0.62, -0.52),
-              initials: 'SK',
               identity: RmIdentity.amber,
               size: RmAvatarSize.xl,
             ),
             const _ConstellationAvatar(
               alignment: AlignmentDirectional(0.66, -0.28),
-              initials: 'EY',
               identity: RmIdentity.purple,
               size: RmAvatarSize.lg,
             ),
             const _ConstellationAvatar(
               alignment: AlignmentDirectional(0.58, 0.62),
-              initials: 'MA',
               identity: RmIdentity.green,
               size: RmAvatarSize.xl,
             ),
@@ -339,16 +349,19 @@ class _TrustConstellation extends StatelessWidget {
   }
 }
 
+/// One decorative disc of the hero.
+///
+/// It takes no initials, and the omission is the point: this is a shape in a
+/// composition, not a member. Reintroducing a person here has to reopen the
+/// constructor first.
 class _ConstellationAvatar extends StatelessWidget {
   const _ConstellationAvatar({
     required this.alignment,
-    required this.initials,
     required this.identity,
     required this.size,
   });
 
   final AlignmentDirectional alignment;
-  final String initials;
   final RmIdentity identity;
   final double size;
 
@@ -367,7 +380,7 @@ class _ConstellationAvatar extends StatelessWidget {
           ),
         ),
         child: RmAvatar(
-          initials: initials,
+          initials: '',
           size: size,
           shape: RmAvatarShape.circle,
           identity: identity,

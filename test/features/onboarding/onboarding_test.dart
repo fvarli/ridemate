@@ -347,14 +347,87 @@ void main() {
         ),
         findsNothing,
       );
-      // And no anonymous stand-in avatar anywhere: the stacked three carried
-      // no initials precisely because they represented nobody.
-      expect(
-        find.byWidgetPredicate(
-          (Widget w) => w is RmAvatar && w.initials.trim().isEmpty,
-        ),
-        findsNothing,
-      );
+      // Scoped, and staying scoped: the hero's own discs are deliberately
+      // blank now, so "no blank avatar anywhere" would be the wrong rule.
+      // What the hero renders is asserted separately, below.
+    });
+
+    /// CARRIES WEIGHT. The hero introduced three people, and now introduces
+    /// nobody.
+    ///
+    /// SK, EY and MA were not decoration: they are the initials and the
+    /// identity colours of Selin K., Mert A. and Emre Y. from the discovery
+    /// fixtures, and Home's own guard already refuses the literal 'SK' under
+    /// the heading "the person". Every other surface showing those three is
+    /// withheld behind `kDebugMode`; the intro was the one release build that
+    /// still introduced them.
+    testWidgets('the hero introduces nobody', (WidgetTester tester) async {
+      await pumpIntro(tester);
+
+      // The constellation survives: three discs, the logo tile and the rings.
+      final Finder discs = find.byType(RmAvatar);
+      expect(discs, findsNWidgets(3));
+      expect(find.byType(CustomPaint), findsWidgets);
+
+      // And every one of them stands for nobody. Blank rather than absent, so
+      // the composition the design draws is unchanged.
+      for (final RmAvatar disc in tester.widgetList<RmAvatar>(discs)) {
+        expect(
+          disc.initials,
+          isEmpty,
+          reason: 'a constellation disc names somebody: "${disc.initials}"',
+        );
+        // Nor does a disc vouch for that nobody.
+        expect(disc.verification, RmVerification.none);
+        expect(disc.presence, RmPresence.none);
+      }
+    });
+
+    /// The letters, wherever they are drawn from: a `Text` inside the hero
+    /// would say the same thing as an `initials:` argument.
+    testWidgets('no fixture person is drawn anywhere on the intro', (
+      WidgetTester tester,
+    ) async {
+      await pumpIntro(tester);
+      final String shown = renderedText(tester).join(' ');
+
+      for (final String person in <String>[
+        'SK',
+        'EY',
+        'MA',
+        'Selin',
+        'Mert',
+        'Emre',
+      ]) {
+        expect(
+          shown.contains(person),
+          isFalse,
+          reason: 'the intro still shows "$person"',
+        );
+      }
+    });
+
+    /// And no replacement cast was invented in their place.
+    test('the onboarding source names no person at all', () {
+      final List<String> lines = File(
+        'lib/features/onboarding/presentation/onboarding_screen.dart',
+      ).readAsLinesSync();
+
+      for (int i = 0; i < lines.length; i++) {
+        final String line = lines[i];
+        // The retired initials are named in the header that explains why they
+        // were retired, so comments are not scanned.
+        if (line.trimLeft().startsWith('//') ||
+            line.trimLeft().startsWith('///')) {
+          continue;
+        }
+
+        expect(
+          RegExp(r"initials:\s*'[^']").hasMatch(line),
+          isFalse,
+          reason: 'onboarding_screen.dart:${i + 1} — an identity came back',
+        );
+      }
     });
 
     /// The copy can come back without the widget: a key is enough.

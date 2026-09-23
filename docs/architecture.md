@@ -222,9 +222,13 @@ Routes with its journeys, and Journey Status — are re-read in exactly two ways
   indicator waits for the server's answer, not for the request to be sent. Home's pull
   re-reads its journeys and askings, not the greeting.
 * **A return to the foreground**, owned by one widget (`lib/app/foreground_refresh.dart`) at
-  the app root. It invalidates a named list of providers (`kForegroundRereads`). They all
-  auto-dispose, so only the ones on screen are asked again. Only a return from the
-  background counts; turning inactive for a shade or a call does not.
+  the app root. It invalidates a named list of seat-request and journey providers
+  (`kForegroundRereads`). They all auto-dispose, and invalidating one that is not alive does
+  not create it, so only those still watched by a mounted widget are asked again. That is
+  not only what is visible: the indexed-stack shell keeps inactive tabs mounted and a pushed
+  route leaves the one beneath it mounted, so Home's sections or My Routes can be re-read
+  while another screen is in front. Only a return from the background counts; turning
+  inactive for a shade or a call does not.
 
 **There is no push, polling, timer or realtime channel.** A screen shows what the server
 answered at its last read, and nothing here claims it is current. While a re-read is in

@@ -14,12 +14,16 @@
 // without the member ever leaving it, and re-reading every list on each of
 // those would be traffic nobody asked for.
 //
-// ONLY WHAT IS ON SCREEN IS ASKED AGAIN
+// ONLY WHAT A MOUNTED WIDGET STILL WATCHES IS ASKED AGAIN
 //
-// Every provider named below disposes itself when no screen watches it.
-// Invalidating one that is not alive does nothing, so a return re-reads the
-// lists the member can actually see, and nothing else. There is no timer and
-// no polling: without a return, or a pull, nothing is asked again.
+// Every provider named below disposes itself when no mounted widget watches
+// it. Invalidating one that is not alive does nothing — it is not created —
+// so a return re-reads only the named providers that are still alive. That is
+// not the same as what is visible: the shell keeps inactive tabs mounted, and
+// a pushed route leaves the one beneath it mounted, so Home's sections or My
+// Routes can be re-read while another screen is in front. The list itself
+// stays limited to seat-request and journey state. There is no timer and no
+// polling: without a return, or a pull, nothing is asked again.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/widgets.dart';

@@ -37,15 +37,24 @@
 // They are three resources. A journeys outage must not blank out the askings
 // that loaded, and neither may take the greeting with it — so each section
 // owns its loading, empty and error state and its own retry.
+//
+// ONE PULL, TWO SECTIONS
+//
+// Home is a tab, and a tab stays open: without a way to ask again, the answer
+// to somebody's asking read at sign-in was the answer shown all day. A pull
+// re-reads the two sections another member can change — the journeys and the
+// askings — and not the greeting, which only this member changes.
 // ─────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../core/api/rm_error_copy.dart';
 import '../../../core/api/rm_failure.dart';
+import '../../../core/api/rm_refresh.dart';
 import '../../../core/format/rm_formatters.dart';
 import '../../../core/format/rm_text_conventions.dart';
 import '../../../core/icons/rm_icons.dart';
@@ -61,6 +70,7 @@ import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_card.dart';
 import '../../../core/widgets/rm_icon.dart';
 import '../../../core/widgets/rm_list_row.dart';
+import '../../../core/widgets/rm_pull_to_refresh.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../journeys/application/journeys_providers.dart';
 import '../../journeys/domain/my_journeys_page.dart';
@@ -87,24 +97,31 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: c.background,
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            RmSpacing.screenGutter,
-            RmSpacing.lg,
-            RmSpacing.screenGutter,
-            RmSpacing.xxl,
+        child: RmPullToRefresh(
+          onRefresh: () => rmReread(ref, <Refreshable<Future<Object?>>>[
+            myJourneysProvider.future,
+            mySeatRequestsProvider.future,
+          ]),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              RmSpacing.screenGutter,
+              RmSpacing.lg,
+              RmSpacing.screenGutter,
+              RmSpacing.xxl,
+            ),
+            children: <Widget>[
+              const _Greeting(),
+              const SizedBox(height: RmSpacing.lg),
+              _SearchCta(l10n: l10n),
+              const SizedBox(height: RmSpacing.xl),
+              const _DrivingSection(),
+              const SizedBox(height: RmSpacing.xl),
+              const _RequestsSection(),
+              const SizedBox(height: RmSpacing.xl),
+              _Manage(l10n: l10n),
+            ],
           ),
-          children: <Widget>[
-            const _Greeting(),
-            const SizedBox(height: RmSpacing.lg),
-            _SearchCta(l10n: l10n),
-            const SizedBox(height: RmSpacing.xl),
-            const _DrivingSection(),
-            const SizedBox(height: RmSpacing.xl),
-            const _RequestsSection(),
-            const SizedBox(height: RmSpacing.xl),
-            _Manage(l10n: l10n),
-          ],
         ),
       ),
     );
@@ -179,6 +196,16 @@ class _DrivingSection extends ConsumerWidget {
       // not own, and would be wrong about the journey started yesterday.
       title: l10n.homeDrivingTitle,
       child: switch (feed) {
+        // What was read stays while it is read again — see
+        // core/api/rm_refresh.dart.
+        AsyncValue<MyJourneysPage>(:final MyJourneysPage? held)
+            when held != null =>
+          _Held(
+            refreshFailed: feed.refreshFailed,
+            child: held.journeys.isEmpty
+                ? _Empty(message: l10n.journeysEmpty)
+                : _JourneyPreview(journeys: held.journeys),
+          ),
         AsyncValue<MyJourneysPage>(hasError: true, :final Object? error) =>
           _Failed(
             message: error is RmFailure
@@ -308,6 +335,16 @@ class _RequestsSection extends ConsumerWidget {
       onSeeAll: () => context.pushNamed(AppRoutes.myRequests),
       seeAllLabel: l10n.homeSeeAll,
       child: switch (page) {
+        AsyncValue<SeatRequestPage<MySeatRequest>>(
+          :final SeatRequestPage<MySeatRequest>? held,
+        )
+            when held != null =>
+          _Held(
+            refreshFailed: page.refreshFailed,
+            child: held.requests.isEmpty
+                ? _Empty(message: l10n.myRequestsEmpty)
+                : _RequestPreview(requests: held.requests),
+          ),
         AsyncValue<SeatRequestPage<MySeatRequest>>(
           hasError: true,
           :final Object? error,
@@ -506,6 +543,33 @@ class _Loading extends StatelessWidget {
     AppLocalizations.of(context).commonLoading,
     style: RmTypography.body.copyWith(color: context.rmColors.sub),
   );
+}
+
+/// A section's last answer, and — when asking again failed — a sentence saying
+/// it may be out of date. Never the old answer alone.
+class _Held extends StatelessWidget {
+  const _Held({required this.refreshFailed, required this.child});
+
+  final bool refreshFailed;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!refreshFailed) return child;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        RmInlineMessage(
+          message: AppLocalizations.of(context).commonRefreshFailed,
+          icon: RmIcons.alertTriangle,
+          tone: RmRowTone.danger,
+        ),
+        const SizedBox(height: RmSpacing.sm),
+        child,
+      ],
+    );
+  }
 }
 
 /// Nothing to show, said without a reason.

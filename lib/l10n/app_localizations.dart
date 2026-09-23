@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'Yükleniyor'**
   String get commonLoading;
 
+  /// Yeniden okuma başarısız oldu. Önceki yanıt ekranda kalır ve güncel olduğu iddia edilmez. Yeniden denemek için liste aşağı çekilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yenilenemedi. Gösterilenler güncel olmayabilir.'**
+  String get commonRefreshFailed;
+
   /// Kilometre cinsinden mesafe. Sayı yerel biçimde gelir (örn. 6,2).
   ///
   /// In tr, this message translates to:

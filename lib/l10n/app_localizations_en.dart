@@ -39,6 +39,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonLoading => 'Loading';
 
   @override
+  String get commonRefreshFailed =>
+      'Couldn\'t refresh. What\'s shown may be out of date.';
+
+  @override
   String unitDistanceKm(String value) {
     return '$value km';
   }

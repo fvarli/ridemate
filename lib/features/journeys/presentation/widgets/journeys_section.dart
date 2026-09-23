@@ -32,6 +32,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/api/rm_error_copy.dart';
 import '../../../../core/api/rm_failure.dart';
+import '../../../../core/api/rm_refresh.dart';
 import '../../../../core/icons/rm_icons.dart';
 import '../../../../core/journeys/journey.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
@@ -71,8 +72,11 @@ class JourneysSection extends ConsumerWidget {
         const SizedBox(height: RmSpacing.md),
         // `hasError` before `isLoading`: a build that threw sits in a loading
         // state carrying its error, so matching loading first would spin for
-        // ever.
+        // ever. A held answer comes before both — see core/api/rm_refresh.dart.
         switch (feed) {
+          AsyncValue<MyJourneysPage>(:final MyJourneysPage? held)
+              when held != null =>
+            _List(page: held, refreshFailed: feed.refreshFailed),
           AsyncValue<MyJourneysPage>(hasError: true, :final Object? error) =>
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -109,14 +113,28 @@ class JourneysSection extends ConsumerWidget {
 }
 
 class _List extends ConsumerWidget {
-  const _List({required this.page});
+  const _List({required this.page, this.refreshFailed = false});
 
   final MyJourneysPage page;
+
+  /// These journeys are the last answer, and asking again did not replace it.
+  final bool refreshFailed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final RmColors c = context.rmColors;
+
+    final Widget? stale = refreshFailed
+        ? Padding(
+            padding: const EdgeInsets.only(bottom: RmSpacing.sm),
+            child: RmInlineMessage(
+              message: l10n.commonRefreshFailed,
+              icon: RmIcons.alertTriangle,
+              tone: RmRowTone.danger,
+            ),
+          )
+        : null;
 
     // Nothing running today. Said plainly, and without a reason: the feed does
     // not say whether the plans are cancelled, past or simply not due, and a
@@ -125,6 +143,7 @@ class _List extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          ?stale,
           Text(
             l10n.journeysEmpty,
             style: RmTypography.body.copyWith(color: c.ink),
@@ -141,6 +160,7 @@ class _List extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
+        ?stale,
         // In the order the server returned them: `(service_date, route_id)`
         // descending. Nothing here sorts, and that order is deterministic
         // rather than a global chronology — routes carry their own timezones.

@@ -212,6 +212,27 @@ Two boundaries matter and are easy to blur:
   different layers and never met — removing provider retry could not affect it, and its
   tests are untouched.
 
+#### Freshness: a pull, or a return — nothing is live
+
+Somebody else answers a seat request, and a journey can be started, ended or withdrawn from
+another device. The screens showing those facts — Home, My Requests, Route Requests, My
+Routes with its journeys, and Journey Status — are re-read in exactly two ways:
+
+* **Pull to refresh**, on every state of those screens, empty and failed included. The
+  indicator waits for the server's answer, not for the request to be sent. Home's pull
+  re-reads its journeys and askings, not the greeting.
+* **A return to the foreground**, owned by one widget (`lib/app/foreground_refresh.dart`) at
+  the app root. It invalidates a named list of providers (`kForegroundRereads`). They all
+  auto-dispose, so only the ones on screen are asked again. Only a return from the
+  background counts; turning inactive for a shade or a call does not.
+
+**There is no push, polling, timer or realtime channel.** A screen shows what the server
+answered at its last read, and nothing here claims it is current. While a re-read is in
+flight, the rows already read stay on screen. If it fails, they stay, with a sentence saying
+they could not be refreshed (`RmHeldValue` in `core/api/rm_refresh.dart`). Only a *first*
+read that fails shows the full failure state. A re-read never shows an old answer as a new
+one, and never erases one the member could read a second ago.
+
 Persisted state, and only this:
 
 | What | Where | Why there |

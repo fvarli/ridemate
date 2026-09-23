@@ -6,6 +6,7 @@ import '../core/a11y/rm_a11y.dart';
 import '../core/theme/rm_theme.dart';
 import '../core/theme/tokens/rm_colors.dart';
 import '../l10n/app_localizations.dart';
+import 'foreground_refresh.dart';
 import 'providers/app_preferences_provider.dart';
 import 'router/app_router.dart';
 
@@ -19,6 +20,9 @@ import 'router/app_router.dart';
 /// Also the one place the release error widget is installed. In debug and
 /// under test the framework's red error box stays exactly as it is, because
 /// that box is how a broken build announces itself to a developer.
+///
+/// And the one place a return to the foreground is observed — see
+/// [ForegroundRefresh].
 class RideMateApp extends ConsumerWidget {
   const RideMateApp({super.key});
 
@@ -32,18 +36,20 @@ class RideMateApp extends ConsumerWidget {
     final ThemeMode themeMode = ref.watch(themeModeProvider);
     final Locale? locale = ref.watch(localeProvider);
 
-    return MaterialApp.router(
-      title: appTitle,
-      debugShowCheckedModeBanner: false,
-      theme: RmTheme.light,
-      darkTheme: RmTheme.dark,
-      themeMode: themeMode,
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localeResolutionCallback: resolveLocale,
-      builder: _applyTextScaleCeiling,
-      routerConfig: ref.watch(routerProvider),
+    return ForegroundRefresh(
+      child: MaterialApp.router(
+        title: appTitle,
+        debugShowCheckedModeBanner: false,
+        theme: RmTheme.light,
+        darkTheme: RmTheme.dark,
+        themeMode: themeMode,
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localeResolutionCallback: resolveLocale,
+        builder: _applyTextScaleCeiling,
+        routerConfig: ref.watch(routerProvider),
+      ),
     );
   }
 

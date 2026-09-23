@@ -41,6 +41,8 @@
   "@commonLoading": {
     "description": "Bir işlem sürerken ekran okuyucuya bildirilen durum."
   },
+  "commonRefreshFailed": "Yenilenemedi. Gösterilenler güncel olmayabilir.",
+  "@commonRefreshFailed": {"description": "Yeniden okuma başarısız oldu. Önceki yanıt ekranda kalır ve güncel olduğu iddia edilmez. Yeniden denemek için liste aşağı çekilir."},
 
   "unitDistanceKm": "{value} km",
   "@unitDistanceKm": {

@@ -39,6 +39,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get commonLoading => 'Yükleniyor';
 
   @override
+  String get commonRefreshFailed =>
+      'Yenilenemedi. Gösterilenler güncel olmayabilir.';
+
+  @override
   String unitDistanceKm(String value) {
     return '$value km';
   }

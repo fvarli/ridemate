@@ -32,11 +32,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../core/api/rm_error_copy.dart';
 import '../../../core/api/rm_failure.dart';
+import '../../../core/api/rm_refresh.dart';
 import '../../../core/format/rm_formatters.dart';
 import '../../../core/format/rm_text_conventions.dart';
 import '../../../core/icons/rm_icons.dart';
@@ -52,6 +54,7 @@ import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_card.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
+import '../../../core/widgets/rm_pull_to_refresh.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../my_routes/presentation/trip_refusal_copy.dart';
 import '../application/journeys_providers.dart';
@@ -167,28 +170,50 @@ class _Loaded extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<JourneyDetail> detail = ref.watch(journeyProvider(target));
 
-    // `hasError` before `isLoading`, for the reason My Routes gives: a build
-    // that threw sits in a loading state carrying its error, so matching
-    // loading first would spin for ever.
-    return switch (detail) {
-      AsyncValue<JourneyDetail>(hasError: true, :final Object? error) =>
-        _Missing(
-          l10n: l10n,
-          c: c,
-          target: target,
-          failure: error is RmFailure ? error : null,
+    // The lifecycle can move on another device, so the driver can ask the
+    // server again from any state.
+    return RmPullToRefresh(
+      onRefresh: () => rmReread(ref, <Refreshable<Future<Object?>>>[
+        journeyProvider(target).future,
+      ]),
+      // `hasError` before `isLoading`, for the reason My Routes gives: a build
+      // that threw sits in a loading state carrying its error, so matching
+      // loading first would spin for ever.
+      //
+      // A held answer comes before both. A failed re-read of a journey this
+      // screen has already shown is not evidence that the journey is missing,
+      // and saying "not found" over it would be false.
+      child: switch (detail) {
+        AsyncValue<JourneyDetail>(:final JourneyDetail? held)
+            when held != null =>
+          _Detail(
+            target: target,
+            detail: held,
+            refreshFailed: detail.refreshFailed,
+          ),
+        AsyncValue<JourneyDetail>(hasError: true, :final Object? error) =>
+          RmPullable(
+            child: _Missing(
+              l10n: l10n,
+              c: c,
+              target: target,
+              failure: error is RmFailure ? error : null,
+            ),
+          ),
+        AsyncValue<JourneyDetail>(isLoading: true) => RmPullable(
+          child: _Centred(
+            child: Text(
+              l10n.commonLoading,
+              style: RmTypography.body.copyWith(color: c.sub),
+            ),
+          ),
         ),
-      AsyncValue<JourneyDetail>(isLoading: true) => _Centred(
-        child: Text(
-          l10n.commonLoading,
-          style: RmTypography.body.copyWith(color: c.sub),
-        ),
-      ),
-      AsyncValue<JourneyDetail>(:final JourneyDetail? value)
-          when value != null =>
-        _Detail(target: target, detail: value),
-      _ => const SizedBox.shrink(),
-    };
+        AsyncValue<JourneyDetail>(:final JourneyDetail? value)
+            when value != null =>
+          _Detail(target: target, detail: value),
+        _ => const SizedBox.shrink(),
+      },
+    );
   }
 }
 
@@ -247,10 +272,17 @@ class _Missing extends ConsumerWidget {
 }
 
 class _Detail extends ConsumerWidget {
-  const _Detail({required this.target, required this.detail});
+  const _Detail({
+    required this.target,
+    required this.detail,
+    this.refreshFailed = false,
+  });
 
   final JourneyRef target;
   final JourneyDetail detail;
+
+  /// This lifecycle is the last answer, and asking again did not replace it.
+  final bool refreshFailed;
 
   Journey get journey => detail.journey;
 
@@ -271,6 +303,7 @@ class _Detail extends ConsumerWidget {
     );
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
         RmSpacing.screenGutter,
         RmSpacing.lg,
@@ -278,6 +311,14 @@ class _Detail extends ConsumerWidget {
         RmSpacing.xl,
       ),
       children: <Widget>[
+        if (refreshFailed) ...<Widget>[
+          RmInlineMessage(
+            message: l10n.commonRefreshFailed,
+            icon: RmIcons.alertTriangle,
+            tone: RmRowTone.danger,
+          ),
+          const SizedBox(height: RmSpacing.md),
+        ],
         Text(route, style: RmTypography.titleMd.copyWith(color: c.ink)),
         const SizedBox(height: RmSpacing.lg),
         RmCard(

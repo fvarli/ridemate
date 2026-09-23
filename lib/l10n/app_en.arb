@@ -13,6 +13,7 @@
   "commonBack": "Back",
   "commonClose": "Close",
   "commonLoading": "Loading",
+  "commonRefreshFailed": "Couldn't refresh. What's shown may be out of date.",
 
   "unitDistanceKm": "{value} km",
   "unitDurationMinutes": "{value} min",

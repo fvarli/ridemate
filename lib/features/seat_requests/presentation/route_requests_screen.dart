@@ -23,11 +23,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../core/api/rm_error_copy.dart';
 import '../../../core/api/rm_failure.dart';
+import '../../../core/api/rm_refresh.dart';
 import '../../../core/icons/rm_icons.dart';
 import '../../../core/routes/my_route.dart';
 import '../../../core/seat_requests/seat_request.dart';
@@ -39,6 +41,7 @@ import '../../../core/trips/trip_lifecycle.dart';
 import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
+import '../../../core/widgets/rm_pull_to_refresh.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../my_routes/application/my_routes_providers.dart';
 import '../../my_routes/domain/my_routes_page.dart';
@@ -94,65 +97,95 @@ class RouteRequestsScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              // `hasError` before `isLoading`: a build that threw sits in a
-              // loading state carrying its error, so matching AsyncLoading
-              // first would spin for ever and say nothing.
-              child: switch (page) {
-                AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
-                  hasError: true,
-                  :final Object? error,
-                ) =>
-                  _Centred(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        RmInlineMessage(
-                          message: error is RmFailure
-                              ? error.copy(l10n)
-                              : l10n.errorUnexpected,
-                          icon: RmIcons.alertTriangle,
-                          tone: RmRowTone.danger,
-                        ),
-                        const SizedBox(height: RmSpacing.md),
-                        RmButton(
-                          label: l10n.commonRetry,
-                          size: RmButtonSize.sm,
-                          variant: RmButtonVariant.outline,
-                          onPressed: () => ref
-                              .read(
-                                incomingSeatRequestsProvider(routeId).notifier,
-                              )
-                              .refresh(),
-                        ),
-                      ],
-                    ),
-                  ),
-                AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
-                  isLoading: true,
-                ) =>
-                  _Centred(
-                    child: Text(
-                      l10n.commonLoading,
-                      style: RmTypography.body.copyWith(color: c.sub),
-                    ),
-                  ),
-                AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
-                  :final SeatRequestPage<IncomingSeatRequest>? value,
-                )
-                    when value != null =>
-                  // Empty means the server answered and held nothing. It is
-                  // never what a failure looks like.
-                  value.isEmpty
-                      ? _Empty(l10n: l10n)
-                      : _RequestList(routeId: routeId, page: value),
-                _ => const SizedBox.shrink(),
-              },
+              // A passenger can ask, or take an asking back, at any moment, so
+              // the driver can ask the server again from any state.
+              child: RmPullToRefresh(
+                onRefresh: () => rmReread(ref, <Refreshable<Future<Object?>>>[
+                  incomingSeatRequestsProvider(routeId).future,
+                ]),
+                child: _body(ref, l10n, c, page),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  /// `hasError` before `isLoading`: a build that threw sits in a loading state
+  /// carrying its error, so matching AsyncLoading first would spin for ever
+  /// and say nothing.
+  ///
+  /// A held answer comes before both: rows already read stay on screen while
+  /// they are read again, and when that fails. See core/api/rm_refresh.dart.
+  Widget _body(
+    WidgetRef ref,
+    AppLocalizations l10n,
+    RmColors c,
+    AsyncValue<SeatRequestPage<IncomingSeatRequest>> page,
+  ) => switch (page) {
+    AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
+      :final SeatRequestPage<IncomingSeatRequest>? held,
+    )
+        when held != null =>
+      held.isEmpty
+          ? RmPullable(
+              child: _Empty(l10n: l10n, refreshFailed: page.refreshFailed),
+            )
+          : _RequestList(
+              routeId: routeId,
+              page: held,
+              refreshFailed: page.refreshFailed,
+            ),
+    AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
+      hasError: true,
+      :final Object? error,
+    ) =>
+      RmPullable(
+        child: _Centred(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              RmInlineMessage(
+                message: error is RmFailure
+                    ? error.copy(l10n)
+                    : l10n.errorUnexpected,
+                icon: RmIcons.alertTriangle,
+                tone: RmRowTone.danger,
+              ),
+              const SizedBox(height: RmSpacing.md),
+              RmButton(
+                label: l10n.commonRetry,
+                size: RmButtonSize.sm,
+                variant: RmButtonVariant.outline,
+                onPressed: () => ref
+                    .read(incomingSeatRequestsProvider(routeId).notifier)
+                    .refresh(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    AsyncValue<SeatRequestPage<IncomingSeatRequest>>(isLoading: true) =>
+      RmPullable(
+        child: _Centred(
+          child: Text(
+            l10n.commonLoading,
+            style: RmTypography.body.copyWith(color: c.sub),
+          ),
+        ),
+      ),
+    AsyncValue<SeatRequestPage<IncomingSeatRequest>>(
+      :final SeatRequestPage<IncomingSeatRequest>? value,
+    )
+        when value != null =>
+      // Empty means the server answered and held nothing. It is
+      // never what a failure looks like.
+      value.isEmpty
+          ? RmPullable(child: _Empty(l10n: l10n))
+          : _RequestList(routeId: routeId, page: value),
+    _ => const SizedBox.shrink(),
+  };
 
   static void _back(BuildContext context) {
     if (context.canPop()) {
@@ -164,10 +197,17 @@ class RouteRequestsScreen extends ConsumerWidget {
 }
 
 class _RequestList extends ConsumerWidget {
-  const _RequestList({required this.routeId, required this.page});
+  const _RequestList({
+    required this.routeId,
+    required this.page,
+    this.refreshFailed = false,
+  });
 
   final String routeId;
   final SeatRequestPage<IncomingSeatRequest> page;
+
+  /// These rows are the last answer, and asking again did not replace it.
+  final bool refreshFailed;
 
   /// Whether the server says this journey was made.
   ///
@@ -200,6 +240,7 @@ class _RequestList extends ConsumerWidget {
     final bool journeyWasMade = _journeyWasMade(ref);
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
         RmSpacing.screenGutter,
         RmSpacing.lg,
@@ -207,6 +248,14 @@ class _RequestList extends ConsumerWidget {
         RmSpacing.xl,
       ),
       children: <Widget>[
+        if (refreshFailed) ...<Widget>[
+          RmInlineMessage(
+            message: l10n.commonRefreshFailed,
+            icon: RmIcons.alertTriangle,
+            tone: RmRowTone.danger,
+          ),
+          const SizedBox(height: RmSpacing.md),
+        ],
         // In the order the server returned them. Nothing here sorts, and a
         // decision does not move a row.
         for (int i = 0; i < page.requests.length; i++) ...<Widget>[
@@ -329,9 +378,10 @@ Future<void> _rate(
 }
 
 class _Empty extends StatelessWidget {
-  const _Empty({required this.l10n});
+  const _Empty({required this.l10n, this.refreshFailed = false});
 
   final AppLocalizations l10n;
+  final bool refreshFailed;
 
   @override
   Widget build(BuildContext context) {
@@ -341,6 +391,14 @@ class _Empty extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          if (refreshFailed) ...<Widget>[
+            RmInlineMessage(
+              message: l10n.commonRefreshFailed,
+              icon: RmIcons.alertTriangle,
+              tone: RmRowTone.danger,
+            ),
+            const SizedBox(height: RmSpacing.md),
+          ],
           Text(
             l10n.routeRequestsEmpty,
             style: RmTypography.body.copyWith(color: c.ink),

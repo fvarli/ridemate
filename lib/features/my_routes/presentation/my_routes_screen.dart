@@ -23,11 +23,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../core/api/rm_error_copy.dart';
 import '../../../core/api/rm_failure.dart';
+import '../../../core/api/rm_refresh.dart';
 import '../../../core/format/rm_text_conventions.dart';
 import '../../../core/icons/rm_icons.dart';
 import '../../../core/routes/published_route.dart';
@@ -37,7 +39,9 @@ import '../../../core/theme/tokens/rm_typography.dart';
 import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_icon_button.dart';
 import '../../../core/widgets/rm_list_row.dart';
+import '../../../core/widgets/rm_pull_to_refresh.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../journeys/application/journeys_providers.dart';
 import '../../journeys/presentation/widgets/journeys_section.dart';
 import '../application/my_routes_providers.dart';
 import '../domain/my_routes_page.dart';
@@ -87,64 +91,85 @@ class MyRoutesScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              // `hasError` is tested BEFORE `isLoading`, and the order is not
-              // cosmetic: Riverpod retries a failed provider on its own, so a
-              // build that threw sits in a loading state carrying its error.
-              // Matching AsyncLoading first would show a spinner for ever and
-              // never tell the member anything went wrong. Same idiom as the
-              // Create Route catalogue.
-              child: switch (page) {
-                // The whole list failed. Nothing is rendered in its place —
-                // there is nothing honest to render — so the failure is stated
-                // and can be tried again.
-                AsyncValue<MyRoutesPage>(
-                  hasError: true,
-                  :final Object? error,
-                ) =>
-                  _Centred(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        RmInlineMessage(
-                          message: error is RmFailure
-                              ? error.copy(l10n)
-                              : l10n.errorUnexpected,
-                          icon: RmIcons.alertTriangle,
-                          tone: RmRowTone.danger,
-                        ),
-                        const SizedBox(height: RmSpacing.md),
-                        RmButton(
-                          label: l10n.commonRetry,
-                          size: RmButtonSize.sm,
-                          variant: RmButtonVariant.outline,
-                          onPressed: () =>
-                              ref.read(myRoutesProvider.notifier).refresh(),
-                        ),
-                      ],
-                    ),
-                  ),
-                AsyncValue<MyRoutesPage>(isLoading: true) => _Centred(
-                  child: Text(
-                    l10n.commonLoading,
-                    style: RmTypography.body.copyWith(color: c.sub),
-                  ),
-                ),
-                // The journeys section is inside the list rather than beside
-                // it, and the list is rendered even with no plans in it: a
-                // driver whose only plan was cancelled can still have a journey
-                // under way, and an empty-state that replaced the whole screen
-                // would take away the one thing they need to close.
-                AsyncValue<MyRoutesPage>(:final MyRoutesPage? value)
-                    when value != null =>
-                  _RouteList(page: value),
-                _ => const SizedBox.shrink(),
-              },
+              // Both feeds on this screen are asked again: the plans, and the
+              // journeys above them, whose lifecycle can move on another
+              // device.
+              child: RmPullToRefresh(
+                onRefresh: () => rmReread(ref, <Refreshable<Future<Object?>>>[
+                  myRoutesProvider.future,
+                  // Only when its section is on screen: while the plans
+                  // have not loaded, nothing shows the journeys.
+                  if (ref.exists(myJourneysProvider)) myJourneysProvider.future,
+                ]),
+                child: _body(ref, l10n, c, page),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  /// `hasError` is tested BEFORE `isLoading`, and the order is not cosmetic:
+  /// Riverpod retries a failed provider on its own, so a build that threw sits
+  /// in a loading state carrying its error. Matching AsyncLoading first would
+  /// show a spinner for ever and never tell the member anything went wrong.
+  /// Same idiom as the Create Route catalogue.
+  ///
+  /// A held answer comes before both: plans already read stay on screen while
+  /// they are read again, and when that fails. See core/api/rm_refresh.dart.
+  static Widget _body(
+    WidgetRef ref,
+    AppLocalizations l10n,
+    RmColors c,
+    AsyncValue<MyRoutesPage> page,
+  ) => switch (page) {
+    AsyncValue<MyRoutesPage>(:final MyRoutesPage? held) when held != null =>
+      _RouteList(page: held, refreshFailed: page.refreshFailed),
+    // The whole list failed. Nothing is rendered in its place —
+    // there is nothing honest to render — so the failure is stated
+    // and can be tried again.
+    AsyncValue<MyRoutesPage>(hasError: true, :final Object? error) =>
+      RmPullable(
+        child: _Centred(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              RmInlineMessage(
+                message: error is RmFailure
+                    ? error.copy(l10n)
+                    : l10n.errorUnexpected,
+                icon: RmIcons.alertTriangle,
+                tone: RmRowTone.danger,
+              ),
+              const SizedBox(height: RmSpacing.md),
+              RmButton(
+                label: l10n.commonRetry,
+                size: RmButtonSize.sm,
+                variant: RmButtonVariant.outline,
+                onPressed: () => ref.read(myRoutesProvider.notifier).refresh(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    AsyncValue<MyRoutesPage>(isLoading: true) => RmPullable(
+      child: _Centred(
+        child: Text(
+          l10n.commonLoading,
+          style: RmTypography.body.copyWith(color: c.sub),
+        ),
+      ),
+    ),
+    // The journeys section is inside the list rather than beside
+    // it, and the list is rendered even with no plans in it: a
+    // driver whose only plan was cancelled can still have a journey
+    // under way, and an empty-state that replaced the whole screen
+    // would take away the one thing they need to close.
+    AsyncValue<MyRoutesPage>(:final MyRoutesPage? value) when value != null =>
+      _RouteList(page: value),
+    _ => const SizedBox.shrink(),
+  };
 
   static void _back(BuildContext context) {
     if (context.canPop()) {
@@ -156,15 +181,19 @@ class MyRoutesScreen extends ConsumerWidget {
 }
 
 class _RouteList extends ConsumerWidget {
-  const _RouteList({required this.page});
+  const _RouteList({required this.page, this.refreshFailed = false});
 
   final MyRoutesPage page;
+
+  /// These plans are the last answer, and asking again did not replace it.
+  final bool refreshFailed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = AppLocalizations.of(context);
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
         RmSpacing.screenGutter,
         RmSpacing.lg,
@@ -190,6 +219,16 @@ class _RouteList extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: RmSpacing.md),
+        // Beside the plans rather than above the screen: the journeys section
+        // has its own feed and says for itself whether that feed refreshed.
+        if (refreshFailed) ...<Widget>[
+          RmInlineMessage(
+            message: l10n.commonRefreshFailed,
+            icon: RmIcons.alertTriangle,
+            tone: RmRowTone.danger,
+          ),
+          const SizedBox(height: RmSpacing.md),
+        ],
         // No plans at all. An empty list is a fact, and it is stated here
         // rather than instead of the screen — the journeys above are a
         // different feed and may well have something in it.

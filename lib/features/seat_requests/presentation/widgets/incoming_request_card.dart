@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────
 // RideMate — One asking, as the driver sees it
 //
-// A name, the server's own initials, when it was asked, and where it stands.
-// The journey is not repeated: the driver opened this list from that journey
-// and owns it.
+// A name, the server's own initials, which day it is for, and where it stands.
+// The route is not repeated: the driver opened this list from that route and
+// owns it. The day IS shown — a plan runs on many, and the asking's own
+// `service_date` is the only thing that says which one this is. It is never
+// worked out from the route's recurrence, the clock, or the row's position.
 //
 // Nothing about a rating, verification, trip count, trust score, phone number
 // or any identifier appears here — the endpoint sends none of them, and this is
@@ -17,6 +19,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/format/rm_formatters.dart';
 import '../../../../core/reviews/review.dart';
 import '../../../../core/seat_requests/seat_request.dart';
 import '../../../../core/theme/tokens/rm_colors.dart';
@@ -69,6 +72,11 @@ class IncomingRequestCard extends StatelessWidget {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final RmColors c = context.rmColors;
     final String passenger = request.passenger.displayName;
+    final String day = RmFormatters.of(context).weekdayDate(
+      request.serviceDate.year,
+      request.serviceDate.month,
+      request.serviceDate.day,
+    );
 
     return RmCard(
       child: Column(
@@ -94,6 +102,8 @@ class IncomingRequestCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: RmSpacing.xs),
+          Text(day, style: RmTypography.caption.copyWith(color: c.sub)),
           const SizedBox(height: RmSpacing.sm),
           Text(
             _statusLabel(l10n),
@@ -131,10 +141,12 @@ class IncomingRequestCard extends StatelessWidget {
               children: <Widget>[
                 RmButton(
                   label: l10n.routeRequestsAccept,
-                  // Names the passenger, so the action is unambiguous when
-                  // several cards each offer one.
+                  // Names the passenger and the day, so the action is
+                  // unambiguous when several cards each offer one — including
+                  // one passenger asking for two days of the same plan.
                   semanticLabel: l10n.routeRequestsAcceptSemanticLabel(
                     passenger,
+                    day,
                   ),
                   size: RmButtonSize.sm,
                   fullWidth: false,
@@ -147,6 +159,7 @@ class IncomingRequestCard extends StatelessWidget {
                   label: l10n.routeRequestsDecline,
                   semanticLabel: l10n.routeRequestsDeclineSemanticLabel(
                     passenger,
+                    day,
                   ),
                   size: RmButtonSize.sm,
                   variant: RmButtonVariant.outline,

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
 import 'package:ridemate/core/reviews/review.dart';
@@ -38,10 +39,15 @@ IncomingSeatRequest _incoming({
   SeatRequestStatus status = SeatRequestStatus.pending,
   String passenger = 'Ayşe Demir',
   String initials = 'AD',
+  DepartureDate serviceDate = const DepartureDate(
+    year: 2026,
+    month: 9,
+    day: 24,
+  ),
   MyReview? myReview,
 }) => IncomingSeatRequest(
   id: id,
-  serviceDate: const DepartureDate(year: 2026, month: 9, day: 24),
+  serviceDate: serviceDate,
   status: status,
   requestedAt: DateTime.utc(2026, 9, 9, 8),
   decidedAt:
@@ -280,6 +286,155 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(l10nOf(tester).myRequestsWithdraw), findsNothing);
+    });
+  });
+
+  /// A plan runs on many days, and the row carries no route. The asking's own
+  /// `service_date` is the only thing that tells the driver which morning a
+  /// passenger asked about — so it is shown, and it is never worked out.
+  group('Which day', () {
+    const DepartureDate monday = DepartureDate(year: 2026, month: 9, day: 28);
+    const DepartureDate wednesday = DepartureDate(
+      year: 2026,
+      month: 9,
+      day: 30,
+    );
+
+    String cardDayOf(WidgetTester tester, String text) => tester
+        .widget<IncomingRequestCard>(
+          find.ancestor(
+            of: find.text(text),
+            matching: find.byType(IncomingRequestCard),
+          ),
+        )
+        .request
+        .id;
+
+    testWidgets('an asking shows the day it was made for', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        holding(<IncomingSeatRequest>[_incoming(serviceDate: monday)]),
+      );
+      await tester.pumpAndSettle();
+
+      // Spelled out rather than recomputed: the assertion must not share the
+      // code path it is checking. Turkish, because the screen is.
+      expect(find.text('28 Eylül Pazartesi'), findsOneWidget);
+      expect(find.text('2026-09-28'), findsNothing);
+    });
+
+    testWidgets('two days of one plan are told apart, each on its own card', (
+      WidgetTester tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(393, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      // The same passenger, the same weekday plan: only the day differs.
+      await pump(
+        tester,
+        holding(<IncomingSeatRequest>[
+          _incoming(id: 'q28', serviceDate: monday),
+          _incoming(id: 'q30', serviceDate: wednesday),
+        ]),
+        trip: TripState.notStarted,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('28 Eylül Pazartesi'), findsOneWidget);
+      expect(find.text('30 Eylül Çarşamba'), findsOneWidget);
+      expect(cardDayOf(tester, '28 Eylül Pazartesi'), 'q28');
+      expect(cardDayOf(tester, '30 Eylül Çarşamba'), 'q30');
+
+      // And a screen reader hears the difference on the controls themselves.
+      final AppLocalizations l10n = l10nOf(tester);
+      expect(
+        find.bySemanticsLabel(
+          l10n.routeRequestsAcceptSemanticLabel(
+            'Ayşe Demir',
+            '28 Eylül Pazartesi',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(
+          l10n.routeRequestsAcceptSemanticLabel(
+            'Ayşe Demir',
+            '30 Eylül Çarşamba',
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    /// Not today, not the next weekday the plan runs, not the row's position:
+    /// a Saturday that no weekday plan would produce, on a weekday plan, is
+    /// rendered exactly as the server sent it.
+    testWidgets('the day is the asking own, never the plan or the clock', (
+      WidgetTester tester,
+    ) async {
+      final DateTime now = DateTime.now();
+      final String today = DateFormat.MMMMEEEEd('tr').format(now);
+
+      await pump(
+        tester,
+        holding(<IncomingSeatRequest>[
+          _incoming(
+            serviceDate: const DepartureDate(year: 2027, month: 3, day: 13),
+          ),
+        ]),
+        // The owner list holds this route as a weekday plan.
+        trip: TripState.notStarted,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('13 Mart Cumartesi'), findsOneWidget);
+      expect(find.text(today), findsNothing);
+    });
+
+    testWidgets('accept and decline answer the day on their own card', (
+      WidgetTester tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(393, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final _Incoming backend = holding(<IncomingSeatRequest>[
+        _incoming(id: 'q28', serviceDate: monday),
+        _incoming(id: 'q30', serviceDate: wednesday),
+      ]);
+
+      await pump(tester, backend);
+      await tester.pumpAndSettle();
+
+      final AppLocalizations l10n = l10nOf(tester);
+
+      await tester.tap(
+        find.bySemanticsLabel(
+          l10n.routeRequestsAcceptSemanticLabel(
+            'Ayşe Demir',
+            '30 Eylül Çarşamba',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(backend.accepted, <String>['q30']);
+      expect(backend.declined, isEmpty);
+
+      await tester.tap(
+        find.bySemanticsLabel(
+          l10n.routeRequestsDeclineSemanticLabel(
+            'Ayşe Demir',
+            '28 Eylül Pazartesi',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(backend.accepted, <String>['q30']);
+      expect(backend.declined, <String>['q28']);
     });
   });
 
@@ -524,9 +679,10 @@ void main() {
       await pump(tester, backend);
       await tester.pumpAndSettle();
 
-      // Below the fold with two cards above it.
+      // Below the fold with two cards above it — far enough that the list has
+      // not built it yet, so it is scrolled to rather than merely revealed.
       final Finder more = find.text(l10nOf(tester).routeRequestsLoadMore);
-      await tester.ensureVisible(more);
+      await tester.scrollUntilVisible(more, 200);
       await tester.pumpAndSettle();
       await tester.tap(more);
       await tester.pumpAndSettle();

@@ -335,13 +335,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get routeRequestsDecline => 'Reddet';
 
   @override
-  String routeRequestsAcceptSemanticLabel(String passenger) {
-    return '$passenger isteğini kabul et';
+  String routeRequestsAcceptSemanticLabel(String passenger, String date) {
+    return '$date günü için $passenger isteğini kabul et';
   }
 
   @override
-  String routeRequestsDeclineSemanticLabel(String passenger) {
-    return '$passenger isteğini reddet';
+  String routeRequestsDeclineSemanticLabel(String passenger, String date) {
+    return '$date günü için $passenger isteğini reddet';
   }
 
   @override

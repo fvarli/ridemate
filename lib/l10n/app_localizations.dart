@@ -692,17 +692,17 @@ abstract class AppLocalizations {
   /// **'Reddet'**
   String get routeRequestsDecline;
 
-  /// Kabul düğmesinin ekran okuyucu etiketi; hangi yolcuyu kabul ettiğini söyler.
+  /// Kabul düğmesinin ekran okuyucu etiketi; hangi yolcuyu ve hangi günün yolculuğunu kabul ettiğini söyler. Tarih, isteğin kendi service_date değeridir.
   ///
   /// In tr, this message translates to:
-  /// **'{passenger} isteğini kabul et'**
-  String routeRequestsAcceptSemanticLabel(String passenger);
+  /// **'{date} günü için {passenger} isteğini kabul et'**
+  String routeRequestsAcceptSemanticLabel(String passenger, String date);
 
-  /// Reddet düğmesinin ekran okuyucu etiketi.
+  /// Reddet düğmesinin ekran okuyucu etiketi; yolcuyu ve günü söyler.
   ///
   /// In tr, this message translates to:
-  /// **'{passenger} isteğini reddet'**
-  String routeRequestsDeclineSemanticLabel(String passenger);
+  /// **'{date} günü için {passenger} isteğini reddet'**
+  String routeRequestsDeclineSemanticLabel(String passenger, String date);
 
   /// Sunucu kabulü onayladıktan sonra gösterilen bilgi.
   ///

@@ -337,13 +337,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routeRequestsDecline => 'Decline';
 
   @override
-  String routeRequestsAcceptSemanticLabel(String passenger) {
-    return 'Accept $passenger\'s request';
+  String routeRequestsAcceptSemanticLabel(String passenger, String date) {
+    return 'Accept $passenger\'s request for $date';
   }
 
   @override
-  String routeRequestsDeclineSemanticLabel(String passenger) {
-    return 'Decline $passenger\'s request';
+  String routeRequestsDeclineSemanticLabel(String passenger, String date) {
+    return 'Decline $passenger\'s request for $date';
   }
 
   @override

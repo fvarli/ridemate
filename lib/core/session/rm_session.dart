@@ -99,7 +99,7 @@ class RmSession {
 
   RmCredentials? _credentials;
 
-  /// The single in-flight refresh, or null.
+  /// The single in-flight refresh, and the session it was started under.
   ///
   /// This one field is the whole of single-flight. Without it, five requests
   /// that each hit a 401 would each call /auth/refresh with the same token —
@@ -107,7 +107,12 @@ class RmSession {
   /// that had just been spent, which the backend treats as theft and answers
   /// by revoking the entire family. Concurrency on the client would look
   /// exactly like a stolen credential.
-  Future<RmTokenPair>? _refreshing;
+  ///
+  /// Owned by one session: only callers under the same [_epoch] may join it.
+  /// A refresh left running by a member who has signed out belongs to them,
+  /// and handing its pair to whoever signed in next would send that member's
+  /// requests with the previous member's token.
+  ({Future<RmTokenPair> future, int epoch})? _refreshing;
 
   /// Counts every end of a session. Compared, never read for its value.
   ///
@@ -282,7 +287,7 @@ class RmSession {
   Future<void> signOut() async {
     final String? accessToken = _accessToken;
     final String? refreshToken = _credentials?.refreshToken;
-    final Future<RmTokenPair>? refreshing = _refreshing;
+    final Future<RmTokenPair>? refreshing = _currentRefresh;
 
     // No reason. The member asked for this, and being told their session
     // ended would be the app explaining an event they caused.
@@ -371,12 +376,31 @@ class RmSession {
 
   // ------------------------------------------------------------ internals
 
+  /// The refresh in flight for THIS session, if any. One started before the
+  /// last end of a session is somebody else's, and is not offered.
+  Future<RmTokenPair>? get _currentRefresh {
+    final ({Future<RmTokenPair> future, int epoch})? running = _refreshing;
+
+    return running != null && running.epoch == _epoch ? running.future : null;
+  }
+
   Future<RmTokenPair> _refresh() {
-    // Every concurrent caller receives this same future, so exactly one
-    // request reaches /auth/refresh and every waiter sees the same outcome.
-    return _refreshing ??= _performRefresh().whenComplete(() {
-      _refreshing = null;
+    // Every concurrent caller in this session receives this same future, so
+    // exactly one request reaches /auth/refresh and every waiter sees the
+    // same outcome.
+    final Future<RmTokenPair>? running = _currentRefresh;
+    if (running != null) return running;
+
+    final int epoch = _epoch;
+    late final Future<RmTokenPair> started;
+    started = _performRefresh().whenComplete(() {
+      // Only its own slot. A stale refresh finishing after the next session
+      // has started one must not clear that one's single-flight.
+      if (identical(_refreshing?.future, started)) _refreshing = null;
     });
+    _refreshing = (future: started, epoch: epoch);
+
+    return started;
   }
 
   Future<RmTokenPair> _performRefresh() async {
@@ -444,9 +468,11 @@ class RmSession {
   /// can no longer present. Signing out now costs one passcode and is honest.
   ///
   /// SUPERSEDED is the write that lost a race with a sign-out: the session
-  /// ended while the credential was being stored. Nothing is adopted, and the
-  /// write is undone — but only if the store still holds exactly this pair, so
-  /// a late undo can never remove a credential somebody else has stored since.
+  /// ended while the credential was being stored. Nothing is adopted. The
+  /// store is then read, and cleared only if it still holds exactly this pair.
+  /// That is best-effort read-and-compare, not an atomic compare-and-delete —
+  /// [CredentialStore] offers none — so it narrows the window in which a
+  /// newer credential could be removed rather than closing it.
   Future<_Adoption> _adopt(RmTokenPair pair) async {
     final int epoch = _epoch;
     final RmCredentials credentials = RmCredentials(

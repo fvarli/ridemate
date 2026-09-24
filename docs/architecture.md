@@ -517,9 +517,13 @@ so leaving never depends on the profile read. It navigates nowhere; the redirect
 that. `RmSession.signOut` is local first: the device forgets the session before anything is
 sent, then revokes the *current* session best effort — with the access token, or after one
 refresh-token exchange if that token has expired, or with the pair of a refresh that was
-already in flight. Never other devices. A session epoch moves on at every end of a session, so
-a late refresh is not adopted, a credential written mid-race is undone, and a request made
-under one session is never refreshed and retried under the next.
+already in flight. Never other devices. A session epoch moves on at every end of a session.
+Refresh single-flight is scoped to one epoch, so a later member never joins a previous
+member's in-flight refresh; a stale refresh result is never adopted; and a request made under
+one session is never refreshed and retried under the next. A credential that was being
+written when the session ended is cleaned up best effort: the store is read, and cleared only
+if it still holds exactly that pair. `CredentialStore` has no atomic compare-and-delete, so
+this is not a guarantee against every interleaving.
 
 **The account boundary.** One owner (`lib/app/account_boundary.dart`, installed by the
 router) resets the app-scoped member state — the route draft, the publication attempt, the

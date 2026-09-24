@@ -29,6 +29,7 @@ import 'package:ridemate/features/profile/presentation/profile_setup_screen.dart
 import 'package:ridemate/features/profile/presentation/widgets/sign_out_button.dart';
 
 import '../../support/fakes.dart';
+import '../../support/pump.dart';
 
 Future<ProviderContainer> _pumpApp(
   WidgetTester tester, {
@@ -133,6 +134,30 @@ void main() {
     await _signOut(tester);
 
     _expectSignedOut(session);
+  });
+
+  /// The no-profile branch of Profile itself. The router sends a missing
+  /// profile to setup before this can be seen, so the screen is pumped on its
+  /// own rather than bending routing to reach it.
+  testWidgets('from a profile that does not exist yet', (
+    WidgetTester tester,
+  ) async {
+    final FakeSession session = FakeSession();
+    await tester.pumpRmScreen(
+      const ProfileScreen(),
+      overrides: <Override>[
+        rmSessionProvider.overrideWithValue(session),
+        profileRepositoryProvider.overrideWithValue(
+          FakeProfileRepository.missing(),
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Henüz bir adın yok.'), findsOneWidget);
+
+    await _signOut(tester);
+
+    expect(session.state.value, isA<RmSignedOut>());
   });
 
   /// Setup is the only screen a member without a profile reaches, so it is

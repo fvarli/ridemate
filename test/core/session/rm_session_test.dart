@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:ridemate/core/api/rm_api_client.dart';
 import 'package:ridemate/core/api/rm_error_code.dart';
 import 'package:ridemate/core/api/rm_failure.dart';
+import 'package:ridemate/core/api/rm_response.dart';
 import 'package:ridemate/core/session/auth_api.dart';
 import 'package:ridemate/core/session/credential_store.dart';
 import 'package:ridemate/core/session/rm_credentials.dart';
@@ -893,6 +894,125 @@ void main() {
         expect(session.accessTokenForTest, 'rma_B');
       },
     );
+
+    /// CARRIES WEIGHT. The reverse of the test above: a refresh A left
+    /// running must not be JOINED by B. B starts its own, and B's request is
+    /// retried with B's token — whichever of the two refreshes answers first.
+    /// When A's finishes while B's is still out, it must not clear B's
+    /// single-flight either: a second 401 in B's session joins B's refresh.
+    for (final bool aAnswersFirst in <bool>[true, false]) {
+      test('a refresh left by A is never joined by B '
+          '(${aAnswersFirst ? 'A' : 'B'} answers first)', () async {
+        final Completer<http.Response> aRefresh = Completer<http.Response>();
+        final Completer<http.Response> bRefresh = Completer<http.Response>();
+        final List<String?> refreshedWith = <String?>[];
+        final List<String?> meTokens = <String?>[];
+        final _RecordingStore store = _RecordingStore();
+        int signIns = 0;
+
+        final RmSession session = sessionWith((http.Request request) {
+          switch (request.url.path) {
+            case '/api/v1/auth/otp/verify':
+              return ++signIns == 1
+                  ? pair()
+                  : pair(access: 'rma_B', refresh: 'rmr_B', session: 'S_B');
+            case '/api/v1/auth/logout':
+              return noContent();
+            case '/api/v1/auth/refresh':
+              final Object? token =
+                  (jsonDecode(request.body)
+                      as Map<String, Object?>)['refresh_token'];
+              refreshedWith.add(token as String?);
+
+              return token == 'rmr_REFRESH_1'
+                  ? aRefresh.future
+                  : bRefresh.future;
+          }
+          meTokens.add(bearerOf(request));
+
+          return switch (bearerOf(request)) {
+            'Bearer rma_ACCESS_1' ||
+            'Bearer rma_B' => envelope('unauthenticated', status: 401),
+            _ => json(<String, Object?>{'ok': true}),
+          };
+        }, store: store);
+
+        Future<Object?> callMe() => _outcomeOf(
+          session.send(
+            (Map<String, String> headers) =>
+                client.get('/api/v1/me', headers: headers),
+          ),
+        );
+
+        // A's request expires, and A's refresh is left running.
+        await session.verifyPasscode(phone: '+905321234567', code: '123456');
+        final Future<Object?> aCall = callMe();
+        await pumpEventQueue();
+        expect(refreshedWith, <String>['rmr_REFRESH_1']);
+
+        final Future<void> aSigningOut = session.signOut();
+        await pumpEventQueue();
+
+        // B signs in, and B's first request is refused.
+        await session.verifyPasscode(phone: '+905329876543', code: '654321');
+        store.writes.clear();
+        final Future<Object?> bCall = callMe();
+        await pumpEventQueue();
+
+        // B's own refresh, with B's refresh token — not A's future.
+        expect(refreshedWith, <String>['rmr_REFRESH_1', 'rmr_B']);
+
+        final http.Response aPair = pair(access: 'rma_A_2', refresh: 'rmr_A_2');
+        final http.Response bPair = pair(
+          access: 'rma_B_2',
+          refresh: 'rmr_B_2',
+          session: 'S_B',
+        );
+
+        Future<Object?>? bSecondCall;
+        if (aAnswersFirst) {
+          aRefresh.complete(aPair);
+          await pumpEventQueue();
+
+          // A's refresh finishing must leave B's single-flight intact.
+          bSecondCall = callMe();
+          await pumpEventQueue();
+          expect(refreshedWith, <String>['rmr_REFRESH_1', 'rmr_B']);
+
+          bRefresh.complete(bPair);
+        } else {
+          bRefresh.complete(bPair);
+          await pumpEventQueue();
+          aRefresh.complete(aPair);
+        }
+
+        expect(await bCall, isA<RmResponse>());
+        if (bSecondCall != null) {
+          expect(await bSecondCall, isA<RmResponse>());
+        }
+        expect(await aCall, isA<RmFailure>());
+        await aSigningOut;
+
+        // Every request B sent carried B's token, and A's never reached one.
+        expect(meTokens, isNot(contains('Bearer rma_A_2')));
+        expect(
+          meTokens.where((String? t) => t == 'Bearer rma_B_2').length,
+          aAnswersFirst ? 2 : 1,
+          reason: 'each of B\'s requests is retried once, with B\'s token',
+        );
+
+        // The session and the store are B's, and A's pair was never kept.
+        expect(session.state.value, isA<RmSignedIn>());
+        expect(session.accessTokenForTest, 'rma_B_2');
+        expect(
+          await store.read(),
+          const RmCredentials(refreshToken: 'rmr_B_2', sessionId: 'S_B'),
+        );
+        expect(store.writes.map((RmCredentials c) => c.refreshToken), <String>[
+          'rmr_B_2',
+        ]);
+      });
+    }
 
     /// The narrowest version of the race: the refresh answered, and its
     /// credential was being written when the member signed out. The write

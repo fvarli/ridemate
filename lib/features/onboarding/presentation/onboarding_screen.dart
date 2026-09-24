@@ -46,7 +46,7 @@
 // discovery fixtures. Every other surface that shows those three is withheld
 // behind `kDebugMode`; this one is the intro, so a release build was still
 // introducing three drivers nobody has. Two letters in the member avatar
-// widget, above a line about verified neighbours, is a member identity even
+// widget, above a line about neighbours, is a member identity even
 // with the semantics excluded. The circles, rings, gradients, sizes and
 // placement are unchanged; only the letters are gone, so what remains is the
 // composition the design draws rather than a cast.

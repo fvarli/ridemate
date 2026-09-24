@@ -68,7 +68,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get onboardingSubtitle =>
-      'Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.';
+      'Komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.';
 
   @override
   String get onboardingCreateAccount => 'Hesap oluştur';

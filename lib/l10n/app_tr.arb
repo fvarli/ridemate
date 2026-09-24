@@ -87,7 +87,7 @@
   "@onboardingHeadlineAfter": {
     "description": "Onboarding başlığının vurgulanan kelimeden sonraki bölümü."
   },
-  "onboardingSubtitle": "Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.",
+  "onboardingSubtitle": "Komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.",
   "@onboardingSubtitle": {
     "description": "Onboarding alt başlığı. RideMate'in taksi olmadığını vurgular."
   },

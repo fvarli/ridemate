@@ -68,7 +68,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingSubtitle =>
-      'With verified neighbours, colleagues and students. Not a taxi — a community.';
+      'With neighbours, colleagues and students. Not a taxi — a community.';
 
   @override
   String get onboardingCreateAccount => 'Create account';

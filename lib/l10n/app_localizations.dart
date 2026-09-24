@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// Onboarding alt başlığı. RideMate'in taksi olmadığını vurgular.
   ///
   /// In tr, this message translates to:
-  /// **'Doğrulanmış komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.'**
+  /// **'Komşular, iş arkadaşları ve öğrencilerle. Taksi değil — topluluk.'**
   String get onboardingSubtitle;
 
   /// Birincil eylem. Yeni kullanıcı akışına devam eder. Bu bir hesap oluşturma veya kimlik doğrulama işlemi DEĞİLDİR; uygulamada henüz hesap kavramı yoktur.

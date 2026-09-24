@@ -106,8 +106,19 @@ publicationProvider = NotifierProvider<PublicationController, PublicationState>(
 );
 
 class PublicationController extends Notifier<PublicationState> {
+  /// Clears the attempt as well as the state.
+  ///
+  /// Riverpod keeps this instance across a rebuild, so a field is not reset by
+  /// the rebuild itself. The account boundary rebuilds this provider when a
+  /// session ends, and an attempt id left behind here would be presented again
+  /// under whoever signs in next.
   @override
-  PublicationState build() => const PublicationIdle();
+  PublicationState build() {
+    _attemptId = null;
+    _attemptDraft = null;
+
+    return const PublicationIdle();
+  }
 
   /// The id of the attempt in progress or awaiting retry, and the draft it
   /// describes. Held together because one without the other cannot answer
@@ -134,10 +145,20 @@ class PublicationController extends Notifier<PublicationState> {
     final String routeId = _idFor(draft);
     state = PublicationInFlight(routeId);
 
+    // The ref this attempt began under. [ref] always answers for the current
+    // build, so only the captured one can tell that a rebuild has happened
+    // since.
+    final Ref attempt = ref;
+
     try {
       final PublishedRoute route = await ref
           .read(routeRepositoryProvider)
           .publish(RoutePublicationCommand(id: routeId, draft: draft));
+
+      // The session ended while this was out, and the account boundary has
+      // rebuilt this provider. The answer belongs to a member who has left: it
+      // is not written anywhere, and the next member starts from nothing.
+      if (!attempt.mounted) return;
 
       // 201 and 200 are indistinguishable by design: both mean the server has
       // this journey under this id.
@@ -145,6 +166,8 @@ class PublicationController extends Notifier<PublicationState> {
       _attemptDraft = null;
       state = PublicationConfirmed(route);
     } on RmFailure catch (failure) {
+      if (!attempt.mounted) return;
+
       state = _isRetryable(failure)
           ? PublicationRetryable(routeId, failure)
           : PublicationRefused(routeId, failure);

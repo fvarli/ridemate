@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -51,7 +52,7 @@ void main() {
   late RmApiClient client;
 
   RmSession sessionWith(
-    http.Response Function(http.Request request) respond, {
+    FutureOr<http.Response> Function(http.Request request) respond, {
     CredentialStore? store,
   }) {
     sent = <http.Request>[];
@@ -64,7 +65,7 @@ void main() {
       transport: MockClient((http.Request request) async {
         sent.add(request);
 
-        return respond(request);
+        return await respond(request);
       }),
     );
 
@@ -605,6 +606,334 @@ void main() {
     });
   });
 
+  /// Sign-out is local first, then a best-effort revocation of THIS session.
+  ///
+  /// The revocation uses what the device held when the member asked — and a
+  /// refresh that was already out when they did can neither sign them back in
+  /// nor leave a credential behind.
+  group('Sign-out, revoking the current session', () {
+    http.Response noContent() => http.Response('', 204);
+
+    String? bearerOf(http.Request request) => request.headers['authorization'];
+
+    Future<RmSession> signedIn(
+      FutureOr<http.Response> Function(http.Request request) respond, {
+      CredentialStore? store,
+    }) async {
+      final RmSession session = sessionWith((http.Request request) {
+        if (request.url.path == '/api/v1/auth/otp/verify') return pair();
+
+        return respond(request);
+      }, store: store);
+
+      await session.verifyPasscode(phone: '+905321234567', code: '123456');
+      sent.clear();
+
+      return session;
+    }
+
+    test('the current access token revokes the current session', () async {
+      final _RecordingStore store = _RecordingStore();
+      final RmSession session = await signedIn(
+        (_) => noContent(),
+        store: store,
+      );
+
+      await session.signOut();
+
+      expect(pathsCalled(), <String>['/api/v1/auth/logout']);
+      expect(bearerOf(sent.single), 'Bearer rma_ACCESS_1');
+      expect(await store.read(), isNull);
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(session.consumeSignedOutReason(), isNull);
+    });
+
+    /// CARRIES WEIGHT. Access tokens live fifteen minutes and nothing renews
+    /// one proactively, so a member who has sat on Profile for a while signs
+    /// out holding an expired one. Stopping at its 401 would leave the session
+    /// refreshable on the server for up to thirty days.
+    test('an expired access token is exchanged once, only to revoke', () async {
+      final _RecordingStore store = _RecordingStore();
+      final List<http.Request> logouts = <http.Request>[];
+
+      final RmSession session = await signedIn((http.Request request) {
+        switch (request.url.path) {
+          case '/api/v1/auth/refresh':
+            return pair(access: 'rma_ACCESS_2', refresh: 'rmr_REFRESH_2');
+          case '/api/v1/auth/logout':
+            logouts.add(request);
+
+            return logouts.length == 1
+                ? envelope('unauthenticated', status: 401)
+                : noContent();
+        }
+
+        return envelope('internal_error', status: 500);
+      }, store: store);
+      store.writes.clear();
+
+      await session.signOut();
+
+      // This session's refresh token, and nothing broader: there is no call
+      // here that could speak for another device.
+      expect(pathsCalled(), <String>[
+        '/api/v1/auth/logout',
+        '/api/v1/auth/refresh',
+        '/api/v1/auth/logout',
+      ]);
+      expect(jsonDecode(sent[1].body), <String, Object?>{
+        'refresh_token': 'rmr_REFRESH_1',
+      });
+      expect(bearerOf(logouts.last), 'Bearer rma_ACCESS_2');
+
+      // Used for the revocation and nothing else: never stored, never adopted.
+      expect(store.writes, isEmpty);
+      expect(await store.read(), isNull);
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(session.accessTokenForTest, isNull);
+      expect(session.consumeSignedOutReason(), isNull);
+    });
+
+    /// A refresh the server refuses proves there is nothing left to revoke.
+    /// That is the outcome asked for, so it is neither retried nor reported.
+    test('a session that is already dead is left at that', () async {
+      final List<String> reported = <String>[];
+      final DebugPrintCallback original = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) =>
+          reported.add(message ?? '');
+      addTearDown(() => debugPrint = original);
+
+      final RmSession session = await signedIn(
+        (_) => envelope('unauthenticated', status: 401),
+      );
+
+      await session.signOut();
+
+      expect(pathsCalled(), <String>[
+        '/api/v1/auth/logout',
+        '/api/v1/auth/refresh',
+      ]);
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(session.consumeSignedOutReason(), isNull);
+      expect(reported.join('\n'), isNot(contains('revoking the session')));
+    });
+
+    /// The device is signed out before anything is sent, so a request that
+    /// never answers keeps nobody signed in while it waits.
+    test('the device is signed out before the revocation answers', () async {
+      final Completer<http.Response> logout = Completer<http.Response>();
+      final InMemoryCredentialStore store = InMemoryCredentialStore();
+      final RmSession session = await signedIn(
+        (_) => logout.future,
+        store: store,
+      );
+
+      final Future<void> signingOut = session.signOut();
+      await pumpEventQueue();
+
+      expect(pathsCalled(), <String>['/api/v1/auth/logout']);
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(await store.read(), isNull);
+
+      logout.complete(noContent());
+      await signingOut;
+    });
+
+    /// CARRIES WEIGHT. A refresh already out when the member signs out must
+    /// not land afterwards: no access token, no stored credential, and no
+    /// return to RmSignedIn — which is what would take them back into the app.
+    test('a refresh in flight cannot sign the member back in', () async {
+      final Completer<http.Response> refresh = Completer<http.Response>();
+      final _RecordingStore store = _RecordingStore();
+      int meCalls = 0;
+
+      final RmSession session = await signedIn((http.Request request) {
+        switch (request.url.path) {
+          case '/api/v1/auth/refresh':
+            return refresh.future;
+          case '/api/v1/auth/logout':
+            return noContent();
+        }
+        meCalls++;
+
+        return envelope('unauthenticated', status: 401);
+      }, store: store);
+      store.writes.clear();
+
+      // A request whose token has expired, so it is waiting on a refresh.
+      final Future<Object?> call = _outcomeOf(
+        session.send(
+          (Map<String, String> headers) =>
+              client.get('/api/v1/me', headers: headers),
+        ),
+      );
+      await pumpEventQueue();
+      expect(pathsCalled(), <String>['/api/v1/me', '/api/v1/auth/refresh']);
+
+      final List<RmSessionState> seen = <RmSessionState>[];
+      session.state.addListener(() => seen.add(session.state.value));
+
+      final Future<void> signingOut = session.signOut();
+      await pumpEventQueue();
+      expect(session.state.value, isA<RmSignedOut>());
+
+      refresh.complete(pair(access: 'rma_ACCESS_2', refresh: 'rmr_REFRESH_2'));
+      await signingOut;
+
+      // The caller is refused rather than retried for somebody who has left.
+      expect(
+        await call,
+        isA<RmFailure>().having(
+          (RmFailure f) => f.code,
+          'code',
+          RmErrorCode.unauthenticated,
+        ),
+      );
+      expect(meCalls, 1);
+
+      expect(seen.whereType<RmSignedIn>(), isEmpty);
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(session.accessTokenForTest, isNull);
+      expect(store.writes, isEmpty);
+      expect(await store.read(), isNull);
+      expect(session.consumeSignedOutReason(), isNull);
+
+      // The pair that refresh produced is the live credential — the one it
+      // was handed spent the old refresh token — so it is what revokes.
+      final http.Request revocation = sent.last;
+      expect(revocation.url.path, '/api/v1/auth/logout');
+      expect(bearerOf(revocation), 'Bearer rma_ACCESS_2');
+    });
+
+    /// The same race, refused by the server instead: it must not attach a
+    /// "your session ended" notice to a sign-out the member chose.
+    test('a refresh refused after sign-out adds no notice', () async {
+      final Completer<http.Response> refresh = Completer<http.Response>();
+
+      final RmSession session = await signedIn((http.Request request) {
+        switch (request.url.path) {
+          case '/api/v1/auth/refresh':
+            return refresh.future;
+          case '/api/v1/auth/logout':
+            return noContent();
+        }
+
+        return envelope('unauthenticated', status: 401);
+      });
+
+      final Future<Object?> call = _outcomeOf(
+        session.send(
+          (Map<String, String> headers) =>
+              client.get('/api/v1/me', headers: headers),
+        ),
+      );
+      await pumpEventQueue();
+
+      final Future<void> signingOut = session.signOut();
+      await pumpEventQueue();
+
+      refresh.complete(envelope('unauthenticated', status: 401));
+      await signingOut;
+      expect(await call, isA<RmFailure>());
+
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(session.consumeSignedOutReason(), isNull);
+      expect(
+        pathsCalled().where((String p) => p.endsWith('logout')),
+        isEmpty,
+        reason: 'the server has already said the session is gone',
+      );
+    });
+
+    /// CARRIES WEIGHT. A request member A made that is still out when A
+    /// leaves and B signs in must not be refreshed and retried with B's
+    /// credential — that would send A's request as B.
+    test(
+      'a request made before sign-out is never retried as somebody else',
+      () async {
+        final Completer<http.Response> aRequest = Completer<http.Response>();
+        final List<String?> meTokens = <String?>[];
+        int signIns = 0;
+
+        final RmSession session = sessionWith((http.Request request) {
+          switch (request.url.path) {
+            case '/api/v1/auth/otp/verify':
+              return ++signIns == 1
+                  ? pair()
+                  : pair(access: 'rma_B', refresh: 'rmr_B', session: 'S_B');
+            case '/api/v1/auth/logout':
+              return noContent();
+            case '/api/v1/auth/refresh':
+              return pair(access: 'rma_B_2', refresh: 'rmr_B_2');
+          }
+          meTokens.add(bearerOf(request));
+
+          return aRequest.future;
+        });
+        await session.verifyPasscode(phone: '+905321234567', code: '123456');
+
+        final Future<Object?> call = _outcomeOf(
+          session.send(
+            (Map<String, String> headers) =>
+                client.get('/api/v1/me', headers: headers),
+          ),
+        );
+        await pumpEventQueue();
+
+        await session.signOut();
+        await session.verifyPasscode(phone: '+905329876543', code: '654321');
+        sent.clear();
+
+        aRequest.complete(envelope('unauthenticated', status: 401));
+
+        expect(await call, isA<RmFailure>());
+        expect(pathsCalled(), isEmpty, reason: 'no refresh, and no retry');
+        expect(meTokens, <String>['Bearer rma_ACCESS_1']);
+        expect(session.state.value, isA<RmSignedIn>());
+        expect(session.accessTokenForTest, 'rma_B');
+      },
+    );
+
+    /// The narrowest version of the race: the refresh answered, and its
+    /// credential was being written when the member signed out. The write
+    /// cannot be recalled, so it is undone.
+    test('a credential being written when sign-out begins is undone', () async {
+      final _HeldStore store = _HeldStore();
+
+      final RmSession session = await signedIn((http.Request request) {
+        switch (request.url.path) {
+          case '/api/v1/auth/refresh':
+            return pair(access: 'rma_ACCESS_2', refresh: 'rmr_REFRESH_2');
+          case '/api/v1/auth/logout':
+            return noContent();
+        }
+
+        return envelope('unauthenticated', status: 401);
+      }, store: store);
+
+      store.hold();
+      final Future<Object?> call = _outcomeOf(
+        session.send(
+          (Map<String, String> headers) =>
+              client.get('/api/v1/me', headers: headers),
+        ),
+      );
+      await pumpEventQueue();
+      expect(store.writing, isTrue);
+
+      final Future<void> signingOut = session.signOut();
+      await pumpEventQueue();
+      store.release();
+      await signingOut;
+      expect(await call, isA<RmFailure>());
+
+      expect(await store.read(), isNull);
+      expect(session.state.value, isA<RmSignedOut>());
+      expect(session.accessTokenForTest, isNull);
+      expect(bearerOf(sent.last), 'Bearer rma_ACCESS_2');
+    });
+  });
+
   group('Nothing secret is logged', () {
     /// The reporter writes to the developer log. A full sign-in, rotation and
     /// sign-out is driven with failures at every step — which is when things
@@ -939,3 +1268,42 @@ class _UnwritableStore implements CredentialStore {
   @override
   Future<void> clear() async => _held = null;
 }
+
+/// Records every credential offered for storage.
+class _RecordingStore extends InMemoryCredentialStore {
+  final List<RmCredentials> writes = <RmCredentials>[];
+
+  @override
+  Future<bool> write(RmCredentials credentials) {
+    writes.add(credentials);
+
+    return super.write(credentials);
+  }
+}
+
+/// A store whose writes can be held open, the way a slow keystore holds them.
+class _HeldStore extends InMemoryCredentialStore {
+  Completer<void>? _gate;
+  bool writing = false;
+
+  void hold() => _gate ??= Completer<void>();
+
+  void release() {
+    _gate?.complete();
+    _gate = null;
+  }
+
+  @override
+  Future<bool> write(RmCredentials credentials) async {
+    writing = true;
+    await _gate?.future;
+    writing = false;
+
+    return super.write(credentials);
+  }
+}
+
+/// Settles [future] into its value or its error, so a failure that arrives
+/// while a test is still arranging the race is observed rather than unhandled.
+Future<Object?> _outcomeOf(Future<Object?> future) =>
+    future.then<Object?>((Object? value) => value, onError: (Object e) => e);

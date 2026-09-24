@@ -43,6 +43,7 @@ import '../../features/seat_requests/presentation/route_requests_screen.dart';
 import '../../features/trip/presentation/active_trip_screen.dart';
 import '../../features/verification/presentation/verification_screen.dart';
 import '../../l10n/app_localizations.dart';
+import '../account_boundary.dart';
 import '../app_shell.dart';
 import '../error/app_error_screen.dart';
 import '../error/rm_error_reporter.dart';
@@ -65,6 +66,11 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
   // Merging keeps the dimensions separate all the way to the redirect: any can
   // change without the others, and none is derived from another.
   final RmSession session = ref.read(rmSessionProvider);
+
+  // Not a routing dimension. The router is simply the app-lifetime owner that
+  // already follows the session, so it is what puts the account boundary in
+  // place before any session can end. See account_boundary.dart.
+  ref.watch(accountBoundaryProvider);
 
   // The third dimension. The gate owns the subscription to the profile so the
   // redirect never performs I/O — see ProfileGate for why that matters. It

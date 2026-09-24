@@ -932,6 +932,10 @@
   "@profileSetupSubmit": {
     "description": "Profil kurulumunu tamamlayan buton."
   },
+  "profileSignOut": "Çıkış yap",
+  "@profileSignOut": {
+    "description": "Profilde ve profil kurulumunda bu cihazdaki oturumu kapatan buton. Yalnızca bu cihaz; diğer cihazlardaki oturumlar açık kalır."
+  },
   "authPhoneTitle": "Telefon numaran",
   "@authPhoneTitle": {
     "description": "Telefon giriş ekranı başlığı."

@@ -825,6 +825,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSetupSubmit => 'Continue';
 
   @override
+  String get profileSignOut => 'Sign out';
+
+  @override
   String get authPhoneTitle => 'Your phone number';
 
   @override

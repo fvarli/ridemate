@@ -512,6 +512,21 @@ first launch (nothing was refreshed), after an explicit sign-out (the app would 
 an event the member caused), or after a reinstall purge. A suspended account gets its own
 distinct copy, because "sign in again" is precisely the advice that cannot work for one.
 
+**Sign-out.** Reached from every face of Profile — loaded, failed, missing — and from setup,
+so leaving never depends on the profile read. It navigates nowhere; the redirect above owns
+that. `RmSession.signOut` is local first: the device forgets the session before anything is
+sent, then revokes the *current* session best effort — with the access token, or after one
+refresh-token exchange if that token has expired, or with the pair of a refresh that was
+already in flight. Never other devices. A session epoch moves on at every end of a session, so
+a late refresh is not adopted, a credential written mid-race is undone, and a request made
+under one session is never refreshed and retried under the next.
+
+**The account boundary.** One owner (`lib/app/account_boundary.dart`, installed by the
+router) resets the app-scoped member state — the route draft, the publication attempt, the
+search draft and the search in effect (`kAccountBoundState`) — whenever the session becomes
+signed out, whatever the cause. Everything else account-bound auto-disposes with the shell.
+Device choices — theme, language, the intro flag — are not reset.
+
 The shell hosts the four destinations from the design's tab bar plus a centre action that
 pushes above the shell. Branches build lazily and then stay mounted, which preserves
 scroll position and in-progress input once the real screens land.

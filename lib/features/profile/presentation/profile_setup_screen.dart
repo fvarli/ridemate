@@ -33,6 +33,7 @@ import '../../../core/widgets/rm_button.dart';
 import '../../../core/widgets/rm_text_field.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/my_profile_providers.dart';
+import 'widgets/sign_out_button.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -133,6 +134,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 loading: _saving,
                 onPressed: _submittable ? _submit : null,
               ),
+              const SizedBox(height: RmSpacing.sm),
+              // The way out for a member who signed in with a number they did
+              // not mean to use: setup is otherwise the only screen they reach.
+              const SignOutButton(),
             ],
           ),
         ),

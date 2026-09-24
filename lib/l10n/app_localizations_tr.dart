@@ -823,6 +823,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileSetupSubmit => 'Devam et';
 
   @override
+  String get profileSignOut => 'Çıkış yap';
+
+  @override
   String get authPhoneTitle => 'Telefon numaran';
 
   @override

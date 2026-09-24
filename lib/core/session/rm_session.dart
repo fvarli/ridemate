@@ -109,6 +109,14 @@ class RmSession {
   /// exactly like a stolen credential.
   Future<RmTokenPair>? _refreshing;
 
+  /// Counts every end of a session. Compared, never read for its value.
+  ///
+  /// A refresh captures it before going to the network and adopts its result
+  /// only if it is unchanged on return. Without it, a refresh that was already
+  /// in flight when the member signed out would land afterwards, write a fresh
+  /// credential and put them straight back into the app they had just left.
+  int _epoch = 0;
+
   /// Why the last sign-out happened, if it is worth telling the member.
   ///
   /// Transient and in memory only. A stored "your session ended" would
@@ -145,7 +153,7 @@ class RmSession {
       code: code,
     );
 
-    if (!await _adopt(pair)) {
+    if (await _adopt(pair) != _Adoption.adopted) {
       throw const RmFailure.fromBackend(
         status: 200,
         code: RmErrorCode.unexpected,
@@ -220,6 +228,12 @@ class RmSession {
       );
     }
 
+    // The session this request is made under. If it ends before the retry,
+    // there is nobody left to retry for — and whoever has signed in since
+    // must never have their credential attached to a request somebody else
+    // composed.
+    final int epoch = _epoch;
+
     try {
       return await request(AuthApi.bearer(token));
     } on RmFailure catch (failure) {
@@ -230,9 +244,15 @@ class RmSession {
       }
     }
 
+    if (epoch != _epoch) throw _sessionEnded;
+
     // Throws if refreshing fails, so a dead session surfaces as one failure
     // rather than a second, more confusing one from the retry.
     final RmTokenPair pair = await _refresh();
+
+    // The session ended while the refresh was out. Its pair was not adopted,
+    // and retrying with it would act for somebody who has left.
+    if (epoch != _epoch) throw _sessionEnded;
 
     // Exactly once. A retry that 401s again propagates: the alternative is a
     // loop that hammers the backend with a credential it has already refused.
@@ -243,25 +263,111 @@ class RmSession {
 
   /// Ends the session, server-side when possible and locally regardless.
   ///
-  /// Local clearing is not conditional on the request succeeding. A member who
-  /// asked to sign out on a train with no signal must not stay signed in on
-  /// the device in front of them; the server session outlives it until its own
-  /// expiry, which is the lesser of the two problems.
+  /// LOCAL FIRST. The device forgets the session before anything is sent, so
+  /// the member is signed out the moment they ask — on a train with no signal
+  /// as much as anywhere — and a refresh already in flight can no longer be
+  /// adopted: forgetting moves [_epoch] on, and a late pair is refused.
+  ///
+  /// Then the CURRENT session is revoked, best effort, with the credentials
+  /// captured beforehand — see [_revoke]. Never other devices: each has its own
+  /// session, and signing out of one is not a statement about the rest. A
+  /// revocation that cannot be completed is reported, and the server session
+  /// outlives the device's copy until its own expiry, which is the lesser of
+  /// the two problems.
+  ///
+  /// Not routed through [send]. That would adopt a rotated pair — writing a
+  /// credential and announcing RmSignedIn on the way out — and a refused
+  /// refresh there ends the session with a reason, telling the member their
+  /// session ended when they ended it themselves.
   Future<void> signOut() async {
-    final String? token = _accessToken;
-
-    if (token != null) {
-      try {
-        await _api.logout(token);
-      } on RmFailure catch (failure, stack) {
-        reportError(failure, stack, hint: 'revoking the session');
-      }
-    }
+    final String? accessToken = _accessToken;
+    final String? refreshToken = _credentials?.refreshToken;
+    final Future<RmTokenPair>? refreshing = _refreshing;
 
     // No reason. The member asked for this, and being told their session
     // ended would be the app explaining an event they caused.
     await _forgetLocally();
+
+    await _revoke(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      refreshing: refreshing,
+    );
   }
+
+  /// Revokes one session on the server, by whichever credential still works.
+  ///
+  /// Touches no session state: it runs after the device has already forgotten
+  /// everything, possibly while somebody else signs in, and it acts only on
+  /// what it was handed.
+  ///
+  /// In order:
+  ///   1. A refresh that was in flight may have spent [refreshToken] already,
+  ///      so its pair — never adopted — is the live credential.
+  ///   2. The access token, which is only fifteen minutes old at best. A 401
+  ///      means it expired, not that the session did.
+  ///   3. One exchange of the refresh token for a pair that is used for
+  ///      nothing but the revocation.
+  ///
+  /// A refresh the server refuses (401, 403) proves the session is already
+  /// unusable, which is the outcome being asked for — not a failure worth
+  /// reporting.
+  Future<void> _revoke({
+    required String? accessToken,
+    required String? refreshToken,
+    required Future<RmTokenPair>? refreshing,
+  }) async {
+    try {
+      if (refreshing != null) {
+        try {
+          await _api.logout((await refreshing).accessToken);
+
+          return;
+        } on RmFailure catch (failure) {
+          if (_provesUnusable(failure)) return;
+          // Otherwise nothing was learned — carry on with what was captured.
+          // Should that refresh have reached the server after all, presenting
+          // the same refresh token again below is a replay, and the backend
+          // answers it by revoking this session's whole family: still this
+          // session, and still revoked.
+        }
+      }
+
+      if (accessToken != null) {
+        try {
+          await _api.logout(accessToken);
+
+          return;
+        } on RmFailure catch (failure) {
+          if (failure.status != 401) rethrow;
+        }
+      }
+
+      if (refreshToken == null) return;
+
+      final RmTokenPair pair;
+
+      try {
+        pair = await _api.refresh(refreshToken);
+      } on RmFailure catch (failure) {
+        if (_provesUnusable(failure)) return;
+        rethrow;
+      }
+
+      await _api.logout(pair.accessToken);
+    } on RmFailure catch (failure, stack) {
+      reportError(failure, stack, hint: 'revoking the session');
+    }
+  }
+
+  static const RmFailure _sessionEnded = RmFailure.fromBackend(
+    status: 401,
+    code: RmErrorCode.unauthenticated,
+  );
+
+  static bool _provesUnusable(RmFailure failure) =>
+      failure.code == RmErrorCode.unauthenticated ||
+      failure.code == RmErrorCode.forbidden;
 
   // ------------------------------------------------------------ internals
 
@@ -285,11 +391,17 @@ class RmSession {
       );
     }
 
+    final int epoch = _epoch;
     final RmTokenPair pair;
 
     try {
       pair = await _api.refresh(credentials.refreshToken);
     } on RmFailure catch (failure) {
+      // The session this refresh belonged to has already ended. Forgetting
+      // now would attach a "session ended" notice to a deliberate sign-out,
+      // or clear a credential that belongs to whoever signed in since.
+      if (epoch != _epoch) rethrow;
+
       // The server has refused the refresh token: it is spent, expired, or
       // its session was revoked. Keeping it would mean retrying a credential
       // that can only fail.
@@ -305,14 +417,21 @@ class RmSession {
       rethrow;
     }
 
-    if (!await _adopt(pair)) {
-      throw const RmFailure.fromBackend(
-        status: 401,
-        code: RmErrorCode.unauthenticated,
-      );
-    }
+    // Ended while the request was out, or while its result was being written.
+    // Returned, never adopted: the only caller that can use it is sign-out,
+    // which needs the live credential to revoke with. [send] refuses it.
+    if (epoch != _epoch) return pair;
 
-    return pair;
+    switch (await _adopt(pair)) {
+      case _Adoption.adopted:
+      case _Adoption.superseded:
+        return pair;
+      case _Adoption.notDurable:
+        throw const RmFailure.fromBackend(
+          status: 401,
+          code: RmErrorCode.unauthenticated,
+        );
+    }
   }
 
   /// Takes on a new pair, persisting it before treating it as durable.
@@ -323,16 +442,32 @@ class RmSession {
   /// process ends and is unrecoverable afterwards. Continuing would sign the
   /// member out silently at the next launch, having spent a generation they
   /// can no longer present. Signing out now costs one passcode and is honest.
-  Future<bool> _adopt(RmTokenPair pair) async {
+  ///
+  /// SUPERSEDED is the write that lost a race with a sign-out: the session
+  /// ended while the credential was being stored. Nothing is adopted, and the
+  /// write is undone — but only if the store still holds exactly this pair, so
+  /// a late undo can never remove a credential somebody else has stored since.
+  Future<_Adoption> _adopt(RmTokenPair pair) async {
+    final int epoch = _epoch;
     final RmCredentials credentials = RmCredentials(
       refreshToken: pair.refreshToken,
       sessionId: pair.sessionId,
     );
 
-    if (!await _store.write(credentials)) {
+    final bool durable = await _store.write(credentials);
+
+    if (epoch != _epoch) {
+      if (durable && await _store.read() == credentials) {
+        await _store.clear();
+      }
+
+      return _Adoption.superseded;
+    }
+
+    if (!durable) {
       await _forgetLocally();
 
-      return false;
+      return _Adoption.notDurable;
     }
 
     _credentials = credentials;
@@ -340,7 +475,7 @@ class RmSession {
     _signedOutReason = null;
     _state.value = RmSignedIn(pair.sessionId);
 
-    return true;
+    return _Adoption.adopted;
   }
 
   /// Ends the session for THIS PROCESS without destroying the stored
@@ -351,6 +486,7 @@ class RmSession {
   /// unusable or the member asked to leave, the other when the app simply
   /// could not find out. Synchronous because it touches no storage.
   void _standDown() {
+    _epoch++;
     _accessToken = null;
     _credentials = null;
     _signedOutReason = null;
@@ -363,6 +499,7 @@ class RmSession {
   /// credential, the member signed out, or a rotated credential could not be
   /// written durably.
   Future<void> _forgetLocally([RmSignedOutReason? reason]) async {
+    _epoch++;
     _accessToken = null;
     _credentials = null;
     _signedOutReason = reason;
@@ -389,4 +526,16 @@ class RmSession {
 
     return reason;
   }
+}
+
+/// What became of a pair offered to the session.
+enum _Adoption {
+  /// Stored durably and in use.
+  adopted,
+
+  /// The store refused it. The session has been ended, fail closed.
+  notDurable,
+
+  /// The session ended while it was being stored. Not in use, and not stored.
+  superseded,
 }

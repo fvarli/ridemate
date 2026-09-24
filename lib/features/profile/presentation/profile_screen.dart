@@ -49,6 +49,7 @@ import '../../../l10n/app_localizations.dart';
 import '../application/my_profile_providers.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/profile_links.dart';
+import 'widgets/sign_out_button.dart';
 
 /// The member's own profile.
 class ProfileScreen extends ConsumerWidget {
@@ -108,6 +109,11 @@ class _Loaded extends StatelessWidget {
           onOpenMyRequests: () => context.pushNamed(AppRoutes.myRequests),
         ),
       ),
+      const SizedBox(height: RmSpacing.lg),
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: RmSpacing.screenGutter),
+        child: SignOutButton(),
+      ),
       const SizedBox(height: RmSpacing.xl),
     ],
   );
@@ -162,6 +168,8 @@ class _Unavailable extends StatelessWidget {
             variant: RmButtonVariant.outline,
             onPressed: onRetry,
           ),
+          const SizedBox(height: RmSpacing.sm),
+          const SignOutButton(),
         ],
       ),
     );
@@ -197,6 +205,8 @@ class _NoProfileYet extends StatelessWidget {
             variant: RmButtonVariant.outline,
             onPressed: () => context.goNamed(AppRoutes.profileSetup),
           ),
+          const SizedBox(height: RmSpacing.sm),
+          const SignOutButton(),
         ],
       ),
     );

@@ -239,6 +239,7 @@
   "profileSetupFieldLabel": "Your name",
   "profileSetupFieldHint": "Ayşe Demir",
   "profileSetupSubmit": "Continue",
+  "profileSignOut": "Sign out",
   "authPhoneTitle": "Your phone number",
   "authPhoneBody": "We'll send you a six-digit verification code.",
   "authPhoneFieldLabel": "Phone number",

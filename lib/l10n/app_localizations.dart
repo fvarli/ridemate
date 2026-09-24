@@ -1469,6 +1469,12 @@ abstract class AppLocalizations {
   /// **'Devam et'**
   String get profileSetupSubmit;
 
+  /// Profilde ve profil kurulumunda bu cihazdaki oturumu kapatan buton. Yalnızca bu cihaz; diğer cihazlardaki oturumlar açık kalır.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkış yap'**
+  String get profileSignOut;
+
   /// Telefon giriş ekranı başlığı.
   ///
   /// In tr, this message translates to:
